@@ -394,32 +394,7 @@ const STOCK_SECTORS=SECTOR_OPTIONS.filter(s=>!METAL_SECTORS.includes(s)&&!CRYPTO
 // Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
-const INITIAL=[
-  {id:1,name:"Atossa Therapeutics",value:53.42,sector:"Biotech/Pharma",account:"trade"},
-  {id:2,name:"BULL SILVER X10 AVA 25",value:810,sector:"Silver",account:"trade",ticker:"SLV"},
-  {id:3,name:"Boliden",value:2244.8,sector:"Base Metals Mining",account:"long"},
-  {id:4,name:"Cardiol Therapeutics",value:152.19,sector:"Biotech/Pharma",account:"trade"},
-  {id:5,name:"Caribou Biosciences",value:120.95,sector:"Biotech/Pharma",account:"trade"},
-  {id:6,name:"Eledon Pharmaceuticals",value:291.74,sector:"Biotech/Pharma",account:"trade"},
-  {id:7,name:"Epiroc B",value:662.4,sector:"Mining Equipment",account:"long"},
-  {id:8,name:"Equinox Gold",value:2002.42,sector:"Gold",account:"long",ticker:"EQX"},
-  {id:9,name:"GULD AVA",value:5576.35,sector:"Gold",account:"long",ticker:"GLD"},
-  {id:10,name:"Global X Silver Miners ETF",value:4451.6,sector:"Silver",account:"long",ticker:"SLVR"},
-  {id:11,name:"Gr Silver Mining Ltd",value:559.02,sector:"Silver",account:"trade",ticker:"GRSL"},
-  {id:12,name:"Hycroft Mining A",value:2428.3,sector:"Gold & Silver",account:"trade",ticker:"HYMC"},
-  {id:13,name:"Lundin Mining Corporation",value:1106.8,sector:"Base Metals Mining",account:"long"},
-  {id:14,name:"MINI L DJIA LEV17",value:5738,sector:"Index (Leverage)",account:"trade"},
-  {id:15,name:"Minaurum Silver Inc.",value:506.4,sector:"Silver",account:"trade"},
-  {id:16,name:"Newmont",value:3202.36,sector:"Gold",account:"long",ticker:"NEM"},
-  {id:17,name:"SILVER AVA",value:11331.6,sector:"Silver",account:"long",ticker:"SLV"},
-  {id:18,name:"Sibanye-Stillwater ADR",value:1011.56,sector:"Gold & Silver",account:"trade",ticker:"SBSW"},
-  {id:19,name:"Skanska B",value:3421.6,sector:"Construction",account:"long"},
-  {id:20,name:"TRACK SILVER SG",value:5001.57,sector:"Silver",account:"trade",ticker:"SLV"},
-  {id:21,name:"TURBO L SILVER AVA 351",value:3151.4,sector:"Silver",account:"trade",ticker:"SLV"},
-  {id:22,name:"TeraWulf",value:48808.25,sector:"Crypto/Bitcoin Mining",account:"trade",ticker:"WULF"},
-  {id:23,name:"VanEck Semiconductor ETF",value:7495.33,sector:"Semiconductors ETF",account:"long",ticker:"VVSM"},
-  {id:24,name:"iShares Treasury Bond 20+yr",value:12120.23,sector:"Bonds",account:"long",ticker:"IS04"}
-];
+const INITIAL=[];
 
 // State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
