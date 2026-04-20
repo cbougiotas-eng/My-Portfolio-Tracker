@@ -11,11 +11,107 @@
 <meta name="theme-color" content="#0d0d1a"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d0d1a;color:#e8e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto;padding-bottom:calc(90px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top)}
+body{background:#0d0d1a;color:#e8e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto;padding-bottom:calc(90px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top);min-height:100vh}
 button{cursor:pointer;font-family:inherit}input,select{font-family:inherit}
 input[type=number]::-webkit-inner-spin-button{opacity:.4}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
 select option{background:#0d0d1a;color:#fff}
+
+/* ── Desktop layout ──────────────────────────────────────────────── */
+@media(min-width:900px){
+  body{max-width:100%;margin:0;padding:0;height:100vh;overflow:hidden;background:#080810}
+
+  /* Fixed sidebar nav */
+  #tabs{display:flex;flex-direction:column;background:#0d0d1a;border-right:1px solid #1a1a2e;border-bottom:none;position:fixed;top:0;left:0;width:220px;height:100vh;padding:0;justify-content:flex-start;gap:2px;z-index:20;overflow-y:auto}
+  #tabs::before{content:'📊 Portfolio';display:block;padding:24px 20px 18px;font-size:15px;font-weight:700;color:#fff;border-bottom:1px solid #1a1a2e;margin-bottom:6px;letter-spacing:.3px;flex-shrink:0}
+  .tab-btn{padding:11px 20px;text-align:left;font-size:12px;letter-spacing:.4px;border-bottom:none;border-left:3px solid transparent;border-radius:0;display:flex;align-items:center;gap:10px;width:100%}
+  .tab-btn.active{border-bottom-color:transparent;border-left-color:#7B68EE;background:#13132a;color:#fff}
+  .tab-btn.active.warn-tab{border-left-color:#ff4444}
+
+  /* Fixed top header bar */
+  #header{position:fixed;top:0;left:220px;right:0;z-index:15;padding:0 28px;height:64px;display:flex;align-items:center;gap:20px;background:#0d0d1a;border-bottom:1px solid #1a1a2e}
+  #header-top{display:contents}
+  #total-label{display:none}
+  #total-value{font-size:22px;white-space:nowrap;flex-shrink:0}
+  #header-sub{margin-top:0;gap:8px;flex-shrink:0}
+  #last-updated{display:none}
+  #header-stats{margin-top:0;gap:8px;flex-shrink:0}
+  .stat-box{padding:5px 12px;min-width:68px;border-radius:8px}
+  .stat-label{font-size:8px}
+  .stat-val{font-size:12px}
+  #acct-split{margin-top:0;gap:8px;flex-shrink:0}
+  .acct-pill{padding:5px 12px;border-radius:8px}
+  .ap-label{font-size:8px}
+  .ap-val{font-size:12px}
+  .ap-pct{font-size:9px}
+  #mode-pill{flex-shrink:0;margin-left:auto}
+
+  /* Scrollable main content */
+  #main-content{position:fixed;top:64px;left:220px;right:0;bottom:0;overflow-y:auto}
+
+  /* Panels */
+  .panel{padding:24px 28px;max-width:none}
+  #chart-panel{padding:24px 28px}
+
+  /* All 3 charts side by side */
+  #chart-swipe-wrap{overflow:visible!important}
+  #chart-swipe-inner{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:16px!important;width:100%!important;transform:none!important;transition:none!important}
+  #chart-swipe-inner>div{width:100%!important;flex-shrink:unset!important}
+  .chart-dot{display:none}
+  #chart-title{display:none}
+
+  /* Holdings 2-col */
+  #holdings-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #holdings-list .card{margin-bottom:0!important}
+
+  /* Warnings 2-col */
+  #warnings-content{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
+  #warnings-content .warn-card{margin-bottom:0}
+  #warnings-content .section-label{grid-column:1/-1}
+
+  /* Settings */
+  .setting-input{width:80px}
+  #target-inputs{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+
+  /* Sectors */
+  #other-sectors-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #other-sectors-list .sector-row{margin-bottom:0}
+
+  /* FAB */
+  #fab{bottom:28px;right:28px;width:56px;height:56px;font-size:24px}
+
+  /* Modal centered */
+  .overlay{align-items:center;justify-content:center}
+  .sheet{border-radius:16px;max-width:500px;max-height:88vh}
+
+  /* Misc */
+  #offline-banner{margin-left:220px}
+  #undo-toast{bottom:36px}
+  #search-input{font-size:13px;padding:9px 13px}
+  #chart-swipe-wrap{touch-action:auto!important}
+  /* Hover effects */
+  .tab-btn:hover{background:#0f0f20;color:#aaa}
+  .tab-btn.active:hover{background:#13132a}
+  .card{transition:border-color .15s,background .15s}
+  .card:hover{border-color:#2e2e4e;background:#16162a}
+  .btn-edit:hover{background:#2a2a50}
+  .btn-del:hover{background:#3a1530}
+  .btn-sm:hover{background:#252545;border-color:#444}
+  .acct-pill:hover{opacity:.85}
+  .stat-box:hover{background:#1a2a4a}
+  /* Slightly wider sidebar on hover expand feel */
+  .tab-btn{transition:background .15s,color .15s}
+  /* Better scrollbar on desktop content */
+  #main-content::-webkit-scrollbar{width:6px}
+  #main-content::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:3px}
+  #main-content::-webkit-scrollbar-track{background:transparent}
+  /* Chart labels on desktop */
+  #chart-swipe-inner>div>div:first-child{display:flex;flex-direction:column;align-items:center}
+  /* Section titles for each chart on desktop */
+  .desktop-chart-title{display:block}
+  .sector-row{margin-bottom:0}
+  .metals-row{margin-bottom:0}
+}
 #header{background:linear-gradient(135deg,#1a1a35,#0d0d1a);padding:20px 18px 16px;border-bottom:1px solid #222}
 #header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
 #total-label{font-size:10px;letter-spacing:3px;color:#888;text-transform:uppercase}
@@ -43,8 +139,10 @@ select option{background:#0d0d1a;color:#fff}
 #tabs{display:flex;background:#111;border-bottom:1px solid #222;position:sticky;top:0;z-index:10}
 .tab-btn{flex:1;padding:11px 0;background:none;border:none;color:#666;font-size:9px;font-weight:400;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px}
 .tab-btn.active{color:#fff;font-weight:700;border-bottom-color:#7B68EE}
+.tab-label{display:none}
+@media(min-width:900px){.tab-label{display:inline}}
 .tab-btn.active.warn-tab{border-bottom-color:#ff4444}
-.warn-badge{background:#ff4444;color:#fff;border-radius:50%;font-size:9px;padding:1px 4px;margin-left:2px}
+.warn-badge{background:#ff4444;color:#fff;border-radius:50%;font-size:9px;padding:1px 4px;margin-left:4px;display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px}
 #acct-tabs{display:flex;gap:6px;margin-bottom:10px}
 .acct-tab{flex:1;padding:9px 0;border-radius:10px;border:1px solid #222;background:#131320;font-size:11px;color:#666;font-weight:400}
 .acct-tab.active-long{border-color:#1a4060;background:#0d1f2d;color:#4A90D9;font-weight:700}
@@ -130,12 +228,28 @@ select option{background:#0d0d1a;color:#fff}
 .all-ok p{font-size:11px;margin-top:4px;color:#555}
 .chart-dot{width:7px;height:7px;border-radius:50%;background:#333;cursor:pointer;transition:background .2s}
 .chart-dot.active-dot{background:#7B68EE}
+.desktop-chart-title{display:none}
 #offline-banner{display:none;background:#2a1000;border-bottom:1px solid #aa6600;padding:6px 16px;font-size:11px;color:#ffaa00;text-align:center}
 .target-bar-wrap{margin-top:6px}
 .target-bar-track{background:#1a1a2e;border-radius:4px;height:6px;position:relative;overflow:visible}
 .target-bar-fill{height:100%;border-radius:4px;transition:width .3s}
 .target-bar-marker{position:absolute;top:-3px;width:2px;height:12px;background:#fff;border-radius:1px;opacity:.7}
 .target-drift-label{font-size:9px;margin-top:3px;display:flex;justify-content:space-between}
+.goal-card{background:#131320;border:1px solid #1e1e2e;border-radius:14px;padding:16px;margin-bottom:10px}
+.goal-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.goal-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.goal-title{font-size:13px;font-weight:700;color:#e8e8f0;margin-bottom:2px}
+.goal-sub{font-size:10px;color:#666}
+.goal-progress-track{background:#1a1a2e;border-radius:6px;height:8px;overflow:hidden;margin:10px 0 6px}
+.goal-progress-fill{height:100%;border-radius:6px;transition:width .4s ease}
+.goal-stats{display:flex;justify-content:space-between;font-size:10px;color:#666}
+.goal-stat-val{font-size:13px;font-weight:700;color:#e8e8f0}
+.goal-stat-label{font-size:9px;color:#666;margin-top:1px}
+.goal-edit-btn{background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:#7B68EE;padding:5px 10px;font-size:11px}
+.goal-section-title{font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:18px 0 10px;font-weight:600}
+.deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.deposit-amount{font-size:22px;font-weight:700;color:#3DD68C}
+.deposit-day{font-size:11px;color:#666;margin-top:2px}
 #undo-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e1e3a;border:1px solid #7B68EE;border-radius:11px;padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:12px;color:#e8e8f0;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap}
 #undo-toast.show{opacity:1;pointer-events:auto}
 #undo-toast button{background:#7B68EE;border:none;border-radius:7px;color:#fff;padding:4px 10px;font-size:11px;font-weight:700}
@@ -173,12 +287,12 @@ select option{background:#0d0d1a;color:#fff}
     <div class="stat-box"><div class="stat-label">Sectors</div><div class="stat-val" id="stat-sectors">0</div></div>
   </div>
   <div id="acct-split">
-    <div class="acct-pill long" onclick="switchTab('holdings');setAcctFilter('long')">
+    <div class="acct-pill long" onclick="setAcctFilter('long');switchTab('holdings')">
       <div class="ap-label">📈 Long Term</div>
       <div class="ap-val" id="acct-long-val">0 kr</div>
       <div class="ap-pct" id="acct-long-pct" style="color:#4A90D9">0%</div>
     </div>
-    <div class="acct-pill trade" onclick="switchTab('holdings');setAcctFilter('trade')">
+    <div class="acct-pill trade" onclick="setAcctFilter('trade');switchTab('holdings')">
       <div class="ap-label">⚡ Trading</div>
       <div class="ap-val" id="acct-trade-val">0 kr</div>
       <div class="ap-pct" id="acct-trade-pct" style="color:#F7931A">0%</div>
@@ -187,31 +301,52 @@ select option{background:#0d0d1a;color:#fff}
 </div>
 
 <div id="tabs">
-  <button class="tab-btn active" onclick="switchTab('chart')">Chart</button>
-  <button class="tab-btn" onclick="switchTab('sectors')">Sectors</button>
-  <button class="tab-btn" onclick="switchTab('holdings')">Holdings</button>
-  <button class="tab-btn" onclick="switchTab('warnings')">⚠️<span id="warn-badge" class="warn-badge" style="display:none">0</span></button>
-  <button class="tab-btn" onclick="switchTab('settings')">⚙️</button>
+  <button class="tab-btn active" onclick="switchTab('chart')">📊 <span class="tab-label">Chart</span></button>
+  <button class="tab-btn" onclick="switchTab('sectors')">🗂 <span class="tab-label">Sectors</span></button>
+  <button class="tab-btn" onclick="switchTab('holdings')">📋 <span class="tab-label">Holdings</span></button>
+  <button class="tab-btn" onclick="switchTab('goals')">🎯 <span class="tab-label">Goals</span></button>
+  <button class="tab-btn" onclick="switchTab('warnings')">⚠️ <span class="tab-label">Warnings</span><span id="warn-badge" class="warn-badge" style="display:none">0</span></button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙️ <span class="tab-label">Settings</span></button>
 </div>
+
+<div id="main-content">
 
 <!-- CHART -->
 <div id="chart-panel" class="panel active">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px">
-    <div id="chart-title" style="font-size:12px;font-weight:700;color:#aaa"></div>
-    <div style="display:flex;gap:5px">
-      <div class="chart-dot active-dot" onclick="goToChart(0)"></div>
-      <div class="chart-dot" onclick="goToChart(1)"></div>
-      <div class="chart-dot" onclick="goToChart(2)"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 2px">
+    <div id="chart-title" style="font-size:13px;font-weight:700;color:#aaa;letter-spacing:.3px"></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="chart-dot active-dot" onclick="goToChart(0)" title="Total"></div>
+      <div class="chart-dot" onclick="goToChart(1)" title="Long Term"></div>
+      <div class="chart-dot" onclick="goToChart(2)" title="Trading"></div>
     </div>
   </div>
   <div id="chart-swipe-wrap" style="overflow:hidden;touch-action:pan-y">
-    <div id="chart-swipe-inner" style="display:flex;transition:transform 0.3s ease;width:300%">
-      <div style="width:33.333%;flex-shrink:0"><svg id="donut-svg-0" width="220" height="220" viewBox="0 0 220 220" style="display:block;margin:0 auto"></svg><div id="chart-legend-0"></div></div>
-      <div style="width:33.333%;flex-shrink:0"><svg id="donut-svg-1" width="220" height="220" viewBox="0 0 220 220" style="display:block;margin:0 auto"></svg><div id="chart-legend-1"></div></div>
-      <div style="width:33.333%;flex-shrink:0"><svg id="donut-svg-2" width="220" height="220" viewBox="0 0 220 220" style="display:block;margin:0 auto"></svg><div id="chart-legend-2"></div></div>
+    <div id="chart-swipe-inner" style="display:flex;transition:transform 0.35s cubic-bezier(.4,0,.2,1);width:300%">
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">🌍 Total Portfolio</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-0" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-0" style="margin-top:4px"></div>
+      </div>
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">📈 Long Term</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-1" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-1" style="margin-top:4px"></div>
+      </div>
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">⚡ Trading</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-2" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-2" style="margin-top:4px"></div>
+      </div>
     </div>
   </div>
-  <div id="donut-tooltip" style="display:none;position:fixed;background:#1a1a2e;border:1px solid #333;border-radius:9px;padding:8px 12px;pointer-events:none;z-index:999;font-size:11px"></div>
+  <div id="donut-tooltip" style="display:none;position:fixed;background:#1a1a2e;border:1px solid #333;border-radius:9px;padding:8px 12px;pointer-events:none;z-index:999;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,.5)"></div>
 </div>
 
 <!-- SECTORS -->
@@ -256,6 +391,11 @@ select option{background:#0d0d1a;color:#fff}
     </select>
   </div>
   <div id="holdings-list"></div>
+</div>
+
+<!-- GOALS -->
+<div id="goals-panel" class="panel">
+  <div id="goals-content"></div>
 </div>
 
 <!-- WARNINGS -->
@@ -309,6 +449,10 @@ select option{background:#0d0d1a;color:#fff}
     <button id="set-nostop-btn" onclick="toggleNoStop()" style="background:#1e1e3a;border:1px solid #333;border-radius:20px;padding:4px 13px;font-size:11px;color:#7B68EE">ON</button>
   </div>
   <div style="margin-top:18px;padding:13px;background:#131320;border-radius:11px;border:1px solid #1e1e2e">
+    <div style="font-size:11px;color:#888;margin-bottom:10px">🏆 Portfolio Goal</div>
+    <div id="settings-portfolio-goal"></div>
+  </div>
+  <div style="margin-top:18px;padding:13px;background:#131320;border-radius:11px;border:1px solid #1e1e2e">
     <div style="font-size:11px;color:#888;margin-bottom:10px">🎯 Target Allocations <span style="color:#555;font-size:10px">— set your plan, see your drift</span></div>
     <div id="target-inputs"></div>
     <div id="target-total-row" style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #222;font-size:11px">
@@ -325,10 +469,24 @@ select option{background:#0d0d1a;color:#fff}
   <div style="margin-top:9px;text-align:center;font-size:10px;color:#444;padding:8px">Portfolio Tracker · data saved locally</div>
 </div>
 
+</div><!-- end #main-content -->
+
 <button id="fab" onclick="openModal()">+</button>
 
+<!-- Goal Editor -->
+<div id="goal-overlay" class="overlay" onclick="if(event.target===this)closeGoalEditor()">
+  <div class="sheet">
+    <h2 id="goal-editor-title">Edit Goal</h2>
+    <div id="goal-editor-body"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeGoalEditor()">Cancel</button>
+      <button class="btn-save" id="goal-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Cash Editor -->
-<div id="cash-overlay" class="overlay">
+<div id="cash-overlay" class="overlay" onclick="if(event.target===this)closeCashEditor()">
   <div class="sheet">
     <h2>💵 Cash & Liquidity</h2>
     <div id="cash-current-label" style="font-size:11px;color:#888;margin-bottom:13px"></div>
@@ -341,7 +499,7 @@ select option{background:#0d0d1a;color:#fff}
 </div>
 
 <!-- Add/Edit Holding -->
-<div id="modal-overlay" class="overlay">
+<div id="modal-overlay" class="overlay" onclick="if(event.target===this)closeModal()">
   <div class="sheet" id="modal">
     <h2 id="modal-title">Add Holding</h2>
     <div style="font-size:10px;color:#888;margin-bottom:5px">Account</div>
@@ -372,7 +530,7 @@ select option{background:#0d0d1a;color:#fff}
 </div>
 
 <script>
-const LS_KEY='portfolio_tracker_v2',LS_SETTINGS='pt_settings',LS_HISTORY='pt_history',LS_TARGETS='pt_targets',LS_SYNC_UID='pt_sync_uid',LS_SECTOR_MEMORY='pt_sector_memory';
+const LS_KEY='portfolio_tracker_v2',LS_SETTINGS='pt_settings',LS_HISTORY='pt_history',LS_TARGETS='pt_targets',LS_SYNC_UID='pt_sync_uid',LS_SECTOR_MEMORY='pt_sector_memory',LS_GOALS='pt_goals';
 
 // Remembers previously assigned sectors by holding name for smarter CSV imports
 function loadSectorMemory(){try{return JSON.parse(localStorage.getItem(LS_SECTOR_MEMORY)||'{}');}catch(e){return{};}}
@@ -381,6 +539,26 @@ function saveSectorMemory(){
   holdings.forEach(h=>{if(h.sector&&h.sector!=='Other')mem[h.name.toLowerCase().trim()]=h.sector;});
   try{localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(mem));}catch(e){}
 }
+
+// ── Goals ─────────────────────────────────────────────────────────
+// goals = { portfolioGoal: {target, date}, longTermPct: {target}, deposit: {amount, day} }
+const DEFAULT_GOALS={portfolioGoal:{target:null,date:null},longTermPct:{target:80},deposit:{amount:null,day:25}};
+function loadGoals(){
+  try{
+    const s=localStorage.getItem(LS_GOALS);
+    if(s){
+      const saved=JSON.parse(s);
+      // Deep merge each nested goal object so new default keys survive upgrades
+      return{
+        portfolioGoal:{...DEFAULT_GOALS.portfolioGoal,...(saved.portfolioGoal||{})},
+        longTermPct:{...DEFAULT_GOALS.longTermPct,...(saved.longTermPct||{})},
+        deposit:{...DEFAULT_GOALS.deposit,...(saved.deposit||{})},
+      };
+    }
+  }catch(e){}
+  return{...DEFAULT_GOALS,portfolioGoal:{...DEFAULT_GOALS.portfolioGoal},longTermPct:{...DEFAULT_GOALS.longTermPct},deposit:{...DEFAULT_GOALS.deposit}};
+}
+function saveGoals(){try{localStorage.setItem(LS_GOALS,JSON.stringify(goals));}catch(e){}}
 
 const SECTOR_COLORS={"Silver":"#C0C0C0","Gold":"#FFD700","Gold & Silver":"#DAA520","Base Metals Mining":"#B87333","Mining Equipment":"#8B7355","Bonds":"#4A90D9","Semiconductors ETF":"#7B68EE","Crypto/Bitcoin Mining":"#F7931A","Index (Leverage)":"#FF6B6B","Construction":"#5BA85B","Biotech/Pharma":"#FF8FAB","Cash & Liquidity":"#3DD68C","Other":"#999999","Metals":"#E0C97F"};
 const SECTOR_EMOJIS={"Silver":"🥈","Gold":"🥇","Gold & Silver":"✨","Base Metals Mining":"⛏️","Mining Equipment":"🔧","Bonds":"📊","Semiconductors ETF":"💻","Crypto/Bitcoin Mining":"₿","Index (Leverage)":"📈","Construction":"🏗️","Biotech/Pharma":"🧬","Cash & Liquidity":"💵","Other":"📦","Metals":"⚙️"};
@@ -391,16 +569,65 @@ const SECTOR_OPTIONS=Object.keys(SECTOR_COLORS);
 // Derived after SECTOR_OPTIONS is defined
 const STOCK_SECTORS=SECTOR_OPTIONS.filter(s=>!METAL_SECTORS.includes(s)&&!CRYPTO_SECTORS.includes(s)&&!CASH_SECTORS.includes(s)&&s!=='Other'&&s!=='Metals');
 
+// ── Template helpers ──────────────────────────────────────────────
+
+// Coloured formatted number: green if positive, red if negative, grey if zero
+// Usage: colorVal(pnl, fmt(pnl)+' kr')  or  colorVal(diff, fmtDec(diff)+'%')
+function colorVal(n, formatted){
+  const c=n>0?'#5BA85B':n<0?'#ff4444':'#888';
+  const sign=n>0?'+':'';
+  return `<span style="color:${c}">${sign}${formatted??n}</span>`;
+}
+
+// Stat tile: used in goal cards
+function statTile(value,label,color='#e8e8f0'){
+  return `<div style="background:#0d0d1a;border-radius:9px;padding:10px;text-align:center">
+    <div class="goal-stat-val" style="color:${color}">${value}</div>
+    <div class="goal-stat-label">${label}</div>
+  </div>`;
+}
+
+// Section label
+function sectionLabel(text,marginTop=13){
+  return `<div class="section-label" style="margin-top:${marginTop}px">${text}</div>`;
+}
+
 // Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
-const INITIAL=[];
+const INITIAL=[
+  {id:1,name:"Atossa Therapeutics",value:53.42,sector:"Biotech/Pharma",account:"trade"},
+  {id:2,name:"BULL SILVER X10 AVA 25",value:810,sector:"Silver",account:"trade",ticker:"SLV"},
+  {id:3,name:"Boliden",value:2244.8,sector:"Base Metals Mining",account:"long"},
+  {id:4,name:"Cardiol Therapeutics",value:152.19,sector:"Biotech/Pharma",account:"trade"},
+  {id:5,name:"Caribou Biosciences",value:120.95,sector:"Biotech/Pharma",account:"trade"},
+  {id:6,name:"Eledon Pharmaceuticals",value:291.74,sector:"Biotech/Pharma",account:"trade"},
+  {id:7,name:"Epiroc B",value:662.4,sector:"Mining Equipment",account:"long"},
+  {id:8,name:"Equinox Gold",value:2002.42,sector:"Gold",account:"long",ticker:"EQX"},
+  {id:9,name:"GULD AVA",value:5576.35,sector:"Gold",account:"long",ticker:"GLD"},
+  {id:10,name:"Global X Silver Miners ETF",value:4451.6,sector:"Silver",account:"long",ticker:"SLVR"},
+  {id:11,name:"Gr Silver Mining Ltd",value:559.02,sector:"Silver",account:"trade",ticker:"GRSL"},
+  {id:12,name:"Hycroft Mining A",value:2428.3,sector:"Gold & Silver",account:"trade",ticker:"HYMC"},
+  {id:13,name:"Lundin Mining Corporation",value:1106.8,sector:"Base Metals Mining",account:"long"},
+  {id:14,name:"MINI L DJIA LEV17",value:5738,sector:"Index (Leverage)",account:"trade"},
+  {id:15,name:"Minaurum Silver Inc.",value:506.4,sector:"Silver",account:"trade"},
+  {id:16,name:"Newmont",value:3202.36,sector:"Gold",account:"long",ticker:"NEM"},
+  {id:17,name:"SILVER AVA",value:11331.6,sector:"Silver",account:"long",ticker:"SLV"},
+  {id:18,name:"Sibanye-Stillwater ADR",value:1011.56,sector:"Gold & Silver",account:"trade",ticker:"SBSW"},
+  {id:19,name:"Skanska B",value:3421.6,sector:"Construction",account:"long"},
+  {id:20,name:"TRACK SILVER SG",value:5001.57,sector:"Silver",account:"trade",ticker:"SLV"},
+  {id:21,name:"TURBO L SILVER AVA 351",value:3151.4,sector:"Silver",account:"trade",ticker:"SLV"},
+  {id:22,name:"TeraWulf",value:48808.25,sector:"Crypto/Bitcoin Mining",account:"trade",ticker:"WULF"},
+  {id:23,name:"VanEck Semiconductor ETF",value:7495.33,sector:"Semiconductors ETF",account:"long",ticker:"VVSM"},
+  {id:24,name:"iShares Treasury Bond 20+yr",value:12120.23,sector:"Bonds",account:"long",ticker:"IS04"}
+];
 
 // State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
 let acctFilter='all',selectedAccount='long';
 let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};
-let targets={}; // sector name → target %
+let targets={};
+let goals={};
 let lastRefreshTime=parseInt(localStorage.getItem('pt_last_refresh_ts')||'0')||null;
 
 // ── Storage ───────────────────────────────────────────────────────
@@ -424,7 +651,7 @@ function toggleNoStopAck(id){
 }
 let noStopAck=loadNoStopAck();
 
-function loadSettings(){try{const s=localStorage.getItem(LS_SETTINGS);if(s){const p=JSON.parse(s);if(p.tradeAccountMaxPct==null)p.tradeAccountMaxPct=20;return p;}}catch(e){}return{tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};}
+function loadSettings(){try{const s=localStorage.getItem(LS_SETTINGS);if(s){const p=JSON.parse(s);if(p.tradeAccountMaxPct===null)p.tradeAccountMaxPct=20;return p;}}catch(e){}return{tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};}
 function loadTargets(){try{const s=localStorage.getItem(LS_TARGETS);if(s)return JSON.parse(s);}catch(e){}return{};}
 function saveTargets(){try{localStorage.setItem(LS_TARGETS,JSON.stringify(targets));}catch(e){}}
 function saveSettings(){
@@ -474,14 +701,29 @@ function calcTotals(subset, mode){
 // ── Main render ───────────────────────────────────────────────────
 // Pre-compute all shared data once, then only rebuild the visible tab's DOM.
 function render(){
-  const all=calcTotals(holdings);
-  const longH=holdings.filter(h=>h.account==='long');
-  const tradeH=holdings.filter(h=>h.account==='trade');
-  const longTotals=calcTotals(longH);
-  const tradeTotals=calcTotals(tradeH);
-  const ctx=buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals);
-  renderHeader(ctx);
-  renderTab(ctx);
+  try{
+    const all=calcTotals(holdings);
+    const longH=holdings.filter(h=>h.account==='long');
+    const tradeH=holdings.filter(h=>h.account==='trade');
+    const longTotals=calcTotals(longH);
+    const tradeTotals=calcTotals(tradeH);
+    const ctx=buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals);
+    // Clear any stale error banners from previous failed renders
+    document.querySelectorAll('.render-error').forEach(el=>el.remove());
+    renderHeader(ctx);
+    renderTab(ctx);
+  }catch(err){
+    console.error('Render error:',err);
+    // Show a non-destructive recovery banner rather than a blank screen
+    const panel=document.getElementById(activeTab+'-panel');
+    if(panel&&!panel.querySelector('.render-error')){
+      const div=document.createElement('div');
+      div.className='render-error';
+      div.style.cssText='background:#1f0a0a;border:1px solid #ff4444;border-radius:11px;padding:16px;margin:16px;color:#ff6666;font-size:12px';
+      div.innerHTML=`<b>⚠️ Display error</b><br><span style="color:#888;font-size:11px">${err.message}</span><br><button onclick="this.parentElement.remove();render()" style="margin-top:8px;background:#2a0808;border:1px solid #ff4444;border-radius:7px;color:#ff6666;padding:4px 10px;font-size:11px">Retry</button>`;
+      panel.prepend(div);
+    }
+  }
 }
 
 // Build the shared context object used by all render functions.
@@ -585,12 +827,19 @@ function renderHeader(ctx){
 function renderTab(ctx){
   const{sectorArr,metalPct,activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,
     overS,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,longGroupWarnings,tradeH,longH,longTotals,tradeTotals}=ctx;
-  switch(activeTab){
-    case 'chart':   renderChart(sectorArr,activeTotal,longH,tradeH,longTotals,tradeTotals);break;
-    case 'sectors': renderSectors(sectorArr,metalPct);break;
-    case 'holdings':renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN);break;
-    case 'warnings':renderWarnings(overH,overS,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings);break;
-    case 'settings':renderSettings(ctx.sectorArr);renderHistory();break;
+  try{
+    switch(activeTab){
+      case 'chart':   renderChart(sectorArr,activeTotal,longH,tradeH,longTotals,tradeTotals);break;
+      case 'sectors': renderSectors(sectorArr,metalPct);break;
+      case 'holdings':renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN);break;
+      case 'warnings':renderWarnings(overH,overS,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings);break;
+      case 'goals':   renderGoals(ctx);break;
+      case 'settings':renderSettings(ctx.sectorArr,ctx.marketTotal);renderHistory();break;
+      default:break;
+    }
+  }catch(err){
+    console.error(`renderTab error (${activeTab}):`,err);
+    throw err; // re-throw so outer render() error boundary catches it
   }
 }
 
@@ -598,9 +847,11 @@ function renderTab(ctx){
 let currentChart=0;
 const CHART_TITLES=['🌍 Total Portfolio','📈 Long Term','⚡ Trading'];
 
+function isDesktop(){return window.innerWidth>=900;}
+
 function goToChart(idx){
   currentChart=idx;
-  document.getElementById('chart-swipe-inner').style.transform=`translateX(-${idx*33.333}%)`;
+  if(!isDesktop())document.getElementById('chart-swipe-inner').style.transform=`translateX(-${idx*33.333}%)`;
   document.querySelectorAll('.chart-dot').forEach((d,i)=>d.classList.toggle('active-dot',i===idx));
   document.getElementById('chart-title').textContent=CHART_TITLES[idx];
 }
@@ -637,6 +888,7 @@ function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotal
     wrap.addEventListener('pointerdown',e=>{startX=e.clientX;startY=e.clientY;dragging=true;});
     wrap.addEventListener('pointerup',e=>{
       if(!dragging)return;dragging=false;
+      if(isDesktop())return; // swipe navigation disabled on desktop — all charts visible
       const dx=e.clientX-startX,dy=Math.abs(e.clientY-startY);
       if(Math.abs(dx)>40&&dy<60){if(dx<0&&currentChart<2)goToChart(currentChart+1);else if(dx>0&&currentChart>0)goToChart(currentChart-1);}
     });
@@ -646,66 +898,107 @@ function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotal
 
 function drawDonut(svgId,legendId,sectorArr,isTrade){
   const svg=document.getElementById(svgId),legend=document.getElementById(legendId);
-  if(!sectorArr.length||sectorArr.every(d=>d.value===0)){svg.innerHTML=`<text x="110" y="118" text-anchor="middle" fill="#444" font-size="13">No holdings</text>`;legend.innerHTML='';return;}
-  const cx=110,cy=110,ro=88,ri=54,gap=0.025;
+  if(!sectorArr.length||sectorArr.every(d=>d.value===0)){
+    svg.innerHTML=`
+      <circle cx="130" cy="130" r="90" fill="none" stroke="#1e1e2e" stroke-width="28"/>
+      <text x="130" y="126" text-anchor="middle" fill="#444" font-size="13" font-family="system-ui,sans-serif">No holdings</text>
+      <text x="130" y="144" text-anchor="middle" fill="#333" font-size="10" font-family="system-ui,sans-serif">Tap + to add one</text>`;
+    legend.innerHTML='';return;
+  }
+
+  const cx=130,cy=130,ro=104,ri=72,gap=0.018;
   const total=sectorArr.reduce((s,d)=>s+d.value,0);
-  let startAngle=-Math.PI/2,html='';
-  // Track slice angles for label placement
+  let startAngle=-Math.PI/2;
   const sliceData=[];
   sectorArr.forEach(d=>{
-    const slice=(d.value/total)*(2*Math.PI-gap*sectorArr.length),endAngle=startAngle+slice;
+    const slice=(d.value/total)*(2*Math.PI-gap*sectorArr.length);
+    const endAngle=startAngle+slice;
     sliceData.push({d,startAngle,endAngle,slice});
     startAngle=endAngle+gap;
   });
-  sliceData.forEach(({d,startAngle,endAngle})=>{
-    const slice=endAngle-startAngle;
-    const x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle),x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
-    const x3=cx+ri*Math.cos(endAngle),y3=cy+ri*Math.sin(endAngle),x4=cx+ri*Math.cos(startAngle),y4=cy+ri*Math.sin(startAngle);
-    const large=slice>Math.PI?1:0,color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
-    const dim=activeSector&&activeSector!==d.name?' opacity="0.2"':'';
-    html+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${large} 0 ${x4},${y4} Z" fill="${color}"${dim} style="cursor:pointer" data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmt(d.value)}"/>`;
+
+  // Build SVG — track layer, then slices, then labels, then center
+  let html='';
+
+  // Subtle background ring
+  html+=`<circle cx="${cx}" cy="${cy}" r="${(ro+ri)/2}" fill="none" stroke="#1a1a2e" stroke-width="${ro-ri+1}" opacity="0.5"/>`;
+
+  // Slices
+  sliceData.forEach(({d,startAngle,endAngle,slice})=>{
+    const x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
+    const x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
+    const x3=cx+ri*Math.cos(endAngle),y3=cy+ri*Math.sin(endAngle);
+    const x4=cx+ri*Math.cos(startAngle),y4=cy+ri*Math.sin(startAngle);
+    const large=slice>Math.PI?1:0;
+    const color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
+    const dim=activeSector&&activeSector!==d.name?'0.15':'1';
+    html+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${large} 0 ${x4},${y4} Z"
+      fill="${color}" opacity="${dim}" style="cursor:pointer;transition:opacity .2s"
+      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmt(d.value)}"/>`;
   });
-  // Add permanent labels for top 5 slices (by value), only if slice is big enough
+
+  // Labels on top 5 slices big enough to fit
   const top5=sliceData.slice().sort((a,b)=>b.d.value-a.d.value).slice(0,5);
   const top5Names=new Set(top5.map(s=>s.d.name));
-  sliceData.forEach(({d,startAngle,endAngle})=>{
-    if(!top5Names.has(d.name))return;
-    const slice=endAngle-startAngle;
-    if(slice<0.18)return; // skip if slice too thin to fit label
+  sliceData.forEach(({d,startAngle,endAngle,slice})=>{
+    if(!top5Names.has(d.name)||slice<0.22)return;
     const mid=(startAngle+endAngle)/2;
-    const labelR=(ro+ri)/2; // midpoint between outer and inner radius
-    const lx=cx+labelR*Math.cos(mid),ly=cy+labelR*Math.sin(mid);
-    const dim=activeSector&&activeSector!==d.name?' opacity="0.25"':'';
-    // Short name: use ticker-like abbreviation (first word, max 5 chars)
+    const lr=(ro+ri)/2;
+    const lx=cx+lr*Math.cos(mid),ly=cy+lr*Math.sin(mid);
+    const dim=activeSector&&activeSector!==d.name?'0.15':'1';
     const shortName=d.name.replace('⚡ Trading Account','Trade').replace(/^[^\w]*/,'').split(/[\s&/]/)[0].slice(0,6);
-    html+=`<g${dim} pointer-events="none">
-      <text x="${lx}" y="${ly-4}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="9" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 3px #000">${shortName}</text>
-      <text x="${lx}" y="${ly+7}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.85)" font-size="8.5" font-family="system-ui,sans-serif">${d.pct.toFixed(1)}%</text>
+    html+=`<g opacity="${dim}" pointer-events="none">
+      <text x="${lx}" y="${ly-5}" text-anchor="middle" dominant-baseline="middle"
+        fill="#fff" font-size="9.5" font-weight="700" font-family="system-ui,sans-serif"
+        style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))">${shortName}</text>
+      <text x="${lx}" y="${ly+7}" text-anchor="middle" dominant-baseline="middle"
+        fill="rgba(255,255,255,0.8)" font-size="8.5" font-family="system-ui,sans-serif">${d.pct.toFixed(1)}%</text>
     </g>`;
   });
+
+  // Center — total value
+  const centerLabel=activeSector?sectorArr.find(d=>d.name===activeSector):null;
+  const centerVal=centerLabel?centerLabel.value:total;
+  const centerPct=centerLabel?centerLabel.pct.toFixed(1)+'%':'';
+  const centerName=centerLabel?(centerLabel.name.length>12?centerLabel.name.slice(0,11)+'…':centerLabel.name):'Total';
+  html+=`<circle cx="${cx}" cy="${cy}" r="${ri-4}" fill="#0d0d1a"/>`;
+  html+=`<text x="${cx}" y="${cy-14}" text-anchor="middle" fill="#555" font-size="9.5" font-family="system-ui,sans-serif" letter-spacing="1">${centerName.toUpperCase()}</text>`;
+  html+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="17" font-weight="700" font-family="system-ui,sans-serif">${fmt(centerVal)}</text>`;
+  html+=`<text x="${cx}" y="${cy+21}" text-anchor="middle" fill="#555" font-size="9.5" font-family="system-ui,sans-serif">SEK${centerPct?' · '+centerPct:''}</text>`;
+
   svg.innerHTML=html;
+
+  // Events
   svg.querySelectorAll('path').forEach(p=>{
     p.addEventListener('click',()=>{activeSector=activeSector===p.dataset.sector?null:p.dataset.sector;render();});
     p.addEventListener('mousemove',e=>{
-      const tt=document.getElementById('donut-tooltip'),col=p.dataset.sector==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[p.dataset.sector]||'#999');
-      tt.style.display='block';tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY-10)+'px';
-      tt.innerHTML=`<b>${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</b><br><span style="color:${col}">${p.dataset.pct}% · ${p.dataset.val} kr</span>`;
+      const tt=document.getElementById('donut-tooltip');
+      const col=p.dataset.sector==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[p.dataset.sector]||'#999');
+      tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY-14)+'px';
+      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val} kr</span>`;
     });
     p.addEventListener('mouseleave',()=>{document.getElementById('donut-tooltip').style.display='none';});
   });
-  legend.innerHTML=sectorArr.map(d=>{
-    const isOver=isTrade&&d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name);
-    const color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
-    const sel=activeSector===d.name;
-    return `<div class="sector-row${isOver?' warn':''}${sel?' sel':''}" onclick="toggleSector('${d.name}')">
-      <div class="sector-dot" style="background:${color};flex-shrink:0"></div>
-      <div class="sector-name" style="color:#e8e8f0">${isOver?'⚠️ ':''}${d.name==='⚡ Trading Account'?d.name:(SECTOR_EMOJIS[d.name]||'📦')+' '+d.name}</div>
-      <div style="text-align:right;flex-shrink:0">
-        <div class="sector-pct" style="color:${isOver?'#ff4444':color}">${d.pct.toFixed(1)}%</div>
-        <div class="sector-kr" style="color:#666">${fmt(d.value)} kr</div>
-      </div>
-    </div>`;
-  }).join('');
+
+  // Two-column compact legend
+  legend.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;padding:10px 4px 4px">${
+    sectorArr.map(d=>{
+      const isOver=isTrade&&d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name);
+      const color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
+      const sel=activeSector===d.name;
+      const label=d.name==='⚡ Trading Account'?'Trading':(d.name.length>16?d.name.slice(0,15)+'…':d.name);
+      return `<div data-action="toggle-sector" data-sector="${d.name}"
+        style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:7px;cursor:pointer;
+          background:${sel?'#1e1e3a':isOver?'#1f0a0a':'transparent'};
+          border:1px solid ${sel?'#7B68EE':isOver?'#ff444433':'transparent'};transition:background .15s">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;color:${isOver?'#ff6666':'#ccc'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isOver?'⚠ ':''}${label}</div>
+          <div style="font-size:10px;font-weight:700;color:${isOver?'#ff4444':color}">${d.pct.toFixed(1)}%</div>
+        </div>
+      </div>`;
+    }).join('')
+  }</div>`;
 }
 
 function renderSectors(sectorArr,metalPct){
@@ -873,7 +1166,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
               <span style="font-size:10px;color:#cc9900">Stop loss managed by size</span>
             </label>
           </div>
-          <button onclick="openEdit(${h.id})" style="background:#2a1a00;border:1px solid #aa6600;border-radius:7px;color:#ffaa00;padding:4px 9px;font-size:10px;flex-shrink:0">Set stop</button>
+          <button data-action="edit" data-id="${h.id}" style="background:#2a1a00;border:1px solid #aa6600;border-radius:7px;color:#ffaa00;padding:4px 9px;font-size:10px;flex-shrink:0">Set stop</button>
         </div>
       </div>`;
     });
@@ -888,7 +1181,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
               <span style="font-size:10px;color:#5BA85B">Stop loss managed by size</span>
             </label>
           </div>
-          <button onclick="openEdit(${h.id})" style="background:#1a2a1a;border:1px solid #3a5a3a;border-radius:7px;color:#5BA85B;padding:4px 9px;font-size:10px;flex-shrink:0">Set stop</button>
+          <button data-action="edit" data-id="${h.id}" style="background:#1a2a1a;border:1px solid #3a5a3a;border-radius:7px;color:#5BA85B;padding:4px 9px;font-size:10px;flex-shrink:0">Set stop</button>
         </div>
       </div>`;
     });
@@ -963,12 +1256,48 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
   el.innerHTML=html;
 }
 
-function renderSettings(sectorArr){
+function renderSettings(sectorArr, marketTotal){
   document.getElementById('set-trade-warn').value=settings.tradeWarn;
   document.getElementById('set-sector-warn').value=settings.sectorWarn;
   document.getElementById('set-trade-account-max').value=settings.tradeAccountMaxPct;
   document.getElementById('set-nostop-btn').textContent=settings.warnNoStop?'ON':'OFF';
   document.getElementById('set-nostop-btn').style.color=settings.warnNoStop?'#7B68EE':'#666';
+
+  // Portfolio goal inline in settings
+  const pg=goals.portfolioGoal;
+  const pgEl=document.getElementById('settings-portfolio-goal');
+  if(pgEl){
+    const totalMarket=marketTotal??calcTotals(holdings,'market').marketTotal;
+    if(pg.target&&pg.date){
+      const pct=Math.min(totalMarket/pg.target*100,100);
+      const remaining=Math.max(pg.target-totalMarket,0);
+      const targetDate=new Date(pg.date);
+      const now=new Date();
+      const daysLeft=Math.ceil((targetDate-now)/(1000*60*60*24));
+      const barColor=pct>=100?'#5BA85B':pct>=70?'#7B68EE':'#4A90D9';
+      pgEl.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#e8e8f0">${fmt(pg.target)} kr</div>
+            <div style="font-size:10px;color:#666;margin-top:1px">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})} · ${daysLeft>0?daysLeft+' days left':'past deadline'}</div>
+          </div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">Edit</button>
+        </div>
+        <div class="goal-progress-track">
+          <div class="goal-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px;color:#666">
+          <span>${pct.toFixed(1)}% reached · ${fmt(totalMarket)} kr now</span>
+          <span style="color:${pct>=100?'#5BA85B':'#888'}">${pct>=100?'🎉 Done!':fmt(remaining)+' kr to go'}</span>
+        </div>`;
+    } else {
+      pgEl.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:11px;color:#555">No goal set yet</div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">+ Set goal</button>
+        </div>`;
+    }
+  }
 
   // Build target inputs — use pre-computed sectorArr from render context when available
   const arr=sectorArr||calcTotals(holdings).sectorArr;
@@ -1028,8 +1357,211 @@ function saveSnapshot(){
     tradeTotal,
   };
   try{const h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');h.unshift(snap);localStorage.setItem(LS_HISTORY,JSON.stringify(h.slice(0,30)));}catch(e){}
-  renderHistory();
+  renderHistory(); // always update — history list reads from localStorage directly
 }
+
+// ── Goals rendering ───────────────────────────────────────────────
+function renderGoals(ctx){
+  const{marketTotal,longTotals}=ctx;
+  const el=document.getElementById('goals-content');
+  const longMarket=longTotals.marketTotal;
+
+  // ── Portfolio Goal ────────────────────────────────────────────────
+  const pg=goals.portfolioGoal;
+  let portfolioGoalCard='';
+  if(pg.target&&pg.date){
+    const pct=Math.min(marketTotal/pg.target*100,100);
+    const remaining=Math.max(pg.target-marketTotal,0);
+    const targetDate=new Date(pg.date);
+    const now=new Date();
+    const daysLeft=Math.ceil((targetDate-now)/(1000*60*60*24));
+    const monthsLeft=Math.max((targetDate.getFullYear()-now.getFullYear())*12+(targetDate.getMonth()-now.getMonth()),0);
+    const monthlyNeeded=monthsLeft>0?remaining/monthsLeft:remaining;
+    const onTrack=goals.deposit.amount&&goals.deposit.amount>=monthlyNeeded;
+    const barColor=pct>=100?'#5BA85B':pct>=70?'#7B68EE':pct>=40?'#4A90D9':'#F7931A';
+    portfolioGoalCard=`
+      <div class="goal-card" style="border-color:${pct>=100?'#2a4a2a':'#1e1e2e'}">
+        <div class="goal-card-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="goal-icon" style="background:${pct>=100?'#0d2a0d':'#1a1a2e'};font-size:20px">🏆</div>
+            <div>
+              <div class="goal-title">${fmt(pg.target)} kr</div>
+              <div class="goal-sub">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})}</div>
+            </div>
+          </div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">Edit</button>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0 2px">
+          <span style="font-size:28px;font-weight:800;color:${barColor}">${pct.toFixed(1)}%</span>
+          <span style="font-size:11px;color:#666">${pct>=100?'🎉 Goal reached!':'of goal reached'}</span>
+        </div>
+        <div style="background:#1a1a2e;border-radius:8px;height:12px;overflow:hidden;margin:8px 0">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor}88,${barColor});border-radius:8px;transition:width .5s ease"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(${pct<100?3:2},1fr);gap:8px;margin-top:10px">
+          ${statTile(fmt(marketTotal)+' kr','Current value','#e8e8f0')}
+          ${pct<100?statTile(fmt(remaining)+' kr','Still needed','#F7931A'):''}
+          ${pct<100?statTile(daysLeft>0?String(daysLeft):'0',daysLeft<30&&daysLeft>0?'⚠️ Days left':'Days left',daysLeft<30&&daysLeft>0?'#ff6666':'#888'):statTile('🎉','Completed!','#5BA85B')}
+        </div>
+        ${pct<100&&monthlyNeeded>0?`
+          <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:#666">Monthly deposit needed</span>
+            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmt(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
+          </div>`:''}
+      </div>`;
+  } else {
+    portfolioGoalCard=`
+      <div class="goal-card" style="border-style:dashed;cursor:pointer" onclick="openGoalEditor('portfolio')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#1a1a2e">🏆</div>
+          <div>
+            <div class="goal-title" style="color:#555">Set a portfolio goal</div>
+            <div class="goal-sub">Target value + deadline — configure in Settings</div>
+          </div>
+          <div style="margin-left:auto;color:#7B68EE;font-size:20px">+</div>
+        </div>
+      </div>`;
+  }
+
+  // ── Account Balance ───────────────────────────────────────────────
+  const lt=goals.longTermPct;
+  const actualLongPct=marketTotal>0?longMarket/marketTotal*100:0;
+  const ltTarget=lt.target||80;
+  const ltDiff=actualLongPct-ltTarget;
+  const ltColor=Math.abs(ltDiff)<2?'#5BA85B':ltDiff>0?'#4A90D9':'#F7931A';
+
+  const accountBalanceCard=`
+    <div class="goal-card">
+      <div class="goal-card-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#0d1f2d">📈</div>
+          <div>
+            <div class="goal-title">Long Term ${ltTarget}% of total</div>
+            <div class="goal-sub">Currently ${fmtDec(actualLongPct)}% · Trading ${fmtDec(100-actualLongPct)}%</div>
+          </div>
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalEditor('longterm')">Edit</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        ${statTile(fmtDec(actualLongPct)+'%','Long Term now','#4A90D9')}
+        ${statTile(fmtDec(100-actualLongPct)+'%','Trading now','#F7931A')}
+      </div>
+      <div style="background:#1a1a2e;border-radius:8px;height:10px;position:relative;overflow:hidden;margin:8px 0">
+        <div style="height:100%;width:${Math.min(actualLongPct,100)}%;background:linear-gradient(90deg,#1a4060,#4A90D9);border-radius:8px;transition:width .4s"></div>
+        <div style="position:absolute;top:-2px;height:14px;width:2px;background:#fff;opacity:.7;left:${ltTarget}%;border-radius:1px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px">
+        <span style="color:#4A90D9">Long Term</span>
+        <span style="color:${ltColor};font-weight:700">${ltDiff>=0?'+':''}${fmtDec(ltDiff)}% vs target</span>
+        <span style="color:#F7931A">Trading</span>
+      </div>
+    </div>`;
+
+  // ── Monthly Savings Plan ──────────────────────────────────────────
+  const dep=goals.deposit;
+  const depDay=dep.day||25;
+  const today=new Date().getDate();
+  const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+  const daysUntilDeposit=depDay>=today?depDay-today:depDay+(daysInMonth-today);
+  const annualSavings=(dep.amount||0)*12;
+
+  const depositCard=`
+    <div class="goal-card">
+      <div class="goal-card-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#0d1a0d">💰</div>
+          <div>
+            <div class="goal-title">${dep.amount?fmt(dep.amount)+' kr / month':'Set monthly deposit'}</div>
+            <div class="goal-sub">${dep.amount?`Every month on the ${ordinal(dep.day)} · ${fmt(annualSavings)} kr/year`:'Tap Edit to configure'}</div>
+          </div>
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalEditor('deposit')">Edit</button>
+      </div>
+      ${dep.amount?`
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          ${statTile(fmt(dep.amount),'Monthly (kr)','#3DD68C')}
+          ${statTile(daysUntilDeposit===0?'Today':String(daysUntilDeposit),daysUntilDeposit===0?'Deposit day!':'Days until next')}
+          ${statTile(fmt(annualSavings),'Annual (kr)','#7B68EE')}
+        </div>
+        ${goals.portfolioGoal.target?`
+          <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:11px;color:#666">
+            💡 At ${fmt(dep.amount)} kr/month you'll add <span style="color:#e8e8f0;font-weight:700">${fmt(annualSavings)} kr</span> per year
+          </div>`:''}
+      `:`<div style="font-size:11px;color:#444;text-align:center;padding:8px">No deposit plan set — tap Edit to configure</div>`}
+    </div>`;
+
+  el.innerHTML=
+    sectionLabel('Portfolio Goal',0)+
+    portfolioGoalCard+
+    sectionLabel('Account Balance')+
+    accountBalanceCard+
+    sectionLabel('Monthly Savings Plan')+
+    depositCard;
+}
+
+function ordinal(n){
+  // Special case: 11,12,13 always use 'th' regardless of last digit
+  const v=n%100;
+  if(v>=11&&v<=13)return n+'th';
+  const s=['th','st','nd','rd'];
+  return n+(s[n%10]||s[0]);
+}
+
+// ── Goal editor overlay ───────────────────────────────────────────
+function openGoalEditor(type){
+  const o=document.getElementById('goal-overlay');
+  const title=document.getElementById('goal-editor-title');
+  const body=document.getElementById('goal-editor-body');
+  const pg=goals.portfolioGoal;
+  const lt=goals.longTermPct;
+  const dep=goals.deposit;
+
+  if(type==='portfolio'){
+    title.textContent='🏆 Portfolio Goal';
+    body.innerHTML=`
+      <div class="field"><label>Target Value (SEK)</label>
+        <input id="ge-target" type="number" placeholder="e.g. 1000000" value="${pg.target||''}" style="border-color:#7B68EE33"/></div>
+      <div class="field"><label>Target Date</label>
+        <input id="ge-date" type="date" value="${pg.date||''}" style="border-color:#7B68EE33"/></div>`;
+  } else if(type==='longterm'){
+    title.textContent='📈 Long Term Target';
+    body.innerHTML=`
+      <div class="field"><label>Long Term % of Total Portfolio</label>
+        <input id="ge-ltpct" type="number" min="1" max="99" placeholder="80" value="${lt.target||80}" style="border-color:#4A90D933"/>
+        <div style="font-size:10px;color:#555;margin-top:4px">The rest will be Trading account</div></div>`;
+  } else if(type==='deposit'){
+    title.textContent='💰 Monthly Savings Plan';
+    body.innerHTML=`
+      <div class="field"><label>Monthly Deposit Amount (SEK)</label>
+        <input id="ge-amount" type="number" placeholder="e.g. 5000" value="${dep.amount||''}" style="border-color:#3DD68C33"/></div>
+      <div class="field"><label>Day of Month</label>
+        <input id="ge-day" type="number" min="1" max="28" placeholder="25" value="${dep.day||25}" style="border-color:#3DD68C33"/>
+        <div style="font-size:10px;color:#555;margin-top:4px">Choose 1–28 to avoid month-end variation</div></div>`;
+  }
+
+  document.getElementById('goal-save-btn').onclick=()=>saveGoalEditor(type);
+  o.classList.add('open');
+  setTimeout(()=>body.querySelector('input')?.focus(),100);
+}
+
+function saveGoalEditor(type){
+  if(type==='portfolio'){
+    const t=parseFloat(document.getElementById('ge-target').value);
+    const d=document.getElementById('ge-date').value;
+    goals.portfolioGoal={target:t>0?t:null,date:d||null};
+  } else if(type==='longterm'){
+    const v=parseFloat(document.getElementById('ge-ltpct').value);
+    goals.longTermPct={target:v>0&&v<100?v:80};
+  } else if(type==='deposit'){
+    const a=parseFloat(document.getElementById('ge-amount').value);
+    const d=parseInt(document.getElementById('ge-day').value);
+    goals.deposit={amount:a>0?a:null,day:d>=1&&d<=28?d:25};
+  }
+  saveGoals();
+  document.getElementById('goal-overlay').classList.remove('open');
+  render(); // always re-render — goal block in settings and goals tab both need updating
+}
+function closeGoalEditor(){document.getElementById('goal-overlay').classList.remove('open');}
 
 function renderHistory(){
   try{
@@ -1070,13 +1602,15 @@ function setAcctFilter(f){acctFilter=f;render();}
 function switchTab(tab){
   activeTab=tab;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    const names=['chart','sectors','holdings','warnings','settings'];
+    const names=['chart','sectors','holdings','goals','warnings','settings'];
     b.classList.toggle('active',names[i]===tab);
     if(names[i]==='warnings')b.classList.toggle('warn-tab',names[i]===tab);
   });
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(tab+'-panel').classList.add('active');
-  render(); // re-render so the newly visible tab gets fresh data
+  const mc=document.getElementById('main-content');
+  if(mc)mc.scrollTop=0;
+  render();
 }
 
 let _deletedHolding=null,_undoTimer=null;
@@ -1122,11 +1656,26 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
   else if(btn.dataset.action==='delete')deleteHolding(id);
 });
 
+// Delegation for warnings panel — covers "Set stop" buttons in no-stop cards
+document.getElementById('warnings-panel').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  const id=parseInt(btn.dataset.id);
+  if(btn.dataset.action==='edit')openEdit(id);
+});
+
+// Delegation for chart legend — covers sector filter clicks
+document.getElementById('chart-panel').addEventListener('click',e=>{
+  const row=e.target.closest('[data-action="toggle-sector"]');
+  if(row)toggleSector(row.dataset.sector);
+});
+
 // ── Keyboard shortcuts ────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('modal-overlay').classList.contains('open'))closeModal();
     else if(document.getElementById('cash-overlay').classList.contains('open'))closeCashEditor();
+    else if(document.getElementById('goal-overlay').classList.contains('open'))closeGoalEditor();
   }
 });
 
@@ -1227,9 +1776,13 @@ function handleFile(e){
     if(file.name.endsWith('.json')){
       try{
         const data=JSON.parse(text);
-        if(!Array.isArray(data))throw new Error();
-        if(!confirm(`Import ${data.length} holdings? This replaces current data.`))return;
-        holdings=data;save();render();document.getElementById('csv-error').textContent='';
+        // Support both old format (array) and new backup format ({holdings, goals})
+        const importedHoldings=Array.isArray(data)?data:(Array.isArray(data.holdings)?data.holdings:null);
+        if(!importedHoldings)throw new Error();
+        if(!confirm(`Import ${importedHoldings.length} holdings? This replaces current data.`))return;
+        holdings=importedHoldings;
+        if(data.goals){goals={...DEFAULT_GOALS,...data.goals};saveGoals();}
+        save();render();document.getElementById('csv-error').textContent='';
       }catch(e){showCsvErr('Invalid JSON file');}
       return;
     }
@@ -1274,7 +1827,7 @@ function handleFile(e){
 function showCsvErr(msg){document.getElementById('csv-error').textContent=msg;}
 
 function exportData(){
-  const json=JSON.stringify(holdings,null,2);
+  const json=JSON.stringify({holdings,goals},null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;
@@ -1287,6 +1840,17 @@ function exportData(){
 window.addEventListener('online',()=>{document.getElementById('offline-banner').style.display='none';});
 window.addEventListener('offline',()=>{document.getElementById('offline-banner').style.display='block';});
 if(!navigator.onLine)document.getElementById('offline-banner').style.display='block';
+
+// Re-render when window crosses the mobile/desktop breakpoint so chart
+// layout (swipe vs grid) and goToChart behaviour update without a page reload
+let _lastDesktop=isDesktop();
+window.addEventListener('resize',()=>{
+  const nowDesktop=isDesktop();
+  if(nowDesktop!==_lastDesktop){
+    _lastDesktop=nowDesktop;
+    render();
+  }
+});
 
 const PROXIES=[
   url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -1342,8 +1906,8 @@ async function refreshPrices(silent=false){
     const data=await fetchWithFallback(yahooUrl);
     const quotes=data.quoteResponse?.result||[];
     if(!quotes.length)throw new Error('No data');
-    const usdSek=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice||10.5;
-    const eurSek=quotes.find(q=>q.symbol==='EURSEK=X')?.regularMarketPrice||11.0;
+    const usdSek=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice||10.3;
+    const eurSek=quotes.find(q=>q.symbol==='EURSEK=X')?.regularMarketPrice||11.2;
     const cadSek=quotes.find(q=>q.symbol==='CADSEK=X')?.regularMarketPrice||(usdSek*0.74); // Fall back to USD*0.74 if CAD rate is unavailable
     let updated=0,failed=[];
     holdings=holdings.map(h=>{
@@ -1417,6 +1981,14 @@ async function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
+    // Handle redirect result after returning from Google sign-in
+    firebase.auth().getRedirectResult().then(result=>{
+      if(result.user)showRefreshStatus('✅ Signed in as '+result.user.displayName,'#5BA85B');
+    }).catch(e=>{
+      if(e.code!=='auth/no-auth-event')
+        showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
+    });
+
     // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
       if(user){
@@ -1473,8 +2045,8 @@ async function signInWithGoogle(){
   if(!db){showRefreshStatus('Still loading, try again in a moment','#888');return;}
   try{
     const provider=new firebase.auth.GoogleAuthProvider();
-    await firebase.auth().signInWithPopup(provider);
-    // onAuthStateChanged handles the rest
+    // Use redirect instead of popup — popup is blocked by iOS Safari
+    await firebase.auth().signInWithRedirect(provider);
   }catch(e){
     showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
   }
@@ -1496,6 +2068,7 @@ async function pushToFirebase(){
       holdings:JSON.stringify(holdings),
       settings:JSON.stringify(settings),
       targets:JSON.stringify(targets),
+      goals:JSON.stringify(goals),
       updatedAt:Date.now()
     });
   }catch(e){console.warn('Push failed:',e);}
@@ -1514,11 +2087,13 @@ function startSync(){
         const remoteH=JSON.parse(data.holdings||'[]');
         const remoteS=JSON.parse(data.settings||'{}');
         const remoteT=JSON.parse(data.targets||'{}');
+        const remoteG=JSON.parse(data.goals||'{}');
         if(remoteH.length){
           holdings=remoteH;
           settings={...settings,...remoteS};
-          if(settings.tradeAccountMaxPct==null)settings.tradeAccountMaxPct=20;
+          if(settings.tradeAccountMaxPct===null)settings.tradeAccountMaxPct=20;
           targets={...remoteT};
+          goals={...DEFAULT_GOALS,...remoteG};
           // Persist locally without triggering a push back to Firebase
           try{
             localStorage.setItem('pt_last_updated_ts',String(remote));
@@ -1552,7 +2127,7 @@ function autoBackup(force=false){
   const weekMs=7*24*60*60*1000;
   if(!force && last && (now-parseInt(last))<weekMs) return; // not due yet
   try{
-    const json=JSON.stringify(holdings,null,2);
+    const json=JSON.stringify({holdings,goals},null,2);
     const blob=new Blob([json],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
@@ -1568,6 +2143,7 @@ function autoBackup(force=false){
 // ── Init ──────────────────────────────────────────────────────────
 settings=loadSettings();
 targets=loadTargets();
+goals=loadGoals();
 holdings=loadData()||JSON.parse(JSON.stringify(INITIAL));
 // Normalise loaded data — apply defaults for missing fields, strip legacy unused fields
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
