@@ -2120,18 +2120,22 @@ function signInWithGoogle(){
               return;
             }
             showRefreshStatus('🔄 Signing in to Firebase…','#888');
+            console.log('GSI token received, length:',tokenResponse.access_token.length);
+            console.log('firebase.auth available:',typeof firebase!=='undefined'&&!!firebase.auth);
             if(!firebase||!firebase.auth){
               showRefreshStatus('❌ Firebase not ready — please try again','#ff4444');
               return;
             }
             const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
+            console.log('Credential created, calling signInWithCredential…');
             firebase.auth().signInWithCredential(credential)
               .then(result=>{
+                console.log('signInWithCredential success:',result.user.email);
                 showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
               })
               .catch(e=>{
-                showRefreshStatus('❌ Firebase error: '+e.code+' — '+e.message,'#ff4444');
-                console.error('signInWithCredential failed:',e);
+                console.error('signInWithCredential failed — code:',e.code,'message:',e.message,'full:',e);
+                showRefreshStatus('❌ '+e.code+': '+e.message,'#ff4444');
               });
           },
           error_callback:(err)=>{
