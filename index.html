@@ -2042,15 +2042,6 @@ async function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
-    // Handle redirect result — runs on page load after returning from Google sign-in on Safari
-    try{
-      const result=await firebase.auth().getRedirectResult();
-      if(result&&result.user)showRefreshStatus('✅ Signed in as '+result.user.displayName,'#5BA85B');
-    }catch(e){
-      if(e.code&&e.code!=='auth/no-auth-event'&&e.code!=='auth/null-user')
-        showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
-    }
-
     // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
       if(user){
@@ -2103,37 +2094,40 @@ function setSyncUI(signedIn,user=null){
   }
 }
 
-// Safari blocks cross-origin popups — detect it reliably
-function isSafari(){
-  const ua=navigator.userAgent;
-  return /Safari/.test(ua)&&!/Chrome/.test(ua)&&!/CriOS/.test(ua)&&!/FxiOS/.test(ua);
-}
+// ── Google Sign-In via GSI token flow ────────────────────────────
+// Uses Google Identity Services (accounts.google.com/gsi/client) to get
+// an OAuth access token, then exchanges it for a Firebase credential via
+// signInWithCredential. This bypasses the broken popup/redirect flows
+// entirely and works in ALL browsers including Safari 16.1+.
+const GSI_CLIENT_ID='37202666172-t2hkd4gfv2d5pau9gmh33u5qllue1ic5.apps.googleusercontent.com';
+let _gsiClient=null;
 
-async function signInWithGoogle(){
+function signInWithGoogle(){
   if(!db){showRefreshStatus('Still loading, try again in a moment','#888');return;}
-  const provider=new firebase.auth.GoogleAuthProvider();
-  if(isSafari()){
-    // Safari blocks cross-origin popups — always use redirect
-    try{
-      await firebase.auth().signInWithRedirect(provider);
-    }catch(e){
-      showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
+  loadScript('https://accounts.google.com/gsi/client').then(()=>{
+    if(!_gsiClient){
+      _gsiClient=google.accounts.oauth2.initTokenClient({
+        client_id:GSI_CLIENT_ID,
+        scope:'email profile openid',
+        callback:(tokenResponse)=>{
+          if(tokenResponse.error){
+            showRefreshStatus('❌ Sign in failed: '+tokenResponse.error,'#ff4444');
+            return;
+          }
+          // Exchange the Google access token for a Firebase credential
+          const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
+          firebase.auth().signInWithCredential(credential)
+            .then(result=>{
+              showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
+            })
+            .catch(e=>{showRefreshStatus('❌ Firebase sign in failed: '+e.message,'#ff4444');});
+        },
+      });
     }
-    return;
-  }
-  // All other browsers — use popup (faster, no page reload)
-  try{
-    const result=await firebase.auth().signInWithPopup(provider);
-    if(result.user)showRefreshStatus('✅ Signed in as '+result.user.displayName,'#5BA85B');
-  }catch(e){
-    if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'){
-      // Popup was blocked anyway — last resort redirect
-      try{ await firebase.auth().signInWithRedirect(provider); }
-      catch(e2){ showRefreshStatus('❌ Sign in failed: '+e2.message,'#ff4444'); }
-    }else{
-      showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
-    }
-  }
+    _gsiClient.requestAccessToken();
+  }).catch(()=>{
+    showRefreshStatus('❌ Could not load Google Sign-In. Check your connection.','#ff4444');
+  });
 }
 
 async function signOut(){
