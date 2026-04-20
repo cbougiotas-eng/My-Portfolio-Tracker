@@ -24,7 +24,7 @@ select option{background:#0d0d1a;color:#fff}
   /* Fixed sidebar nav */
   #tabs{display:flex;flex-direction:column;background:#09091a;border-right:1px solid #161628;border-bottom:none;position:fixed;top:0;left:0;width:220px;height:100vh;padding:0;justify-content:flex-start;gap:2px;z-index:20;overflow-y:auto}
   #tabs::before{content:'📊 Portfolio';display:block;padding:24px 20px 18px;font-size:15px;font-weight:700;color:#fff;border-bottom:1px solid #161628;margin-bottom:6px;letter-spacing:.3px;flex-shrink:0}
-  .tab-btn{padding:11px 20px;text-align:left;font-size:12px;letter-spacing:.4px;border-bottom:none;border-left:3px solid transparent;border-radius:0;display:flex;align-items:center;gap:10px;width:100%}
+  .tab-btn{padding:11px 20px;text-align:left;font-size:16px;letter-spacing:.4px;border-bottom:none;border-left:3px solid transparent;border-radius:0;display:flex;align-items:center;gap:10px;width:100%}
   .tab-btn.active{border-bottom-color:transparent;border-left-color:#7B68EE;background:#13132a;color:#fff}
   .tab-btn.active.warn-tab{border-left-color:#ff4444}
 
@@ -101,6 +101,7 @@ select option{background:#0d0d1a;color:#fff}
   .card{transition:border-color .15s,background .15s}
   .card:hover{border-color:#2e2e4e;background:#16162a}
   .btn-edit:hover{background:#2a2a50}
+  .btn-dup:hover{background:#0d2a2a}
   .btn-del:hover{background:#3a1530}
   .btn-sm:hover{background:#252545;border-color:#444}
   .acct-pill:hover{opacity:.85}
@@ -171,6 +172,7 @@ select option{background:#0d0d1a;color:#fff}
 .val{font-size:12px;color:#666}
 .actions{display:flex;gap:4px;flex-shrink:0}
 .btn-edit{background:#16163a;border:1px solid #2a2a50;border-radius:7px;color:#7B68EE;padding:5px 8px;font-size:13px}
+.btn-dup{background:#0d1a1a;border:1px solid #1a3a3a;border-radius:7px;color:#3DD68C;padding:5px 8px;font-size:13px}
 .btn-del{background:#1e0a18;border:1px solid #3a1030;border-radius:7px;color:#ff6b6b;padding:5px 8px;font-size:13px}
 .acct-tag{font-size:11px;padding:1px 6px;border-radius:8px;font-weight:700;flex-shrink:0}
 .acct-tag.long{background:#0d1f2d;color:#4A90D9;border:1px solid #1a4060}
@@ -286,6 +288,9 @@ select option{background:#0d0d1a;color:#fff}
     <div id="mode-pill">
       <button id="btn-risk" onclick="setMode('risk')">⚡ Risk</button>
       <button id="btn-market" onclick="setMode('market')">📊 Market</button>
+    </div>
+    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle display currency" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
+      <span id="currency-pill-label">SEK</span>
     </div>
   </div>
   <div id="header-stats">
@@ -518,7 +523,7 @@ select option{background:#0d0d1a;color:#fff}
   <div class="sheet">
     <h2>💵 Cash & Liquidity</h2>
     <div id="cash-current-label" style="font-size:11px;color:#888;margin-bottom:13px"></div>
-    <div class="field"><label>Amount (SEK)</label><input id="cash-input" type="number" placeholder="e.g. 50000" style="border-color:#3DD68C"/></div>
+    <div class="field"><label id="cash-amount-label">Amount (SEK)</label><input id="cash-input" type="number" placeholder="e.g. 50000" style="border-color:#3DD68C"/></div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button onclick="closeCashEditor()" class="btn-cancel">Cancel</button>
       <button onclick="saveCash()" style="flex:2;padding:12px;background:linear-gradient(135deg,#3DD68C,#2aaa70);border:none;border-radius:11px;color:#fff;font-size:13px;font-weight:700">Save Cash</button>
@@ -539,11 +544,11 @@ select option{background:#0d0d1a;color:#fff}
     <div class="field"><label>Ticker Symbol <span style="color:#555">— for auto price (e.g. WULF, NEM, BTC-USD)</span></label><input id="f-ticker" placeholder="e.g. WULF" style="text-transform:uppercase"/></div>
     <div class="field"><label>Sector</label><select id="f-sector"></select></div>
     <div style="display:flex;gap:7px">
-      <div class="field" style="flex:1"><label>Buy Price (SEK)</label><input id="f-buyprice" type="number" placeholder="320" oninput="updateRiskPreview()"/></div>
+      <div class="field" style="flex:1"><label>Buy Price (<span class="modal-curr-label">SEK</span>)</label><input id="f-buyprice" type="number" placeholder="320" oninput="updateRiskPreview()"/></div>
       <div class="field" style="flex:1"><label>No. of Shares</label><input id="f-shares" type="number" placeholder="10" oninput="updateRiskPreview()"/></div>
     </div>
-    <div class="field"><label>Current Price (SEK)</label><input id="f-price" type="number" placeholder="350" oninput="updateRiskPreview()"/></div>
-    <div class="field"><label>🛑 Stop Loss Price (SEK) <span style="color:#555">— optional</span></label><input id="f-stoploss" type="number" placeholder="290" oninput="updateRiskPreview()"/></div>
+    <div class="field"><label>Current Price (<span class="modal-curr-label">SEK</span>)</label><input id="f-price" type="number" placeholder="350" oninput="updateRiskPreview()"/></div>
+    <div class="field"><label>🛑 Stop Loss Price (<span class="modal-curr-label">SEK</span>) <span style="color:#555">— optional</span></label><input id="f-stoploss" type="number" placeholder="290" oninput="updateRiskPreview()"/></div>
     <div class="field"><label>📝 Notes <span style="color:#555">— optional</span></label><input id="f-notes" placeholder="e.g. DCA position, waiting for earnings…"/></div>
     <div id="risk-preview">
       <div class="rp-row"><span style="color:#888">Market value</span><span id="prev-market" style="color:#fff;font-weight:700"></span></div>
@@ -633,6 +638,9 @@ let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};
 let targets={};
 let goals={};
 let lastRefreshTime=parseInt(localStorage.getItem('pt_last_refresh_ts')||'0')||null;
+// Display currency toggle — SEK or USD, display-only (data always stored in SEK)
+let displayCurrency=localStorage.getItem('pt_display_currency')||'SEK';
+let liveUsdSek=parseFloat(localStorage.getItem('pt_usd_sek_rate')||'0')||10.3;
 
 // ── Storage ───────────────────────────────────────────────────────
 function loadData(){try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){}return null;}
@@ -676,6 +684,16 @@ function effVal(h){
 function getVal(h){return viewMode==='risk'?effVal(h):h.value;}
 function fmt(n){return Math.round(n).toLocaleString('sv-SE');}
 function fmtDec(n,d=1){return n.toLocaleString('sv-SE',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// Currency-aware display helpers — all values stored in SEK, converted on display
+function toDisplay(sekVal){return displayCurrency==='USD'?sekVal/liveUsdSek:sekVal;}
+function fmtC(sekVal){return fmt(toDisplay(sekVal));}
+function currLabel(){return displayCurrency==='USD'?'USD':'kr'}
+function currSymbol(){return displayCurrency==='USD'?'$':''}
+function toggleDisplayCurrency(){
+  displayCurrency=displayCurrency==='SEK'?'USD':'SEK';
+  localStorage.setItem('pt_display_currency',displayCurrency);
+  render();
+}
 
 // calcTotals is pure: pass the view mode explicitly so it does not silently
 // depend on the global viewMode and can be called safely in any context.
@@ -778,20 +796,20 @@ function renderHeader(ctx){
   const hasStops=holdings.some(h=>h.stopLoss!=null);
   const investedPct=marketTotal>0?(marketTotal-cashVal)/marketTotal*100:0;
 
-  document.getElementById('total-value').innerHTML=`${fmt(activeTotal)} <span>SEK</span>`;
+  document.getElementById('total-value').innerHTML=`${fmtC(activeTotal)} <span>${currLabel()}</span>`;
 
   // Show total P&L in both kr and % when buy price data is available
   const pnlEl=document.getElementById('total-pnl');
   const pctEl=document.getElementById('total-pct-chg');
   if(totalBuyVal>0&&totalPnl!==0){
     pnlEl.style.display='inline';pnlEl.style.color=totalPnl>=0?'#5BA85B':'#ff4444';
-    pnlEl.textContent=`${totalPnl>=0?'+':''}${fmt(totalPnl)} kr`;
+    pnlEl.textContent=`${totalPnl>=0?'+':''}${fmtC(totalPnl)} ${currLabel()}`;
     pctEl.style.display='inline';pctEl.style.color=totalPnl>=0?'#5BA85B':'#ff4444';
     pctEl.textContent=`(${pctChg>=0?'+':''}${fmtDec(pctChg)}%)`;
   }else{pnlEl.style.display='none';pctEl.style.display='none';}
 
   const riskEl=document.getElementById('total-risk-kr');
-  if(hasStops&&viewMode==='risk'){riskEl.style.display='inline';riskEl.textContent=`⚡ ${fmt(riskTotal)} kr at risk`;}
+  if(hasStops&&viewMode==='risk'){riskEl.style.display='inline';riskEl.textContent=`⚡ ${fmtC(riskTotal)} ${currLabel()} at risk`;}
   else riskEl.style.display='none';
 
   document.getElementById('stat-holdings').textContent=holdings.length;
@@ -804,10 +822,13 @@ function renderHeader(ctx){
   const lv=viewMode==='risk'?longTotals.riskTotal:longTotals.marketTotal;
   const tv=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
   const tot=lv+tv||1;
-  document.getElementById('acct-long-val').textContent=fmt(lv)+' kr';
+  document.getElementById('acct-long-val').textContent=fmtC(lv)+' '+currLabel();
   document.getElementById('acct-long-pct').textContent=fmtDec(lv/tot*100)+'% of invested';
-  document.getElementById('acct-trade-val').textContent=fmt(tv)+' kr';
+  document.getElementById('acct-trade-val').textContent=fmtC(tv)+' '+currLabel();
   document.getElementById('acct-trade-pct').textContent=fmtDec(tv/tot*100)+'% of invested';
+  // Update currency pill label
+  const cp=document.getElementById('currency-pill-label');
+  if(cp){cp.textContent=displayCurrency;cp.style.color=displayCurrency==='USD'?'#4A90D9':'#7B68EE';}
 
   try{
     const lu=localStorage.getItem('pt_last_updated');
@@ -973,7 +994,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
     const dim=activeSector&&activeSector!==d.name?'0.15':'1';
     html+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${large} 0 ${x4},${y4} Z"
       fill="${color}" opacity="${dim}" style="cursor:pointer;transition:opacity .2s"
-      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmt(d.value)}"/>`;
+      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmtC(d.value)} ${currLabel()}"/>`;
   });
 
   // Labels on top 5 slices big enough to fit
@@ -1003,7 +1024,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
   html+=`<circle cx="${cx}" cy="${cy}" r="${ri-4}" fill="#0d0d1a"/>`;
   html+=`<text x="${cx}" y="${cy-16}" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui,sans-serif" letter-spacing="1">${centerName.toUpperCase()}</text>`;
   html+=`<text x="${cx}" y="${cy+7}" text-anchor="middle" fill="#fff" font-size="21" font-weight="700" font-family="system-ui,sans-serif">${fmt(centerVal)}</text>`;
-  html+=`<text x="${cx}" y="${cy+24}" text-anchor="middle" fill="#666" font-size="11" font-family="system-ui,sans-serif">SEK${centerPct?' · '+centerPct:''}</text>`;
+  html+=`<text x="${cx}" y="${cy+24}" text-anchor="middle" fill="#666" font-size="11" font-family="system-ui,sans-serif">${displayCurrency}${centerPct?' · '+centerPct:''}</text>`;
 
   svg.innerHTML=html;
 
@@ -1095,7 +1116,7 @@ function renderSectors(sectorArr,metalPct){
       </div>
       <div style="text-align:right;flex-shrink:0;margin-left:8px">
         <div class="sector-pct" style="color:${isOver?'#ff4444':(SECTOR_COLORS[d.name]||'#fff')}">${d.pct.toFixed(1)}%</div>
-        <div class="sector-kr" style="color:#666">${fmt(d.value)} kr</div>
+        <div class="sector-kr" style="color:#666">${fmtC(d.value)} ${currLabel()}</div>
       </div>
     </div>`;
   }).join('');
@@ -1142,7 +1163,7 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
     const pnl=buyVal!=null?h.value-buyVal:null;
     // Show P&L in kr and % relative to buy price
     const pnlPct=buyVal&&buyVal>0?pnl/buyVal*100:null;
-    const pnlStr=pnl!=null?`<span style="color:${pnl>=0?'#5BA85B':'#ff4444'};margin-left:4px">${pnl>=0?'+':''}${fmt(pnl)} kr${pnlPct!=null?' ('+fmtDec(pnlPct)+'%)':''}</span>`:'';
+    const pnlStr=pnl!=null?`<span style="color:${pnl>=0?'#5BA85B':'#ff4444'};margin-left:4px">${pnl>=0?'+':''}${fmtC(pnl)} ${currLabel()}${pnlPct!=null?' ('+fmtDec(pnlPct)+'%)':''}</span>`:'';
     const acctClass=h.account==='long'?'long-card':'trade-card';
 
     // Only ticker holdings have live prices — show freshness indicator after first refresh
@@ -1154,10 +1175,10 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 
     const detailRow=(h.shares||h.buyPrice||h.currentPrice||h.stopLoss||h.notes)?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #1e1e2e;display:flex;gap:9px;flex-wrap:wrap;font-size:12px;color:#888">
       ${h.shares!=null?`<span>×${h.shares}</span>`:''}
-      ${h.buyPrice!=null?`<span>Buy: ${h.buyPrice} kr</span>`:''}
-      ${h.currentPrice!=null?`<span>Now: ${h.currentPrice} kr${pnlStr}</span>`:''}
+      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} kr</span>`:''}
+      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} kr${pnlStr}</span>`:''}
       ${h.currency&&h.currency!=='SEK'?`<span style="color:#7B68EE;font-family:monospace">${h.currency}</span>`:''}
-      ${h.stopLoss!=null?`<span style="color:#ff6666">🛑 ${h.stopLoss} kr · risk: ${fmt(riskVal)} kr</span>`:noStop?`<span style="color:#aa6600">⚠️ no stop set</span>`:''}
+      ${h.stopLoss!=null?`<span style="color:#ff6666">🛑 ${fmtDec(toDisplay(h.stopLoss),2)} ${currLabel()} · risk: ${fmtC(riskVal)} ${currLabel()}</span>`:noStop?`<span style="color:#aa6600">⚠️ no stop set</span>`:''}
       ${h.notes?`<div style="width:100%;margin-top:3px;color:#7B68EE;font-style:italic">📝 ${h.notes}</div>`:''}
     </div>`:'';
     const cardCls=[acctClass,isOver?'warn':(noStop?'no-stop':'')].filter(Boolean).join(' ');
@@ -1171,10 +1192,11 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
         <span class="acct-tag ${h.account==='long'?'long':'trade'}">${h.account==='long'?'LONG':'TRADE'}</span>
         <div style="text-align:right;flex-shrink:0">
           <div class="pct" style="color:${isOver?'#ff4444':'#fff'}">${pct.toFixed(1)}%</div>
-          <div class="val">${fmt(val)} kr</div>
+          <div class="val">${fmtC(val)} ${currLabel()}</div>
         </div>
         <div class="actions">
           <button class="btn-edit" data-action="edit" data-id="${h.id}">✏️</button>
+          <button class="btn-dup" data-action="duplicate" data-id="${h.id}" title="Duplicate">⧉</button>
           <button class="btn-del" data-action="delete" data-id="${h.id}">🗑</button>
         </div>
       </div>
@@ -1200,7 +1222,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:14px">${h.name}</div>
-            <div style="font-size:12px;color:#888;margin-top:2px">${h.sector} · ${fmt(h.value)} kr</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
             <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #aa6600;background:#0d0d1a;flex-shrink:0;font-size:11px"></span>
               <span style="font-size:12px;color:#cc9900">Stop loss managed by size</span>
@@ -1215,7 +1237,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:12px;color:#888;text-decoration:line-through">${h.name}</div>
-            <div style="font-size:10px;color:#666;margin-top:2px">${h.sector} · ${fmt(h.value)} kr</div>
+            <div style="font-size:10px;color:#666;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
             <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #5BA85B;background:#0d1a0d;flex-shrink:0;font-size:11px;color:#5BA85B">✓</span>
               <span style="font-size:12px;color:#5BA85B">Stop loss managed by size</span>
@@ -1264,12 +1286,12 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
           <div style="font-size:12px;color:#888;margin-top:2px">Should be ≤${settings.tradeAccountMaxPct}% of Long Term + Cash</div>
         </div>
         <div style="text-align:right">
-          <div class="warn-pct">${fmt(tradeTotalMarket)} kr</div>
-          <div class="warn-excess">+${fmt(excess)} kr over limit</div>
+          <div class="warn-pct">${fmtC(tradeTotalMarket)} ${currLabel()}</div>
+          <div class="warn-excess">+${fmtC(excess)} ${currLabel()} over limit</div>
         </div>
       </div>
       <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(pct/200*100,100)}%;background:linear-gradient(90deg,#ff8800,#ff4444)"></div></div>
-      <div class="warn-bar-labels"><span>0</span><span style="color:#ff8888">limit ${fmt(tradeAccountLimit)} kr</span><span>${fmt(tradeAccountLimit*2)}+</span></div>
+      <div class="warn-bar-labels"><span>0</span><span style="color:#ff8888">limit ${fmtC(tradeAccountLimit)} ${currLabel()}</span><span>${fmtC(tradeAccountLimit*2)}+</span></div>
     </div>`;
   }
   if(longGroupWarnings.length){
@@ -1318,7 +1340,7 @@ function renderSettings(sectorArr, marketTotal){
       pgEl.innerHTML=`
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div>
-            <div style="font-size:13px;font-weight:700;color:#e8e8f0">${fmt(pg.target)} kr</div>
+            <div style="font-size:13px;font-weight:700;color:#e8e8f0">${fmtC(pg.target)} ${currLabel()}</div>
             <div style="font-size:10px;color:#666;margin-top:1px">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})} · ${daysLeft>0?daysLeft+' days left':'past deadline'}</div>
           </div>
           <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">Edit</button>
@@ -1327,8 +1349,8 @@ function renderSettings(sectorArr, marketTotal){
           <div class="goal-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px;color:#666">
-          <span>${pct.toFixed(1)}% reached · ${fmt(totalMarket)} kr now</span>
-          <span style="color:${pct>=100?'#5BA85B':'#888'}">${pct>=100?'🎉 Done!':fmt(remaining)+' kr to go'}</span>
+          <span>${pct.toFixed(1)}% reached · ${fmtC(totalMarket)} ${currLabel()} now</span>
+          <span style="color:${pct>=100?'#5BA85B':'#888'}">${pct>=100?'🎉 Done!':fmtC(remaining)+' '+currLabel()+' to go'}</span>
         </div>`;
     } else {
       pgEl.innerHTML=`
@@ -1425,7 +1447,7 @@ function renderGoals(ctx){
           <div style="display:flex;align-items:center;gap:12px">
             <div class="goal-icon" style="background:${pct>=100?'#0d2a0d':'#1a1a2e'};font-size:20px">🏆</div>
             <div>
-              <div class="goal-title">${fmt(pg.target)} kr</div>
+              <div class="goal-title">${fmtC(pg.target)} ${currLabel()}</div>
               <div class="goal-sub">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})}</div>
             </div>
           </div>
@@ -1439,14 +1461,14 @@ function renderGoals(ctx){
           <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor}88,${barColor});border-radius:8px;transition:width .5s ease"></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(${pct<100?3:2},1fr);gap:8px;margin-top:10px">
-          ${statTile(fmt(marketTotal)+' kr','Current value','#e8e8f0')}
-          ${pct<100?statTile(fmt(remaining)+' kr','Still needed','#F7931A'):''}
+          ${statTile(fmtC(marketTotal)+' '+currLabel(),'Current value','#e8e8f0')}
+          ${pct<100?statTile(fmtC(remaining)+' '+currLabel(),'Still needed','#F7931A'):''}
           ${pct<100?statTile(daysLeft>0?String(daysLeft):'0',daysLeft<30&&daysLeft>0?'⚠️ Days left':'Days left',daysLeft<30&&daysLeft>0?'#ff6666':'#888'):statTile('🎉','Completed!','#5BA85B')}
         </div>
         ${pct<100&&monthlyNeeded>0?`
           <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:11px;color:#666">Monthly deposit needed</span>
-            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmt(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
+            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
           </div>`:''}
       </div>`;
   } else {
@@ -1511,21 +1533,21 @@ function renderGoals(ctx){
         <div style="display:flex;align-items:center;gap:12px">
           <div class="goal-icon" style="background:#0d1a0d">💰</div>
           <div>
-            <div class="goal-title">${dep.amount?fmt(dep.amount)+' kr / month':'Set monthly deposit'}</div>
-            <div class="goal-sub">${dep.amount?`Every month on the ${ordinal(dep.day)} · ${fmt(annualSavings)} kr/year`:'Tap Edit to configure'}</div>
+            <div class="goal-title">${dep.amount?fmtC(dep.amount)+' '+currLabel()+' / month':'Set monthly deposit'}</div>
+            <div class="goal-sub">${dep.amount?`Every month on the ${ordinal(dep.day)} · ${fmtC(annualSavings)} ${currLabel()}/year`:'Tap Edit to configure'}</div>
           </div>
         </div>
         <button class="goal-edit-btn" onclick="openGoalEditor('deposit')">Edit</button>
       </div>
       ${dep.amount?`
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-          ${statTile(fmt(dep.amount),'Monthly (kr)','#3DD68C')}
+          ${statTile(fmtC(dep.amount),'Monthly ('+currLabel()+')','#3DD68C')}
           ${statTile(daysUntilDeposit===0?'Today':String(daysUntilDeposit),daysUntilDeposit===0?'Deposit day!':'Days until next')}
-          ${statTile(fmt(annualSavings),'Annual (kr)','#7B68EE')}
+          ${statTile(fmtC(annualSavings),'Annual ('+currLabel()+')','#7B68EE')}
         </div>
         ${goals.portfolioGoal.target?`
           <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:11px;color:#666">
-            💡 At ${fmt(dep.amount)} kr/month you'll add <span style="color:#e8e8f0;font-weight:700">${fmt(annualSavings)} kr</span> per year
+            💡 At ${fmtC(dep.amount)} ${currLabel()}/month you'll add <span style="color:#e8e8f0;font-weight:700">${fmtC(annualSavings)} ${currLabel()}</span> per year
           </div>`:''}
       `:`<div style="font-size:11px;color:#444;text-align:center;padding:8px">No deposit plan set — tap Edit to configure</div>`}
     </div>`;
@@ -1558,9 +1580,10 @@ function openGoalEditor(type){
 
   if(type==='portfolio'){
     title.textContent='🏆 Portfolio Goal';
+    const dispTarget=pg.target?fmtDec(toDisplay(pg.target),0):'';
     body.innerHTML=`
-      <div class="field"><label>Target Value (SEK)</label>
-        <input id="ge-target" type="number" placeholder="e.g. 1000000" value="${pg.target||''}" style="border-color:#7B68EE33"/></div>
+      <div class="field"><label>Target Value (${displayCurrency})</label>
+        <input id="ge-target" type="number" placeholder="e.g. ${displayCurrency==='USD'?'100000':'1000000'}" value="${dispTarget}" style="border-color:#7B68EE33"/></div>
       <div class="field"><label>Target Date</label>
         <input id="ge-date" type="date" value="${pg.date||''}" style="border-color:#7B68EE33"
           onfocus="this.closest('.sheet').style.paddingBottom='340px';this.scrollIntoView({behavior:'smooth',block:'center'})"
@@ -1573,11 +1596,12 @@ function openGoalEditor(type){
         <div style="font-size:10px;color:#555;margin-top:4px">The rest will be Trading account</div></div>`;
   } else if(type==='deposit'){
     title.textContent='💰 Monthly Savings Plan';
+    const dispAmt=goals.deposit.amount?fmtDec(toDisplay(goals.deposit.amount),0):'';
     body.innerHTML=`
-      <div class="field"><label>Monthly Deposit Amount (SEK)</label>
-        <input id="ge-amount" type="number" placeholder="e.g. 5000" value="${dep.amount||''}" style="border-color:#3DD68C33"/></div>
+      <div class="field"><label>Monthly Deposit Amount (${displayCurrency})</label>
+        <input id="ge-amount" type="number" placeholder="e.g. ${displayCurrency==='USD'?'500':'5000'}" value="${dispAmt}" style="border-color:#3DD68C33"/></div>
       <div class="field"><label>Day of Month</label>
-        <input id="ge-day" type="number" min="1" max="28" placeholder="25" value="${dep.day||25}" style="border-color:#3DD68C33"/>
+        <input id="ge-day" type="number" min="1" max="28" placeholder="25" value="${goals.deposit.day||25}" style="border-color:#3DD68C33"/>
         <div style="font-size:10px;color:#555;margin-top:4px">Choose 1–28 to avoid month-end variation</div></div>`;
   }
 
@@ -1589,15 +1613,17 @@ function openGoalEditor(type){
 function saveGoalEditor(type){
   if(type==='portfolio'){
     const t=parseFloat(document.getElementById('ge-target').value);
+    const tSek=displayCurrency==='USD'&&t>0?t*liveUsdSek:t;
     const d=document.getElementById('ge-date').value;
-    goals.portfolioGoal={target:t>0?t:null,date:d||null};
+    goals.portfolioGoal={target:tSek>0?tSek:null,date:d||null};
   } else if(type==='longterm'){
     const v=parseFloat(document.getElementById('ge-ltpct').value);
     goals.longTermPct={target:v>0&&v<100?v:80};
   } else if(type==='deposit'){
     const a=parseFloat(document.getElementById('ge-amount').value);
+    const aSek=displayCurrency==='USD'&&a>0?a*liveUsdSek:a;
     const d=parseInt(document.getElementById('ge-day').value);
-    goals.deposit={amount:a>0?a:null,day:d>=1&&d<=28?d:25};
+    goals.deposit={amount:aSek>0?aSek:null,day:d>=1&&d<=28?d:25};
   }
   saveGoals();
   document.getElementById('goal-overlay').classList.remove('open');
@@ -1613,18 +1639,18 @@ function renderHistory(){
     el.innerHTML=history.slice(0,8).map((s,i)=>{
       const prev=history[i+1];
       const diff=prev?s.market-prev.market:null;
-      const diffStr=diff!=null?`<span style="color:${diff>=0?'#5BA85B':'#ff4444'};font-size:10px;font-weight:700">${diff>=0?'+':''}${fmt(diff)}</span>`:'';
-      const pnlStr=s.pnl!=null&&s.pnl!==0?`<span style="color:${s.pnl>=0?'#5BA85B':'#ff4444'};font-size:9px">${s.pnl>=0?'+':''}${fmt(s.pnl)} kr P&L</span>`:'';
+      const diffStr=diff!=null?`<span style="color:${diff>=0?'#5BA85B':'#ff4444'};font-size:10px;font-weight:700">${diff>=0?'+':''}${fmtC(diff)}</span>`:'';
+      const pnlStr=s.pnl!=null&&s.pnl!==0?`<span style="color:${s.pnl>=0?'#5BA85B':'#ff4444'};font-size:9px">${s.pnl>=0?'+':''}${fmtC(s.pnl)} ${currLabel()} P&L</span>`:'';
       const splitStr=(s.longTotal!=null&&s.tradeTotal!=null)?
         `<div style="display:flex;gap:8px;margin-top:3px;font-size:11px;color:#666">
-          <span style="color:#4A90D9">📈 ${fmt(s.longTotal)} kr</span>
-          <span style="color:#F7931A">⚡ ${fmt(s.tradeTotal)} kr</span>
+          <span style="color:#4A90D9">📈 ${fmtC(s.longTotal)} ${currLabel()}</span>
+          <span style="color:#F7931A">⚡ ${fmtC(s.tradeTotal)} ${currLabel()}</span>
           ${s.cashPct!=null?`<span style="color:#3DD68C">💵 ${s.cashPct.toFixed(1)}%</span>`:''}
         </div>`:''
       return `<div style="padding:7px 0;border-bottom:1px solid #1a1a2e">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="color:#666;font-size:10px">${s.date}</span>
-          <span style="font-size:12px;font-weight:700">${fmt(s.market)} kr</span>
+          <span style="font-size:12px;font-weight:700">${fmtC(s.market)} ${currLabel()}</span>
           ${diffStr}
           <span style="color:#888;font-size:10px">${s.count} hdgs</span>
         </div>
@@ -1677,6 +1703,15 @@ function deleteHolding(id){
     _deletedHolding=null;
   },5000);
 }
+function duplicateHolding(id){
+  const h=holdings.find(x=>x.id===id);
+  if(!h)return;
+  const copy={...h,id:newId(),name:h.name+' (copy)'};
+  holdings.push(copy);
+  save();render();
+  // Open the copy immediately for editing so user can tweak it
+  openEdit(copy.id);
+}
 function undoDelete(){
   if(!_deletedHolding)return;
   holdings.push(_deletedHolding);
@@ -1686,8 +1721,8 @@ function undoDelete(){
   save();render(); // full save+push now that undo is confirmed
 }
 function resetHoldings(){
-  const answer=prompt('Type CLEAR to delete all holdings. This cannot be undone.');
-  if(answer!=='CLEAR')return;
+  if(!confirm('Are you sure you want to delete all holdings?'))return;
+  if(!confirm('This cannot be undone. Delete everything?'))return;
   holdings=[];save();render();
 }
 
@@ -1698,6 +1733,7 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
   if(!btn)return;
   const id=parseInt(btn.dataset.id);
   if(btn.dataset.action==='edit')openEdit(id);
+  else if(btn.dataset.action==='duplicate')duplicateHolding(id);
   else if(btn.dataset.action==='delete')deleteHolding(id);
 });
 
@@ -1728,6 +1764,10 @@ document.addEventListener('keydown',e=>{
 const sel=document.getElementById('f-sector');
 SECTOR_OPTIONS.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=(SECTOR_EMOJIS[s]||'')+' '+s;sel.appendChild(o);});
 
+function updateModalCurrLabels(){
+  document.querySelectorAll('.modal-curr-label').forEach(el=>el.textContent=displayCurrency);
+}
+
 function selectAccount(acct){
   selectedAccount=acct;
   document.querySelectorAll('.acct-sel-btn').forEach((b,i)=>{
@@ -1746,25 +1786,27 @@ function openModal(){
   document.getElementById('risk-preview').style.display='none';
   selectAccount(acctFilter==='trade'?'trade':'long');
   document.getElementById('modal-overlay').classList.add('open');
+  updateModalCurrLabels();
 }
 
 function openEdit(id){
   const h=holdings.find(x=>x.id===id);
-  if(!h)return; // holding may have been deleted (e.g. from another tab)
+  if(!h)return;
   editId=id;
   document.getElementById('modal-title').textContent='Edit Holding';
   document.getElementById('btn-save-lbl').textContent='Save Changes';
   document.getElementById('f-name').value=h.name;
   document.getElementById('f-ticker').value=h.ticker||'';
   document.getElementById('f-sector').value=h.sector;
-  document.getElementById('f-buyprice').value=h.buyPrice??'';
+  document.getElementById('f-buyprice').value=h.buyPrice!=null?fmtDec(toDisplay(h.buyPrice),2):'';
   document.getElementById('f-shares').value=h.shares??'';
-  document.getElementById('f-price').value=h.currentPrice??'';
-  document.getElementById('f-stoploss').value=h.stopLoss??'';
+  document.getElementById('f-price').value=h.currentPrice!=null?fmtDec(toDisplay(h.currentPrice),2):'';
+  document.getElementById('f-stoploss').value=h.stopLoss!=null?fmtDec(toDisplay(h.stopLoss),2):'';
   document.getElementById('f-notes').value=h.notes||'';
   selectAccount(h.account||'long');
   updateRiskPreview();
   document.getElementById('modal-overlay').classList.add('open');
+  updateModalCurrLabels();
 }
 
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
@@ -1777,15 +1819,17 @@ function updateRiskPreview(){
   const prev=document.getElementById('risk-preview');
   if(isNaN(n)||(isNaN(buy)&&isNaN(cur))){prev.style.display='none';return;}
   prev.style.display='block';
+  // Inputs are already in display currency — compute in display currency directly
   const marketVal=!isNaN(cur)?cur*n:buy*n;
   const buyVal=!isNaN(buy)?buy*n:null;
   const pnl=buyVal!=null?marketVal-buyVal:null;
   const riskAmt=!isNaN(stop)&&!isNaN(cur)?Math.max(0,(cur-stop)*n):!isNaN(stop)&&!isNaN(buy)?Math.max(0,(buy-stop)*n):null;
-  document.getElementById('prev-market').textContent=`${fmt(marketVal)} kr`;
+  const cl=currLabel();
+  document.getElementById('prev-market').textContent=`${fmt(marketVal)} ${cl}`;
   const pnlEl=document.getElementById('prev-pnl');
-  if(pnl!=null){pnlEl.textContent=`${pnl>=0?'+':''}${fmt(pnl)} kr`;pnlEl.style.color=pnl>=0?'#5BA85B':'#ff4444';}
+  if(pnl!=null){pnlEl.textContent=`${pnl>=0?'+':''}${fmt(pnl)} ${cl}`;pnlEl.style.color=pnl>=0?'#5BA85B':'#ff4444';}
   else pnlEl.textContent='—';
-  document.getElementById('prev-risk-amt').textContent=riskAmt!=null?`${fmt(riskAmt)} kr`:'—';
+  document.getElementById('prev-risk-amt').textContent=riskAmt!=null?`${fmt(riskAmt)} ${cl}`:'—';
 }
 
 function saveHolding(){
@@ -1797,15 +1841,20 @@ function saveHolding(){
   const shares=parseFloat(document.getElementById('f-shares').value);
   const curPrice=parseFloat(document.getElementById('f-price').value);
   const stopLoss=parseFloat(document.getElementById('f-stoploss').value);
+  // Convert from display currency back to SEK for storage
+  const toSek=v=>displayCurrency==='USD'?v*liveUsdSek:v;
+  const buyPriceSek=!isNaN(buyPrice)?toSek(buyPrice):NaN;
+  const curPriceSek=!isNaN(curPrice)?toSek(curPrice):NaN;
+  const stopLossSek=!isNaN(stopLoss)?toSek(stopLoss):NaN;
   const notes=document.getElementById('f-notes').value.trim()||null;
   let value;
-  if(!isNaN(curPrice)&&!isNaN(shares))value=curPrice*shares;
-  else if(!isNaN(buyPrice)&&!isNaN(shares))value=buyPrice*shares;
+  if(!isNaN(curPriceSek)&&!isNaN(shares))value=curPriceSek*shares;
+  else if(!isNaN(buyPriceSek)&&!isNaN(shares))value=buyPriceSek*shares;
   else if(editId!=null)value=holdings.find(h=>h.id===editId)?.value||0;
   else return;
   const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
-    shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPrice)?buyPrice:null,
-    currentPrice:!isNaN(curPrice)?curPrice:null,stopLoss:!isNaN(stopLoss)?stopLoss:null};
+    shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
+    currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
   if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
   else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
   save();saveSectorMemory();render();closeModal();
@@ -1968,6 +2017,9 @@ async function refreshPrices(silent=false){
     const eurSek=quotes.find(q=>q.symbol==='EURSEK=X')?.regularMarketPrice||11.2;
     const cadSek=quotes.find(q=>q.symbol==='CADSEK=X')?.regularMarketPrice||(usdSek*0.74);
     const gbpSek=quotes.find(q=>q.symbol==='GBPSEK=X')?.regularMarketPrice||(usdSek*1.27);
+    // Store rate globally for currency display toggle
+    liveUsdSek=usdSek;
+    localStorage.setItem('pt_usd_sek_rate',String(usdSek));
     let updated=0,failed=[];
     holdings=holdings.map(h=>{
       if(!h.ticker||!h.shares)return h;
@@ -2007,15 +2059,18 @@ function showRefreshStatus(msg,color='#888'){
 // ── Cash editor ───────────────────────────────────────────────────
 function openCashEditor(){
   const c=holdings.find(h=>h.sector==='Cash & Liquidity');
-  document.getElementById('cash-input').value=c?c.value:'';
-  document.getElementById('cash-current-label').textContent=c?`Current: ${fmt(c.value)} kr`:'No cash set yet';
+  document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
+  document.getElementById('cash-current-label').textContent=c?`Current: ${fmtC(c.value)} ${currLabel()}`:'No cash set yet';
+  const cashLabel=document.getElementById('cash-amount-label');
+  if(cashLabel)cashLabel.textContent=`Amount (${displayCurrency})`;
   document.getElementById('cash-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('cash-input').focus(),100);
 }
 function closeCashEditor(){document.getElementById('cash-overlay').classList.remove('open');}
 function saveCash(){
-  const val=parseFloat(document.getElementById('cash-input').value);
-  if(isNaN(val)||val<0)return;
+  const raw=parseFloat(document.getElementById('cash-input').value);
+  if(isNaN(raw)||raw<0)return;
+  const val=displayCurrency==='USD'?raw*liveUsdSek:raw; // convert to SEK for storage
   holdings=holdings.filter(h=>h.sector!=='Cash & Liquidity');
   if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:'long',stopLoss:null});
   save();render();closeCashEditor();
@@ -2120,21 +2175,16 @@ function signInWithGoogle(){
               return;
             }
             showRefreshStatus('🔄 Signing in to Firebase…','#888');
-            console.log('GSI token received, length:',tokenResponse.access_token.length);
-            console.log('firebase.auth available:',typeof firebase!=='undefined'&&!!firebase.auth);
             if(!firebase||!firebase.auth){
               showRefreshStatus('❌ Firebase not ready — please try again','#ff4444');
               return;
             }
             const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
-            console.log('Credential created, calling signInWithCredential…');
             firebase.auth().signInWithCredential(credential)
               .then(result=>{
-                console.log('signInWithCredential success:',result.user.email);
                 showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
               })
               .catch(e=>{
-                console.error('signInWithCredential failed — code:',e.code,'message:',e.message,'full:',e);
                 showRefreshStatus('❌ '+e.code+': '+e.message,'#ff4444');
               });
           },
