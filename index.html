@@ -2042,7 +2042,14 @@ async function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
-    // No redirect result handling needed — using popup flow
+    // Handle redirect result — runs on page load after returning from Google sign-in on Safari
+    try{
+      const result=await firebase.auth().getRedirectResult();
+      if(result&&result.user)showRefreshStatus('✅ Signed in as '+result.user.displayName,'#5BA85B');
+    }catch(e){
+      if(e.code&&e.code!=='auth/no-auth-event'&&e.code!=='auth/null-user')
+        showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
+    }
 
     // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
@@ -2096,21 +2103,33 @@ function setSyncUI(signedIn,user=null){
   }
 }
 
+// Safari blocks cross-origin popups — detect it reliably
+function isSafari(){
+  const ua=navigator.userAgent;
+  return /Safari/.test(ua)&&!/Chrome/.test(ua)&&!/CriOS/.test(ua)&&!/FxiOS/.test(ua);
+}
+
 async function signInWithGoogle(){
   if(!db){showRefreshStatus('Still loading, try again in a moment','#888');return;}
   const provider=new firebase.auth.GoogleAuthProvider();
+  if(isSafari()){
+    // Safari blocks cross-origin popups — always use redirect
+    try{
+      await firebase.auth().signInWithRedirect(provider);
+    }catch(e){
+      showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
+    }
+    return;
+  }
+  // All other browsers — use popup (faster, no page reload)
   try{
-    // Popup works in most browsers; fall back to redirect on iOS Safari where popups are blocked
     const result=await firebase.auth().signInWithPopup(provider);
     if(result.user)showRefreshStatus('✅ Signed in as '+result.user.displayName,'#5BA85B');
   }catch(e){
     if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'){
-      // Popup was blocked — fall back to redirect (e.g. iOS Safari)
-      try{
-        await firebase.auth().signInWithRedirect(provider);
-      }catch(e2){
-        showRefreshStatus('❌ Sign in failed: '+e2.message,'#ff4444');
-      }
+      // Popup was blocked anyway — last resort redirect
+      try{ await firebase.auth().signInWithRedirect(provider); }
+      catch(e2){ showRefreshStatus('❌ Sign in failed: '+e2.message,'#ff4444'); }
     }else{
       showRefreshStatus('❌ Sign in failed: '+e.message,'#ff4444');
     }
