@@ -2095,39 +2095,73 @@ function setSyncUI(signedIn,user=null){
 }
 
 // ── Google Sign-In via GSI token flow ────────────────────────────
-// Uses Google Identity Services (accounts.google.com/gsi/client) to get
-// an OAuth access token, then exchanges it for a Firebase credential via
-// signInWithCredential. This bypasses the broken popup/redirect flows
-// entirely and works in ALL browsers including Safari 16.1+.
 const GSI_CLIENT_ID='37202666172-t2hkd4gfv2d5pau9gmh33u5qllue1ic5.apps.googleusercontent.com';
 let _gsiClient=null;
 
 function signInWithGoogle(){
-  if(!db){showRefreshStatus('Still loading, try again in a moment','#888');return;}
-  loadScript('https://accounts.google.com/gsi/client').then(()=>{
-    if(!_gsiClient){
-      _gsiClient=google.accounts.oauth2.initTokenClient({
-        client_id:GSI_CLIENT_ID,
-        scope:'email profile openid',
-        callback:(tokenResponse)=>{
-          if(tokenResponse.error){
-            showRefreshStatus('❌ Sign in failed: '+tokenResponse.error,'#ff4444');
-            return;
+  // Show loading state immediately so user knows something is happening
+  showRefreshStatus('🔄 Opening Google sign-in…','#888');
+
+  // Ensure Firebase is fully loaded before we try to use it
+  const trySignIn=()=>{
+    loadScript('https://accounts.google.com/gsi/client').then(()=>{
+      if(!_gsiClient){
+        _gsiClient=google.accounts.oauth2.initTokenClient({
+          client_id:GSI_CLIENT_ID,
+          scope:'email profile openid',
+          callback:(tokenResponse)=>{
+            if(tokenResponse.error){
+              showRefreshStatus('❌ Google error: '+tokenResponse.error+' — '+( tokenResponse.error_description||''),'#ff4444');
+              console.error('GSI error:',tokenResponse);
+              return;
+            }
+            if(!tokenResponse.access_token){
+              showRefreshStatus('❌ No token received from Google','#ff4444');
+              return;
+            }
+            showRefreshStatus('🔄 Signing in to Firebase…','#888');
+            if(!firebase||!firebase.auth){
+              showRefreshStatus('❌ Firebase not ready — please try again','#ff4444');
+              return;
+            }
+            const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
+            firebase.auth().signInWithCredential(credential)
+              .then(result=>{
+                showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
+              })
+              .catch(e=>{
+                showRefreshStatus('❌ Firebase error: '+e.code+' — '+e.message,'#ff4444');
+                console.error('signInWithCredential failed:',e);
+              });
+          },
+          error_callback:(err)=>{
+            // User closed the popup or other non-OAuth error
+            if(err.type!=='popup_closed')
+              showRefreshStatus('❌ Sign in cancelled or blocked: '+err.type,'#ff4444');
+            else
+              showRefreshStatus('Sign in cancelled','#888');
           }
-          // Exchange the Google access token for a Firebase credential
-          const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
-          firebase.auth().signInWithCredential(credential)
-            .then(result=>{
-              showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
-            })
-            .catch(e=>{showRefreshStatus('❌ Firebase sign in failed: '+e.message,'#ff4444');});
-        },
-      });
-    }
-    _gsiClient.requestAccessToken();
-  }).catch(()=>{
-    showRefreshStatus('❌ Could not load Google Sign-In. Check your connection.','#ff4444');
-  });
+        });
+      }
+      _gsiClient.requestAccessToken();
+    }).catch(e=>{
+      showRefreshStatus('❌ Could not load Google Sign-In. Check your connection.','#ff4444');
+      console.error('GSI load error:',e);
+    });
+  };
+
+  // If Firebase isn't ready yet, wait for it
+  if(!db){
+    showRefreshStatus('⏳ Loading Firebase, please wait…','#888');
+    let attempts=0;
+    const wait=setInterval(()=>{
+      attempts++;
+      if(db){ clearInterval(wait); trySignIn(); }
+      else if(attempts>20){ clearInterval(wait); showRefreshStatus('❌ Firebase failed to load. Check your connection.','#ff4444'); }
+    },300);
+  } else {
+    trySignIn();
+  }
 }
 
 async function signOut(){
