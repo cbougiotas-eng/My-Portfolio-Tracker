@@ -629,7 +629,25 @@ function sectionLabel(text,marginTop=13){
 // Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
-const INITIAL=[];
+const INITIAL=[
+  {id:1,name:"Apple Inc.",value:142500,sector:"Semiconductors ETF",account:"long",ticker:"AAPL",shares:75,buyPrice:1650,currentPrice:1900,stopLoss:1720,currency:"USD"},
+  {id:2,name:"Newmont Corporation",value:87400,sector:"Gold",account:"long",ticker:"NEM",shares:200,buyPrice:410,currentPrice:437,stopLoss:395,currency:"USD"},
+  {id:3,name:"SILVER AVA",value:113200,sector:"Silver",account:"long",ticker:"SLV",shares:450,buyPrice:238,currentPrice:252,stopLoss:225},
+  {id:4,name:"Boliden AB",value:64800,sector:"Base Metals Mining",account:"long",shares:180,buyPrice:340,currentPrice:360},
+  {id:5,name:"Skanska B",value:52300,sector:"Construction",account:"long",shares:220,buyPrice:225,currentPrice:238},
+  {id:6,name:"VanEck Semiconductor ETF",value:96750,sector:"Semiconductors ETF",account:"long",ticker:"VVSM",shares:85,buyPrice:1050,currentPrice:1138,stopLoss:980,currency:"USD"},
+  {id:7,name:"iShares Treasury Bond 20+yr",value:78200,sector:"Bonds",account:"long",ticker:"IS04",shares:310,buyPrice:245,currentPrice:252},
+  {id:8,name:"GULD AVA",value:134500,sector:"Gold",account:"long",ticker:"GLD",shares:120,buyPrice:1040,currentPrice:1121,stopLoss:990},
+  {id:9,name:"Lundin Mining",value:43600,sector:"Base Metals Mining",account:"long",shares:240,buyPrice:175,currentPrice:182},
+  {id:10,name:"Cash",value:85000,sector:"Cash & Liquidity",account:"long"},
+  {id:11,name:"TeraWulf Inc.",value:38400,sector:"Crypto/Bitcoin Mining",account:"trade",ticker:"WULF",shares:3200,buyPrice:11.5,currentPrice:12.0,stopLoss:9.8,currency:"USD"},
+  {id:12,name:"Hycroft Mining",value:22100,sector:"Gold & Silver",account:"trade",ticker:"HYMC",shares:8500,buyPrice:2.4,currentPrice:2.6,stopLoss:2.0,currency:"USD"},
+  {id:13,name:"TURBO L SILVER AVA",value:31500,sector:"Silver",account:"trade",shares:180,buyPrice:165,currentPrice:175,stopLoss:148},
+  {id:14,name:"Sibanye-Stillwater ADR",value:18700,sector:"Gold & Silver",account:"trade",ticker:"SBSW",shares:1800,buyPrice:9.8,currentPrice:10.4,stopLoss:8.5,currency:"USD"},
+  {id:15,name:"MINI L DJIA LEV17",value:44200,sector:"Index (Leverage)",account:"trade",shares:62,buyPrice:680,currentPrice:713,stopLoss:620},
+  {id:16,name:"Gr Silver Mining Ltd",value:15300,sector:"Silver",account:"trade",ticker:"GRSL",shares:9000,buyPrice:1.55,currentPrice:1.70,stopLoss:1.35,currency:"USD"},
+  {id:17,name:"Caribou Biosciences",value:9800,sector:"Biotech/Pharma",account:"trade",ticker:"CRBU",shares:2200,buyPrice:4.1,currentPrice:4.45,stopLoss:3.5,currency:"USD"},
+];
 
 // State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
@@ -2308,10 +2326,9 @@ function autoBackup(force=false){
 
 // ── Init ──────────────────────────────────────────────────────────
 settings=loadSettings();
-targets=loadTargets();
-goals=loadGoals();
-holdings=loadData()||[];
-// Normalise loaded data — apply defaults for missing fields, strip legacy unused fields
+targets={'Gold':15,'Silver':20,'Base Metals Mining':10,'Bonds':8,'Semiconductors ETF':12,'Crypto/Bitcoin Mining':5,'Construction':5};
+goals={portfolioGoal:{target:1500000,date:'2026-12-31'},longTermPct:{target:80},deposit:{amount:15000,day:25}};
+holdings=JSON.parse(JSON.stringify(INITIAL));
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
 render();
 
