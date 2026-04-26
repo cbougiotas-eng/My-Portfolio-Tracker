@@ -280,8 +280,8 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 
-<!-- Welcome / Onboarding Screen -->
-<div id="welcome-screen">
+<!-- Welcome / Onboarding Screen — visible immediately, JS hides if user has local data -->
+<div id="welcome-screen" style="display:flex">
   <div class="welcome-logo">📊</div>
   <div class="welcome-title">Portfolio Tracker</div>
   <div class="welcome-sub">Track your investments, manage risk, and sync across all your devices.</div>
@@ -2306,12 +2306,12 @@ async function signOut(){
   _welcomeDismissed=false;
   // Always re-render the app so it's never blank
   render();
-  // Only show welcome screen if there's truly no local data at all
   const localHoldings=loadData()||[];
   if(localHoldings.length===0){
     const ws=document.getElementById('welcome-screen');
-    ws.classList.add('visible');
-    ws.classList.remove('hidden');
+    ws.style.display='flex';
+    ws.style.opacity='1';
+    ws.style.pointerEvents='auto';
   }
   showRefreshStatus('Signed out — data saved locally','#888');
 }
@@ -2402,8 +2402,9 @@ function dismissWelcome(){
   _welcomeDismissed=true;
   sessionStorage.setItem('pt_welcome_dismissed','1');
   const ws=document.getElementById('welcome-screen');
-  ws.classList.add('hidden');
-  setTimeout(()=>ws.classList.remove('visible','hidden'),400);
+  ws.style.opacity='0';
+  ws.style.pointerEvents='none';
+  setTimeout(()=>ws.style.display='none',400);
 }
 
 function welcomeSignIn(){
@@ -2420,14 +2421,13 @@ function welcomeGuest(){
 
 function maybeShowWelcome(){
   const hasLocalData=(loadData()||[]).length>0;
-  const hasDismissed=sessionStorage.getItem('pt_welcome_dismissed')==='1';
   const ws=document.getElementById('welcome-screen');
-  if(!hasLocalData&&!hasDismissed){
-    ws.classList.add('visible');
-    ws.classList.remove('hidden');
-  } else {
-    ws.classList.remove('visible');
+  if(hasLocalData){
+    // Has local data — hide welcome screen immediately, show app
+    ws.style.display='none';
   }
+  // No local data — keep visible (already shown via inline style)
+  // Firebase onAuthStateChanged will dismiss it if user is already signed in
 }
 
 // ── Init ──────────────────────────────────────────────────────────
