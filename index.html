@@ -263,14 +263,49 @@ select option{background:#0d0d1a;color:#fff}
 .deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .deposit-amount{font-size:24px;font-weight:700;color:#3DD68C}
 .deposit-day{font-size:13px;color:#666;margin-top:2px}
-#undo-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#13132a;border:1px solid #7B68EE55;border-radius:12px;padding:11px 18px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e8e8f0;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-#undo-toast.show{opacity:1;pointer-events:auto}
-#undo-toast button{background:#7B68EE;border:none;border-radius:8px;color:#fff;padding:5px 11px;font-size:12px;font-weight:700}
-</style>
+#welcome-screen{position:fixed;inset:0;background:#09091a;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s}
+#welcome-screen.hidden{opacity:0;pointer-events:none}
+.welcome-logo{font-size:52px;margin-bottom:4px}
+.welcome-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
+.welcome-sub{font-size:14px;color:#555;margin-bottom:36px;line-height:1.6;max-width:320px}
+.welcome-btn{width:100%;max-width:340px;padding:15px;border-radius:14px;font-size:15px;font-weight:700;border:none;margin-bottom:10px;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:10px}
+.welcome-btn:active{transform:scale(0.97);opacity:.85}
+.welcome-btn-google{background:#fff;color:#222}
+.welcome-btn-guest{background:#111228;color:#aaa;border:1px solid #1e1e35;font-size:13px;padding:13px}
+.welcome-features{display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px}
+.welcome-feature{background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888;display:flex;align-items:center;gap:5px}
+.welcome-guest-note{font-size:11px;color:#444;max-width:300px;line-height:1.5;margin-top:4px}
+
 </head>
 <body>
 
-<div id="offline-banner">⚠️ You're offline — prices won't refresh until connection is restored</div>
+<!-- Welcome / Onboarding Screen -->
+<div id="welcome-screen">
+  <div class="welcome-logo">📊</div>
+  <div class="welcome-title">Portfolio Tracker</div>
+  <div class="welcome-sub">Track your investments, manage risk, and sync across all your devices.</div>
+
+  <div class="welcome-features">
+    <div class="welcome-feature">📈 Live prices</div>
+    <div class="welcome-feature">⚡ Risk mode</div>
+    <div class="welcome-feature">☁️ Cloud sync</div>
+    <div class="welcome-feature">🛑 Stop losses</div>
+    <div class="welcome-feature">🌍 SEK / USD</div>
+    <div class="welcome-feature">📂 Avanza CSV</div>
+  </div>
+
+  <button class="welcome-btn welcome-btn-google" onclick="welcomeSignIn()">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Sign in with Google
+  </button>
+
+  <button class="welcome-btn welcome-btn-guest" onclick="welcomeGuest()">
+    Continue without signing in
+  </button>
+  <div class="welcome-guest-note">⚠️ Without signing in, your data is only saved locally in this browser. It will be lost if you clear your browser data or switch devices.</div>
+</div>
+
+⚠️ You're offline — prices won't refresh until connection is restored</div>
 <div id="undo-toast"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
 
 <div id="header">
@@ -499,6 +534,18 @@ select option{background:#0d0d1a;color:#fff}
     </div>
   </div>
 
+  <!-- Buy Me a Coffee -->
+  <div class="settings-card">
+    <div class="settings-card-title">☕ Support Development</div>
+    <div style="font-size:12px;color:#666;margin-bottom:12px">
+      If Portfolio Tracker helps you manage your investments, consider buying me a coffee!
+    </div>
+    <a href="https://buymeacoffee.com/chcronlund" target="_blank"
+       style="display:block;width:100%;background:linear-gradient(135deg,#FFDD00,#FFB84D);border:none;border-radius:10px;color:#222;padding:12px;font-size:13px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 2px 12px rgba(255,221,0,.3);transition:transform .15s">
+      ☕ Buy Me a Coffee
+    </a>
+  </div>
+
   <div style="text-align:center;font-size:11px;color:#333;padding:12px 8px">Portfolio Tracker · data saved locally</div>
 </div>
 
@@ -522,7 +569,11 @@ select option{background:#0d0d1a;color:#fff}
 <div id="cash-overlay" class="overlay" onclick="if(event.target===this)closeCashEditor()">
   <div class="sheet">
     <h2>💵 Cash & Liquidity</h2>
-    <div id="cash-current-label" style="font-size:11px;color:#888;margin-bottom:13px"></div>
+    <div id="cash-current-label" style="font-size:12px;color:#888;margin-bottom:13px"></div>
+    <div style="display:flex;gap:7px;margin-bottom:12px">
+      <button id="cash-btn-long" onclick="setCashAccount('long')" class="acct-sel-btn sel-long">📈 Long Term</button>
+      <button id="cash-btn-trade" onclick="setCashAccount('trade')" class="acct-sel-btn">⚡ Trading</button>
+    </div>
     <div class="field"><label id="cash-amount-label">Amount (SEK)</label><input id="cash-input" type="number" placeholder="e.g. 50000" style="border-color:#3DD68C"/></div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button onclick="closeCashEditor()" class="btn-cancel">Cancel</button>
@@ -629,25 +680,7 @@ function sectionLabel(text,marginTop=13){
 // Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
-const INITIAL=[
-  {id:1,name:"Apple Inc.",value:142500,sector:"Semiconductors ETF",account:"long",ticker:"AAPL",shares:75,buyPrice:1650,currentPrice:1900,stopLoss:1720,currency:"USD"},
-  {id:2,name:"Newmont Corporation",value:87400,sector:"Gold",account:"long",ticker:"NEM",shares:200,buyPrice:410,currentPrice:437,stopLoss:395,currency:"USD"},
-  {id:3,name:"SILVER AVA",value:113200,sector:"Silver",account:"long",ticker:"SLV",shares:450,buyPrice:238,currentPrice:252,stopLoss:225},
-  {id:4,name:"Boliden AB",value:64800,sector:"Base Metals Mining",account:"long",shares:180,buyPrice:340,currentPrice:360},
-  {id:5,name:"Skanska B",value:52300,sector:"Construction",account:"long",shares:220,buyPrice:225,currentPrice:238},
-  {id:6,name:"VanEck Semiconductor ETF",value:96750,sector:"Semiconductors ETF",account:"long",ticker:"VVSM",shares:85,buyPrice:1050,currentPrice:1138,stopLoss:980,currency:"USD"},
-  {id:7,name:"iShares Treasury Bond 20+yr",value:78200,sector:"Bonds",account:"long",ticker:"IS04",shares:310,buyPrice:245,currentPrice:252},
-  {id:8,name:"GULD AVA",value:134500,sector:"Gold",account:"long",ticker:"GLD",shares:120,buyPrice:1040,currentPrice:1121,stopLoss:990},
-  {id:9,name:"Lundin Mining",value:43600,sector:"Base Metals Mining",account:"long",shares:240,buyPrice:175,currentPrice:182},
-  {id:10,name:"Cash",value:85000,sector:"Cash & Liquidity",account:"long"},
-  {id:11,name:"TeraWulf Inc.",value:38400,sector:"Crypto/Bitcoin Mining",account:"trade",ticker:"WULF",shares:3200,buyPrice:11.5,currentPrice:12.0,stopLoss:9.8,currency:"USD"},
-  {id:12,name:"Hycroft Mining",value:22100,sector:"Gold & Silver",account:"trade",ticker:"HYMC",shares:8500,buyPrice:2.4,currentPrice:2.6,stopLoss:2.0,currency:"USD"},
-  {id:13,name:"TURBO L SILVER AVA",value:31500,sector:"Silver",account:"trade",shares:180,buyPrice:165,currentPrice:175,stopLoss:148},
-  {id:14,name:"Sibanye-Stillwater ADR",value:18700,sector:"Gold & Silver",account:"trade",ticker:"SBSW",shares:1800,buyPrice:9.8,currentPrice:10.4,stopLoss:8.5,currency:"USD"},
-  {id:15,name:"MINI L DJIA LEV17",value:44200,sector:"Index (Leverage)",account:"trade",shares:62,buyPrice:680,currentPrice:713,stopLoss:620},
-  {id:16,name:"Gr Silver Mining Ltd",value:15300,sector:"Silver",account:"trade",ticker:"GRSL",shares:9000,buyPrice:1.55,currentPrice:1.70,stopLoss:1.35,currency:"USD"},
-  {id:17,name:"Caribou Biosciences",value:9800,sector:"Biotech/Pharma",account:"trade",ticker:"CRBU",shares:2200,buyPrice:4.1,currentPrice:4.45,stopLoss:3.5,currency:"USD"},
-];
+const INITIAL=[];
 
 // State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
@@ -770,7 +803,7 @@ function render(){
 // Called once per render() so downstream functions don't repeat work.
 function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const{marketTotal,riskTotal,activeTotal,sectorArr,metalPct,cashPct,totalPnl,totalBuyVal,pctChg}=all;
-  const cashVal=holdings.find(h=>h.sector==='Cash & Liquidity')?.value||0;
+  const cashVal=holdings.filter(h=>h.sector==='Cash & Liquidity').reduce((s,h)=>s+h.value,0);
   const TRADE_HOLD_WARN=settings.tradeWarn;
   const tradeActiveTotal=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
 
@@ -2075,22 +2108,46 @@ function showRefreshStatus(msg,color='#888'){
 }
 
 // ── Cash editor ───────────────────────────────────────────────────
-function openCashEditor(){
-  const c=holdings.find(h=>h.sector==='Cash & Liquidity');
+let cashEditorAccount='long';
+
+function setCashAccount(acct){
+  cashEditorAccount=acct;
+  document.getElementById('cash-btn-long').className='acct-sel-btn'+(acct==='long'?' sel-long':'');
+  document.getElementById('cash-btn-trade').className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
+  // Update input with the value for this account
+  const c=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account===acct);
   document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
-  document.getElementById('cash-current-label').textContent=c?`Current: ${fmtC(c.value)} ${currLabel()}`:'No cash set yet';
+  updateCashLabel();
+}
+
+function updateCashLabel(){
+  const longC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='long');
+  const tradeC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='trade');
+  const parts=[];
+  if(longC)parts.push(`📈 ${fmtC(longC.value)} ${currLabel()}`);
+  if(tradeC)parts.push(`⚡ ${fmtC(tradeC.value)} ${currLabel()}`);
+  document.getElementById('cash-current-label').textContent=parts.length?parts.join('  ·  '):'No cash set yet';
+}
+
+function openCashEditor(){
+  cashEditorAccount=acctFilter==='trade'?'trade':'long';
+  setCashAccount(cashEditorAccount);
   const cashLabel=document.getElementById('cash-amount-label');
   if(cashLabel)cashLabel.textContent=`Amount (${displayCurrency})`;
+  updateCashLabel();
   document.getElementById('cash-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('cash-input').focus(),100);
 }
+
 function closeCashEditor(){document.getElementById('cash-overlay').classList.remove('open');}
+
 function saveCash(){
   const raw=parseFloat(document.getElementById('cash-input').value);
   if(isNaN(raw)||raw<0)return;
-  const val=displayCurrency==='USD'?raw*liveUsdSek:raw; // convert to SEK for storage
-  holdings=holdings.filter(h=>h.sector!=='Cash & Liquidity');
-  if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:'long',stopLoss:null});
+  const val=displayCurrency==='USD'?raw*liveUsdSek:raw;
+  // Remove existing cash for this account only, keep the other account's cash
+  holdings=holdings.filter(h=>!(h.sector==='Cash & Liquidity'&&h.account===cashEditorAccount));
+  if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:cashEditorAccount,stopLoss:null});
   save();render();closeCashEditor();
 }
 
@@ -2120,6 +2177,7 @@ async function initFirebase(){
       if(user){
         syncUid=user.uid;
         setSyncUI(true,user);
+        dismissWelcome(); // user is signed in — no need for welcome screen
         startSync();
       }else{
         syncUid=null;
@@ -2324,12 +2382,47 @@ function autoBackup(force=false){
   }catch(e){}
 }
 
+// ── Welcome Screen ────────────────────────────────────────────────
+let _welcomeDismissed=false;
+
+function dismissWelcome(){
+  _welcomeDismissed=true;
+  sessionStorage.setItem('pt_welcome_dismissed','1');
+  const ws=document.getElementById('welcome-screen');
+  ws.classList.add('hidden');
+  setTimeout(()=>ws.style.display='none',400);
+}
+
+function welcomeSignIn(){
+  // Dismiss welcome and trigger Google sign in
+  dismissWelcome();
+  // Wait a tick so the UI updates before the sign-in popup
+  setTimeout(()=>signInWithGoogle(),100);
+}
+
+function welcomeGuest(){
+  dismissWelcome();
+  showRefreshStatus('⚠️ Guest mode — data saved locally only. Sign in via Settings to enable cloud sync.','#F7931A');
+}
+
+function maybeShowWelcome(){
+  // Show welcome screen if: no local holdings AND not already signed in
+  const hasLocalData=(loadData()||[]).length>0;
+  const hasDismissed=sessionStorage.getItem('pt_welcome_dismissed')==='1';
+  if(!hasLocalData&&!hasDismissed){
+    document.getElementById('welcome-screen').style.display='flex';
+  } else {
+    document.getElementById('welcome-screen').style.display='none';
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────
 settings=loadSettings();
-targets={'Gold':15,'Silver':20,'Base Metals Mining':10,'Bonds':8,'Semiconductors ETF':12,'Crypto/Bitcoin Mining':5,'Construction':5};
-goals={portfolioGoal:{target:1500000,date:'2026-12-31'},longTermPct:{target:80},deposit:{amount:15000,day:25}};
-holdings=JSON.parse(JSON.stringify(INITIAL));
+targets=loadTargets();
+goals=loadGoals();
+holdings=loadData()||[];
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
+maybeShowWelcome();
 render();
 
 // Init Firebase sync (non-blocking)
