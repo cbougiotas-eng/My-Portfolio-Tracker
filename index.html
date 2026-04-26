@@ -280,8 +280,8 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 
-<!-- Welcome / Onboarding Screen — visible immediately, JS hides if user has local data -->
-<div id="welcome-screen" style="display:flex">
+<!-- Welcome / Onboarding Screen — hidden by default, JS shows it only when needed -->
+<div id="welcome-screen" style="display:none;opacity:1">
   <div class="welcome-logo">📊</div>
   <div class="welcome-title">Portfolio Tracker</div>
   <div class="welcome-sub">Track your investments, manage risk, and sync across all your devices.</div>
@@ -2422,12 +2422,14 @@ function welcomeGuest(){
 function maybeShowWelcome(){
   const hasLocalData=(loadData()||[]).length>0;
   const ws=document.getElementById('welcome-screen');
-  if(hasLocalData){
-    // Has local data — hide welcome screen immediately, show app
-    ws.style.display='none';
+  if(!hasLocalData){
+    // No local data — show welcome screen
+    // Firebase onAuthStateChanged will dismiss it if user is already signed in
+    ws.style.display='flex';
+    ws.style.opacity='1';
+    ws.style.pointerEvents='auto';
   }
-  // No local data — keep visible (already shown via inline style)
-  // Firebase onAuthStateChanged will dismiss it if user is already signed in
+  // Has local data — keep hidden, go straight to app
 }
 
 // ── Init ──────────────────────────────────────────────────────────
