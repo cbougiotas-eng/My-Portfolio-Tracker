@@ -263,9 +263,8 @@ select option{background:#0d0d1a;color:#fff}
 .deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .deposit-amount{font-size:24px;font-weight:700;color:#3DD68C}
 .deposit-day{font-size:13px;color:#666;margin-top:2px}
-#welcome-screen{position:fixed;inset:0;background:#09091a;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s;opacity:1}
-#welcome-screen.visible{display:flex}
-#welcome-screen.hidden{opacity:0;pointer-events:none}
+#welcome-screen{position:fixed;inset:0;background:#09091a;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s;opacity:1}
+#welcome-screen.hidden{opacity:0;pointer-events:none;display:none}
 .welcome-logo{font-size:52px;margin-bottom:4px}
 .welcome-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
 .welcome-sub{font-size:14px;color:#555;margin-bottom:36px;line-height:1.6;max-width:320px}
@@ -280,8 +279,8 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 
-<!-- Welcome / Onboarding Screen — hidden by default, JS shows it only when needed -->
-<div id="welcome-screen" style="display:none;opacity:1">
+<!-- Welcome / Onboarding Screen — always shown on load, dismissed by Firebase auth or user choice -->
+<div id="welcome-screen" style="display:flex;opacity:1">
   <div class="welcome-logo">📊</div>
   <div class="welcome-title">Portfolio Tracker</div>
   <div class="welcome-sub">Track your investments, manage risk, and sync across all your devices.</div>
@@ -2420,16 +2419,7 @@ function welcomeGuest(){
 }
 
 function maybeShowWelcome(){
-  const hasLocalData=(loadData()||[]).length>0;
-  const ws=document.getElementById('welcome-screen');
-  if(!hasLocalData){
-    // No local data — show welcome screen
-    // Firebase onAuthStateChanged will dismiss it if user is already signed in
-    ws.style.display='flex';
-    ws.style.opacity='1';
-    ws.style.pointerEvents='auto';
-  }
-  // Has local data — keep hidden, go straight to app
+  // Always shown via inline style — dismissed by Firebase auth or user tapping a button
 }
 
 // ── Init ──────────────────────────────────────────────────────────
