@@ -279,19 +279,19 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 
-<!-- Welcome / Onboarding Screen — always shown on load, dismissed by Firebase auth or user choice -->
-<div id="welcome-screen" style="display:flex;opacity:1">
-  <div class="welcome-logo">📊</div>
-  <div class="welcome-title">Portfolio Tracker</div>
-  <div class="welcome-sub">Track your investments, manage risk, and sync across all your devices.</div>
+<!-- Welcome / Onboarding Screen -->
+<div id="welcome-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#09091a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;z-index:9999;box-sizing:border-box">
+  <div style="font-size:52px;margin-bottom:4px">📊</div>
+  <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px">Portfolio Tracker</div>
+  <div style="font-size:14px;color:#aaa;margin-bottom:36px;line-height:1.6;max-width:320px">Track your investments, manage risk, and sync across all your devices.</div>
 
-  <div class="welcome-features">
-    <div class="welcome-feature">📈 Live prices</div>
-    <div class="welcome-feature">⚡ Risk mode</div>
-    <div class="welcome-feature">☁️ Cloud sync</div>
-    <div class="welcome-feature">🛑 Stop losses</div>
-    <div class="welcome-feature">🌍 SEK / USD</div>
-    <div class="welcome-feature">📂 Avanza CSV</div>
+  <div style="display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px">
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📈 Live prices</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">⚡ Risk mode</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">☁️ Cloud sync</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🛑 Stop losses</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🌍 SEK / USD</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📂 Avanza CSV</div>
   </div>
 
   <button class="welcome-btn welcome-btn-google" onclick="welcomeSignIn()">
