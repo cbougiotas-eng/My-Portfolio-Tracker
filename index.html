@@ -263,7 +263,8 @@ select option{background:#0d0d1a;color:#fff}
 .deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .deposit-amount{font-size:24px;font-weight:700;color:#3DD68C}
 .deposit-day{font-size:13px;color:#666;margin-top:2px}
-#welcome-screen{position:fixed;inset:0;background:#09091a;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s}
+#welcome-screen{position:fixed;inset:0;background:#09091a;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s;opacity:1}
+#welcome-screen.visible{display:flex}
 #welcome-screen.hidden{opacity:0;pointer-events:none}
 .welcome-logo{font-size:52px;margin-bottom:4px}
 .welcome-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
@@ -2305,8 +2306,10 @@ async function signOut(){
   _welcomeDismissed=false;
   // Show welcome screen again only if no local holdings
   const ws=document.getElementById('welcome-screen');
-  ws.style.display='flex';
-  ws.classList.remove('hidden');
+  if((loadData()||[]).length===0){
+    ws.classList.add('visible');
+    ws.classList.remove('hidden');
+  }
   showRefreshStatus('Signed out','#888');
 }
 
@@ -2397,7 +2400,7 @@ function dismissWelcome(){
   sessionStorage.setItem('pt_welcome_dismissed','1');
   const ws=document.getElementById('welcome-screen');
   ws.classList.add('hidden');
-  setTimeout(()=>{ws.style.display='none';},400);
+  setTimeout(()=>ws.classList.remove('visible','hidden'),400);
 }
 
 function welcomeSignIn(){
@@ -2417,10 +2420,10 @@ function maybeShowWelcome(){
   const hasDismissed=sessionStorage.getItem('pt_welcome_dismissed')==='1';
   const ws=document.getElementById('welcome-screen');
   if(!hasLocalData&&!hasDismissed){
-    ws.style.display='flex';
+    ws.classList.add('visible');
     ws.classList.remove('hidden');
   } else {
-    ws.style.display='none';
+    ws.classList.remove('visible');
   }
 }
 
