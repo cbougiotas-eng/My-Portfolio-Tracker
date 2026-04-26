@@ -2300,6 +2300,13 @@ async function signOut(){
   await firebase.auth().signOut();
   syncUid=null;
   setSyncUI(false);
+  // Clear session dismissal so welcome screen shows again
+  sessionStorage.removeItem('pt_welcome_dismissed');
+  _welcomeDismissed=false;
+  // Show welcome screen again only if no local holdings
+  const ws=document.getElementById('welcome-screen');
+  ws.style.display='flex';
+  ws.classList.remove('hidden');
   showRefreshStatus('Signed out','#888');
 }
 
@@ -2390,7 +2397,7 @@ function dismissWelcome(){
   sessionStorage.setItem('pt_welcome_dismissed','1');
   const ws=document.getElementById('welcome-screen');
   ws.classList.add('hidden');
-  setTimeout(()=>ws.style.display='none',400);
+  setTimeout(()=>{ws.style.display='none';},400);
 }
 
 function welcomeSignIn(){
@@ -2406,13 +2413,14 @@ function welcomeGuest(){
 }
 
 function maybeShowWelcome(){
-  // Show welcome screen if: no local holdings AND not already signed in
   const hasLocalData=(loadData()||[]).length>0;
   const hasDismissed=sessionStorage.getItem('pt_welcome_dismissed')==='1';
+  const ws=document.getElementById('welcome-screen');
   if(!hasLocalData&&!hasDismissed){
-    document.getElementById('welcome-screen').style.display='flex';
+    ws.style.display='flex';
+    ws.classList.remove('hidden');
   } else {
-    document.getElementById('welcome-screen').style.display='none';
+    ws.style.display='none';
   }
 }
 
