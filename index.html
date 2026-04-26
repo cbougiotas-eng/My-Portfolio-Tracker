@@ -2178,11 +2178,12 @@ async function initFirebase(){
       if(user){
         syncUid=user.uid;
         setSyncUI(true,user);
-        dismissWelcome(); // user is signed in — no need for welcome screen
+        dismissWelcome();
         startSync();
       }else{
         syncUid=null;
         setSyncUI(false);
+        render(); // make sure app is always visible after auth state resolves
       }
     });
   }catch(e){
@@ -2301,16 +2302,18 @@ async function signOut(){
   await firebase.auth().signOut();
   syncUid=null;
   setSyncUI(false);
-  // Clear session dismissal so welcome screen shows again
   sessionStorage.removeItem('pt_welcome_dismissed');
   _welcomeDismissed=false;
-  // Show welcome screen again only if no local holdings
-  const ws=document.getElementById('welcome-screen');
-  if((loadData()||[]).length===0){
+  // Always re-render the app so it's never blank
+  render();
+  // Only show welcome screen if there's truly no local data at all
+  const localHoldings=loadData()||[];
+  if(localHoldings.length===0){
+    const ws=document.getElementById('welcome-screen');
     ws.classList.add('visible');
     ws.classList.remove('hidden');
   }
-  showRefreshStatus('Signed out','#888');
+  showRefreshStatus('Signed out — data saved locally','#888');
 }
 
 async function pushToFirebase(){
