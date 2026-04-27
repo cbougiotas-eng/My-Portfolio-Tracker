@@ -425,8 +425,8 @@ select option{background:#0d0d1a;color:#fff}
   <div class="csv-box">
     <p>Import Avanza CSV · manage holdings below</p>
     <div class="csv-btns">
-      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 Positioner</button>
-      <button class="btn-sm" style="color:#3DD68C" onclick="document.getElementById('konto-input').click()">🏦 Konton</button>
+      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 Positions</button>
+      <button class="btn-sm" style="color:#3DD68C" onclick="document.getElementById('konto-input').click()">🏦 Accounts</button>
       <button class="btn-sm" style="color:#3DD68C" onclick="exportData()">💾 Export</button>
       <button class="btn-sm" style="color:#F7931A" onclick="refreshPrices()" id="btn-refresh">🔄 Prices</button>
       <button class="btn-sm" style="color:#ff4444;border-color:#3a1020;margin-left:8px" onclick="resetHoldings()">🗑 Clear all</button>
@@ -617,10 +617,10 @@ select option{background:#0d0d1a;color:#fff}
     <h2 id="modal-title">Add Holding</h2>
     <div style="font-size:10px;color:#888;margin-bottom:5px">Account</div>
     <div id="f-account-wrap">
-      <button class="acct-sel-btn sel-long" onclick="selectAccount('long')">📈 Long Term</button>
-      <button class="acct-sel-btn" onclick="selectAccount('trade')">⚡ Trading</button>
+      <button id="f-acct-long" class="acct-sel-btn sel-long" onclick="selectAccount('long')">📈 Long Term</button>
+      <button id="f-acct-trade" class="acct-sel-btn" onclick="selectAccount('trade')">⚡ Trading</button>
     </div>
-    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Boliden"/></div>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Boliden" oninput="autoAccountFromName(this.value)"/></div>
     <div class="field"><label>Ticker Symbol <span style="color:#555">— for auto price (e.g. WULF, NEM, BTC-USD)</span></label><input id="f-ticker" placeholder="e.g. WULF" style="text-transform:uppercase"/></div>
     <div class="field"><label>Sector</label><select id="f-sector"></select></div>
     <div style="display:flex;gap:7px">
@@ -1792,10 +1792,10 @@ function switchTab(tab){
 
 let _deletedHolding=null,_undoTimer=null;
 function deleteHolding(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
   _deletedHolding=h;
-  holdings=holdings.filter(x=>x.id!==id);
+  holdings=holdings.filter(x=>String(x.id)!==String(id));
   // Save locally immediately but delay cloud push until undo window closes
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(holdings));
@@ -1814,7 +1814,7 @@ function deleteHolding(id){
   },5000);
 }
 function duplicateHolding(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
   const copy={...h,id:newId(),name:h.name+' (copy)'};
   holdings.push(copy);
@@ -1880,13 +1880,16 @@ function updateModalCurrLabels(){
   document.querySelectorAll('.modal-curr-label').forEach(el=>el.textContent=displayCurrency);
 }
 
+function autoAccountFromName(name){
+  if(/^(turbo|mini)/i.test(name.trim()))selectAccount('trade');
+}
+
 function selectAccount(acct){
   selectedAccount=acct;
-  document.querySelectorAll('.acct-sel-btn').forEach((b,i)=>{
-    b.className='acct-sel-btn';
-    if(i===0&&acct==='long')b.classList.add('sel-long');
-    if(i===1&&acct==='trade')b.classList.add('sel-trade');
-  });
+  const btnLong=document.getElementById('f-acct-long');
+  const btnTrade=document.getElementById('f-acct-trade');
+  if(btnLong)btnLong.className='acct-sel-btn'+(acct==='long'?' sel-long':'');
+  if(btnTrade)btnTrade.className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
 }
 
 function openModal(){
@@ -1902,9 +1905,9 @@ function openModal(){
 }
 
 function openEdit(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
-  editId=id;
+  editId=h.id;
   document.getElementById('modal-title').textContent='Edit Holding';
   document.getElementById('btn-save-lbl').textContent='Save Changes';
   document.getElementById('f-name').value=h.name;
@@ -1967,7 +1970,7 @@ function saveHolding(){
   const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
     shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
     currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
-  if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
+  if(editId!=null)holdings=holdings.map(h=>String(h.id)===String(editId)?{...h,...entry}:h);
   else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
   save();saveSectorMemory();render();closeModal();
 }
@@ -2056,8 +2059,9 @@ function handleFile(e){
       const ticker=tickerI>=0?(cols[tickerI]||'').trim()||null:null;
       const typ=typI>=0?(cols[typI]||'').trim().toUpperCase():'';
       const sector=guessSector(name,ticker,typ);
+      const isTurboMini=/^(turbo|mini)/i.test(name.trim());
       return{id:newId(),name,value,ticker,sector,
-        account:acctFilter==='trade'?'trade':'long',
+        account:(isTurboMini||acctFilter==='trade')?'trade':'long',
         buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
