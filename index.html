@@ -310,7 +310,7 @@ select option{background:#0d0d1a;color:#fff}
       <button id="btn-risk" onclick="setMode('risk')">⚡ Risk</button>
       <button id="btn-market" onclick="setMode('market')">📊 Market</button>
     </div>
-    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle display currency" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
+    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle SEK / USD display" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
       <span id="currency-pill-label">SEK</span>
     </div>
   </div>
@@ -492,6 +492,16 @@ select option{background:#0d0d1a;color:#fff}
       <div><div class="setting-label">Warn on missing stop loss</div><div class="setting-sub">Flag trading holdings with no stop set</div></div>
       <button id="set-nostop-btn" onclick="toggleNoStop()" style="background:#161630;border:1px solid #252545;border-radius:20px;padding:5px 14px;font-size:12px;color:#7B68EE;min-width:44px">ON</button>
     </div>
+  </div>
+
+  <!-- FX / Currency -->
+  <div class="settings-card">
+    <div class="settings-card-title">💱 Currency & FX Rate</div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px">All data is stored in SEK. The rate below is used for the USD display toggle.</div>
+    <div id="fx-rate-display" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+      <span style="color:#555;font-size:13px">Loading rate…</span>
+    </div>
+    <button onclick="refreshFxRate(false)" style="width:100%;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">💱 Refresh FX rate</button>
   </div>
 
   <!-- Portfolio Goal -->
@@ -863,9 +873,11 @@ function renderHeader(ctx){
   document.getElementById('acct-long-pct').textContent=fmtDec(lv/tot*100)+'% of invested';
   document.getElementById('acct-trade-val').textContent=fmtC(tv)+' '+currLabel();
   document.getElementById('acct-trade-pct').textContent=fmtDec(tv/tot*100)+'% of invested';
-  // Update currency pill label
+  // Update currency pill label and live-rate tooltip
   const cp=document.getElementById('currency-pill-label');
   if(cp){cp.textContent=displayCurrency;cp.style.color=displayCurrency==='USD'?'#4A90D9':'#7B68EE';}
+  const pill=document.getElementById('currency-pill');
+  if(pill)pill.title=`Toggle SEK / USD · 1 USD = ${liveUsdSek.toFixed(4)} SEK`;
 
   try{
     const lu=localStorage.getItem('pt_last_updated');
@@ -1072,7 +1084,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
       const tt=document.getElementById('donut-tooltip');
       const col=p.dataset.sector==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[p.dataset.sector]||'#999');
       tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY-14)+'px';
-      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val} kr</span>`;
+      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val}</span>`;
     });
     p.addEventListener('mouseleave',()=>{document.getElementById('donut-tooltip').style.display='none';});
   });
@@ -1212,8 +1224,8 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 
     const detailRow=(h.shares||h.buyPrice||h.currentPrice||h.stopLoss||h.notes)?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #1e1e2e;display:flex;gap:9px;flex-wrap:wrap;font-size:12px;color:#888">
       ${h.shares!=null?`<span>×${h.shares}</span>`:''}
-      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} kr</span>`:''}
-      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} kr${pnlStr}</span>`:''}
+      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} ${currLabel()}</span>`:''}
+      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} ${currLabel()}${pnlStr}</span>`:''}
       ${h.currency&&h.currency!=='SEK'?`<span style="color:#7B68EE;font-family:monospace">${h.currency}</span>`:''}
       ${h.stopLoss!=null?`<span style="color:#ff6666">🛑 ${fmtDec(toDisplay(h.stopLoss),2)} ${currLabel()} · risk: ${fmtC(riskVal)} ${currLabel()}</span>`:noStop?`<span style="color:#aa6600">⚠️ no stop set</span>`:''}
       ${h.notes?`<div style="width:100%;margin-top:3px;color:#7B68EE;font-style:italic">📝 ${h.notes}</div>`:''}
@@ -1245,7 +1257,7 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
   // Acknowledged no-stop holdings are shown dimmed at bottom of that section
   const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(h.id));
-  const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0);
+  const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0)+longGroupWarnings.length;
   const el=document.getElementById('warnings-content');
   if(activeWarningCount===0&&!ackNoStopH.length){el.innerHTML=`<div class="all-ok"><div class="ok-icon">✅</div><h3>Trading account looks good</h3><p>No trade &gt;${TRADE_HOLD_WARN}% or sector &gt;${settings.sectorWarn}% in trading account</p></div>`;return;}
   let html=`<div class="warn-card" style="margin-bottom:14px">
@@ -1422,6 +1434,8 @@ function renderSettings(sectorArr, marketTotal){
   const totalEl=document.getElementById('target-total-val');
   totalEl.textContent=fmtDec(total)+'%';
   totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
+  // Update live FX display in settings
+  updateFxUI();
 }
 
 function updateTarget(sector,val){
@@ -1505,7 +1519,7 @@ function renderGoals(ctx){
         ${pct<100&&monthlyNeeded>0?`
           <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:11px;color:#666">Monthly deposit needed</span>
-            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
+            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} ${currLabel()}${onTrack?' ✓':''}</span>
           </div>`:''}
       </div>`;
   } else {
@@ -1897,8 +1911,11 @@ function saveHolding(){
   save();saveSectorMemory();render();closeModal();
 }
 
-// Generates a collision-resistant ID using timestamp + random suffix
-function newId(){return Date.now()+Math.floor(Math.random()*10000);}
+// Generates a collision-resistant ID using crypto.randomUUID when available
+function newId(){
+  if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();
+  return Date.now().toString(36)+Math.random().toString(36).slice(2,9);
+}
 
 // ── File import/export ────────────────────────────────────────────
 function handleFile(e){
@@ -1937,7 +1954,7 @@ function handleFile(e){
       const buyPrice=rawGav?parseFloat(rawGav)||null:null;
       const shares=rawVol?parseFloat(rawVol)||null:null;
       const name=cols[ni]?.trim()||'Unknown';
-      return{id:newId()+i*17,name,value,sector:sectorMem[name.toLowerCase().trim()]||'Other',account:acctFilter==='trade'?'trade':'long',
+      return{id:newId(),name,value,sector:sectorMem[name.toLowerCase().trim()]||'Other',account:acctFilter==='trade'?'trade':'long',
         buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null,ticker:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
@@ -1963,6 +1980,7 @@ function handleFile(e){
     if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
 
     holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
+    acctFilter='all'; // reset filter so newly imported holdings are visible
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
     showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
   };
@@ -1977,6 +1995,43 @@ function exportData(){
   const a=document.createElement('a');a.href=url;
   a.download=`portfolio-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// ── FX Rate ────────────────────────────────────────────────────────
+// Fetch live USD/SEK (and other rates) independently of price refresh.
+// This runs on startup and periodically so the currency toggle is always
+// accurate even for portfolios that have no tickers.
+let fxRefreshTimer=null;
+
+async function refreshFxRate(silent=true){
+  if(!navigator.onLine)return;
+  try{
+    const url=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDSEK=X,EURSEK=X,CADSEK=X,GBPSEK=X&fields=regularMarketPrice`;
+    const data=await fetchWithFallback(url);
+    const quotes=data.quoteResponse?.result||[];
+    if(!quotes.length)return;
+    const usd=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice;
+    if(usd&&usd>0){
+      liveUsdSek=usd;
+      localStorage.setItem('pt_usd_sek_rate',String(usd));
+      localStorage.setItem('pt_fx_updated_ts',String(Date.now()));
+      updateFxUI();
+      if(!silent)showRefreshStatus(`💱 1 USD = ${usd.toFixed(4)} SEK`,'#7B68EE');
+    }
+  }catch(e){
+    // Silently fail — stale rate from localStorage will be used
+  }
+}
+
+function updateFxUI(){
+  // Update the FX display in the settings card if it's visible
+  const el=document.getElementById('fx-rate-display');
+  if(!el)return;
+  const ts=parseInt(localStorage.getItem('pt_fx_updated_ts')||'0');
+  const age=ts?Math.round((Date.now()-ts)/60000):null;
+  const ageStr=age===null?'never':age<1?'just now':age<60?`${age}m ago`:`${Math.round(age/60)}h ago`;
+  el.innerHTML=`<span style="color:#7B68EE;font-weight:700;font-size:16px">1 USD = ${liveUsdSek.toFixed(4)} SEK</span>
+    <span style="color:#555;font-size:11px;margin-left:8px">updated ${ageStr}</span>`;
 }
 
 // ── Price refresh ─────────────────────────────────────────────────
@@ -2408,6 +2463,11 @@ setTimeout(async()=>{
     if(isMarketHours())refreshPrices(true);
   },15*60*1000);
 },2000);
+
+// Fetch FX rate independently — runs even if user has no tickers
+// Gives an accurate USD/SEK rate for the currency toggle
+setTimeout(()=>refreshFxRate(true),3500);
+setInterval(()=>refreshFxRate(true),30*60*1000);
 </script>
 </body>
 </html>
