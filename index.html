@@ -1362,7 +1362,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
       const pct=tradeActiveTotal>0?getVal(h)/tradeActiveTotal*100:0,excess=pct-TRADE_HOLD_WARN;
       html+=`<div class="warn-card">
         <div class="warn-row">
-          <div><div style="font-weight:700;font-size:14px">${h.name}</div><div style="font-size:10px;color:#888;margin-top:2px">${h.sector}${h.stopLoss!=null?' · 🛑 '+h.stopLoss+' kr':' · no stop'}</div></div>
+          <div><div style="font-weight:700;font-size:14px">${h.name}</div><div style="font-size:10px;color:#888;margin-top:2px">${h.sector}${h.stopLoss!=null?' · 🛑 '+h.stopLoss+' '+currLabel():' · no stop'}</div></div>
           <div style="text-align:right"><div class="warn-pct">${pct.toFixed(1)}%</div><div class="warn-excess">+${excess.toFixed(1)}% over</div></div>
         </div>
         <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(pct/40*100,100)}%;background:linear-gradient(90deg,#ff4444,#ff0000)"></div></div>
@@ -1792,10 +1792,10 @@ function switchTab(tab){
 
 let _deletedHolding=null,_undoTimer=null;
 function deleteHolding(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
   _deletedHolding=h;
-  holdings=holdings.filter(x=>String(x.id)!==String(id));
+  holdings=holdings.filter(x=>x.id!==id);
   // Save locally immediately but delay cloud push until undo window closes
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(holdings));
@@ -1814,7 +1814,7 @@ function deleteHolding(id){
   },5000);
 }
 function duplicateHolding(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
   const copy={...h,id:newId(),name:h.name+' (copy)'};
   holdings.push(copy);
@@ -1902,9 +1902,9 @@ function openModal(){
 }
 
 function openEdit(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
-  editId=h.id; // use actual id from holdings (preserves type)
+  editId=id;
   document.getElementById('modal-title').textContent='Edit Holding';
   document.getElementById('btn-save-lbl').textContent='Save Changes';
   document.getElementById('f-name').value=h.name;
@@ -1967,7 +1967,7 @@ function saveHolding(){
   const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
     shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
     currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
-  if(editId!=null)holdings=holdings.map(h=>String(h.id)===String(editId)?{...h,...entry}:h);
+  if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
   else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
   save();saveSectorMemory();render();closeModal();
 }
@@ -1982,7 +1982,7 @@ function newId(){
 function handleFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     const text=ev.target.result.trim();
     if(file.name.endsWith('.json')){
       try{
@@ -2095,7 +2095,7 @@ function handleFile(e){
 
     if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
 
-    holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
+    holdings=[...merged.map(({_isNew,_isUpdate,_typ,_land,...h})=>h),...manualOnly];
     acctFilter='all';
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
     showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
@@ -2119,7 +2119,7 @@ const KONTO_NAMES = {
 function handleKontoFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     const text=ev.target.result.trim();
     const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
     const sep=lines[0].includes(';')?';':',';
