@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body{margin:0;background:#09091a;color:white;font-family:sans-serif}
+</style>
+</head>
+<body>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px">
+  <div style="font-size:52px;margin-bottom:16px">📊</div>
+  <div style="font-size:26px;font-weight:800;margin-bottom:8px">Portfolio Tracker</div>
+  <div style="font-size:14px;color:#555;margin-bottom:32px">Track your investments</div>
+  <button style="background:white;color:#222;border:none;border-radius:14px;padding:15px 30px;font-size:15px;font-weight:700;cursor:pointer">Sign in with Google</button>
+  <button style="background:#111228;color:#aaa;border:1px solid #1e1e35;border-radius:14px;padding:13px 30px;font-size:13px;margin-top:10px;cursor:pointer">Continue without signing in</button>
+</div>
+</body>
+</html>
