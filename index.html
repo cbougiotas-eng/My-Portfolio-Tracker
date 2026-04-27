@@ -1,17 +1,2452 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Portfolio Tracker</title>
+<!-- iOS home screen app behaviour -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Portfolio"/>
+<meta name="theme-color" content="#0d0d1a"/>
 <style>
-body{margin:0;background:#09091a;color:white;font-family:sans-serif}
-</style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#09091a;color:#e8e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto;padding-bottom:calc(90px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top);min-height:100vh}
+button{cursor:pointer;font-family:inherit}input,select{font-family:inherit}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+select option{background:#0d0d1a;color:#fff}
+
+/* ── Desktop layout ──────────────────────────────────────────────── */
+@media(min-width:900px){
+  body{max-width:100%;margin:0;padding:0;height:100vh;overflow:hidden;background:#080810}
+
+  /* Fixed sidebar nav */
+  #tabs{display:flex;flex-direction:column;background:#09091a;border-right:1px solid #161628;border-bottom:none;position:fixed;top:0;left:0;width:220px;height:100vh;padding:0;justify-content:flex-start;gap:2px;z-index:20;overflow-y:auto}
+  #tabs::before{content:'📊 Portfolio';display:block;padding:24px 20px 18px;font-size:15px;font-weight:700;color:#fff;border-bottom:1px solid #161628;margin-bottom:6px;letter-spacing:.3px;flex-shrink:0}
+  .tab-btn{padding:11px 20px;text-align:left;font-size:16px;letter-spacing:.4px;border-bottom:none;border-left:3px solid transparent;border-radius:0;display:flex;align-items:center;gap:10px;width:100%}
+  .tab-btn.active{border-bottom-color:transparent;border-left-color:#7B68EE;background:#13132a;color:#fff}
+  .tab-btn.active.warn-tab{border-left-color:#ff4444}
+
+  /* Fixed top header bar */
+  #header{position:fixed;top:0;left:220px;right:0;z-index:15;padding:0 28px;height:64px;display:flex;align-items:center;gap:20px;background:#09091a;border-bottom:1px solid #161628}
+  #header-top{display:contents}
+  #total-label{display:none}
+  #total-value{font-size:22px;white-space:nowrap;flex-shrink:0}
+  #header-sub{margin-top:0;gap:8px;flex-shrink:0}
+  #last-updated{display:none}
+  #header-stats{margin-top:0;gap:8px;flex-shrink:0}
+  .stat-box{padding:5px 12px;min-width:68px;border-radius:8px}
+  .stat-label{font-size:8px}
+  .stat-val{font-size:12px}
+  #acct-split{margin-top:0;gap:8px;flex-shrink:0}
+  .acct-pill{padding:5px 12px;border-radius:8px}
+  .ap-label{font-size:8px}
+  .ap-val{font-size:12px}
+  .ap-pct{font-size:9px}
+  #mode-pill{flex-shrink:0;margin-left:auto}
+
+  /* Scrollable main content */
+  #main-content{position:fixed;top:64px;left:220px;right:0;bottom:0;overflow-y:auto}
+
+  /* Panels */
+  .panel{padding:24px 28px;max-width:none}
+  #chart-panel{padding:24px 28px}
+
+  /* All 3 charts side by side */
+  #chart-swipe-wrap{overflow:visible!important}
+  #chart-swipe-inner{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:16px!important;width:100%!important;transform:none!important;transition:none!important}
+  #chart-swipe-inner>div{width:100%!important;flex-shrink:unset!important}
+  .chart-dot{display:none}
+  #chart-title{display:none}
+
+  /* Holdings 2-col */
+  #holdings-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #holdings-list .card{margin-bottom:0!important}
+
+  /* Warnings 2-col */
+  #warnings-content{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
+  #warnings-content .warn-card{margin-bottom:0}
+  #warnings-content .section-label{grid-column:1/-1}
+
+  /* Settings */
+  .setting-input{width:80px}
+  #target-inputs{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+
+  /* Sectors */
+  #other-sectors-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #other-sectors-list .sector-row{margin-bottom:0}
+
+  /* FAB */
+  #fab{bottom:28px;right:28px;width:56px;height:56px;font-size:24px}
+
+  /* Modal centered */
+  .overlay{align-items:center;justify-content:center}
+  .sheet{border-radius:16px;max-width:500px;max-height:88vh}
+
+  /* Misc */
+  #offline-banner{margin-left:220px}
+  #undo-toast{bottom:36px}
+  #search-input{font-size:13px;padding:9px 13px}
+  #chart-swipe-wrap{touch-action:auto!important}
+#fab:hover{transform:scale(1.07);box-shadow:0 6px 28px rgba(123,104,238,.75)}
+#fab:active{transform:scale(0.96)}
+.field input:focus,.field select:focus{outline:none;border-color:#7B68EE88}
+.btn-sm:active{opacity:.75}
+.btn-cancel:active{background:#181828}
+.btn-save:active{opacity:.88}
+.card:active{background:#13132a}
+
+  .tab-btn.active:hover{background:#13132a}
+  .card{transition:border-color .15s,background .15s}
+  .card:hover{border-color:#2e2e4e;background:#16162a}
+  .btn-edit:hover{background:#2a2a50}
+  .btn-dup:hover{background:#0d2a2a}
+  .btn-del:hover{background:#3a1530}
+  .btn-sm:hover{background:#252545;border-color:#444}
+  .acct-pill:hover{opacity:.85}
+  .stat-box:hover{background:#1a2a4a}
+  /* Slightly wider sidebar on hover expand feel */
+  .tab-btn{transition:background .15s,color .15s}
+  /* Better scrollbar on desktop content */
+  #main-content::-webkit-scrollbar{width:6px}
+  #main-content::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:3px}
+  #main-content::-webkit-scrollbar-track{background:transparent}
+  /* Chart labels on desktop */
+  #chart-swipe-inner>div>div:first-child{display:flex;flex-direction:column;align-items:center}
+  /* Section titles for each chart on desktop */
+  .desktop-chart-title{display:block}
+  .sector-row{margin-bottom:0}
+  .metals-row{margin-bottom:0}
+}
+#header{background:linear-gradient(160deg,#12122a,#0d0d1a);padding:20px 18px 16px;border-bottom:1px solid #1a1a30}
+#header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+#total-label{font-size:12px;letter-spacing:3px;color:#888;text-transform:uppercase}
+#total-value{font-size:29px;font-weight:700;color:#fff;line-height:1.1}
+#total-value span{font-size:15px;color:#888;font-weight:400}
+#header-sub{display:flex;gap:14px;margin-top:3px;font-size:13px;flex-wrap:wrap}
+#last-updated{font-size:10px;color:#555;margin-top:3px}
+#mode-pill{display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:3px;gap:2px;flex-shrink:0}
+#mode-pill button{padding:5px 11px;border-radius:18px;border:none;font-size:10px;color:#555;background:transparent;transition:all .15s}
+#mode-pill button.active-risk{background:#ff4444;color:#fff;font-weight:700}
+#mode-pill button.active-market{background:#7B68EE;color:#fff;font-weight:700}
+#header-stats{display:flex;gap:7px;margin-top:11px}
+.stat-box{background:#13192e;border:1px solid #1e2540;border-radius:10px;padding:6px 0;flex:1;text-align:center}
+.stat-label{font-size:11px;color:#888}
+.stat-val{font-weight:700;font-size:16px}
+#acct-split{display:flex;gap:8px;margin-top:10px}
+.acct-pill{flex:1;border-radius:11px;padding:9px 10px;text-align:center;border:1px solid transparent;cursor:pointer;transition:opacity .15s}
+.acct-pill.long{background:#0a1a28;border-color:#1a3a55}
+.acct-pill.trade{background:#150a25;border-color:#32185a}
+.acct-pill .ap-label{font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase}
+.acct-pill .ap-val{font-size:16px;font-weight:700;margin-top:1px}
+.acct-pill .ap-pct{font-size:12px;margin-top:1px}
+.acct-pill.long .ap-val{color:#4A90D9}
+.acct-pill.trade .ap-val{color:#F7931A}
+#tabs{display:flex;background:#0a0a18;border-bottom:1px solid #1a1a2e;position:sticky;top:0;z-index:10}
+.tab-btn{flex:1;padding:12px 0;background:none;border:none;color:#555;font-size:9px;font-weight:500;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px;transition:color .15s}
+.tab-btn.active{color:#fff;font-weight:700;border-bottom-color:#7B68EE}
+.tab-label{display:none}
+@media(min-width:900px){.tab-label{display:inline}}
+.tab-btn.active.warn-tab{border-bottom-color:#ff4444}
+.warn-badge{background:#ff4444;color:#fff;border-radius:50%;font-size:9px;padding:1px 4px;margin-left:4px;display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px}
+#acct-tabs{display:flex;gap:6px;margin-bottom:10px}
+.acct-tab{flex:1;padding:9px 0;border-radius:10px;border:1px solid #1a1a2e;background:#0e0e1e;font-size:12px;color:#555;font-weight:400;transition:all .15s}
+.acct-tab.active-long{border-color:#1a4060;background:#0d1f2d;color:#4A90D9;font-weight:700}
+.acct-tab.active-trade{border-color:#3a1a60;background:#1a0d2e;color:#F7931A;font-weight:700}
+.acct-tab.active-all{border-color:#333;background:#1e1e2e;color:#fff;font-weight:700}
+.panel{padding:13px 15px;display:none}
+.panel.active{display:block}
+#chart-panel{padding:14px 15px}
+.card{border-radius:12px;margin-bottom:6px;padding:11px 13px;border:1px solid #1c1c2e;background:#111220;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.card.warn{background:#1f0a0a;border-color:#ff4444}
+.card.no-stop{border-color:#3a2a00}
+.card.long-card{border-left:3px solid #1a4060}
+.card.trade-card{border-left:3px solid #3a1a60}
+.row{display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+.name:hover{white-space:normal;overflow:visible}
+.sub{font-size:12px;color:#666;margin-top:1px}
+.pct{font-size:14px;font-weight:700}
+.val{font-size:12px;color:#666}
+.actions{display:flex;gap:4px;flex-shrink:0}
+.btn-edit{background:#16163a;border:1px solid #2a2a50;border-radius:7px;color:#7B68EE;padding:5px 8px;font-size:13px}
+.btn-dup{background:#0d1a1a;border:1px solid #1a3a3a;border-radius:7px;color:#3DD68C;padding:5px 8px;font-size:13px}
+.btn-del{background:#1e0a18;border:1px solid #3a1030;border-radius:7px;color:#ff6b6b;padding:5px 8px;font-size:13px}
+.acct-tag{font-size:11px;padding:1px 6px;border-radius:8px;font-weight:700;flex-shrink:0}
+.acct-tag.long{background:#0d1f2d;color:#4A90D9;border:1px solid #1a4060}
+.acct-tag.trade{background:#1a0d2e;color:#F7931A;border:1px solid #3a1a60}
+.fresh-dot{width:6px;height:6px;border-radius:50%;background:#5BA85B;display:inline-block;margin-left:4px;flex-shrink:0}
+.stale-dot{width:6px;height:6px;border-radius:50%;background:#888;display:inline-block;margin-left:4px;flex-shrink:0}
+.sector-row{display:flex;align-items:center;gap:10px;padding:10px 13px;margin-bottom:6px;border-radius:12px;cursor:pointer;border:1px solid #1c1c2e;background:#111220;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sector-row.warn{background:#1f0a0a;border-color:#ff4444}
+.sector-row.sel{background:#1e1e3a}
+.sector-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.sector-name{flex:1;font-size:14px}
+.sector-pct{font-weight:700;font-size:14px}
+.sector-kr{font-size:12px;color:#666}
+.metals-group{background:#1a1608;border:1px solid #3a3000;border-radius:12px;padding:12px;margin-bottom:9px}
+.metals-title{font-weight:700;color:#FFD700;margin-bottom:8px;font-size:13px;letter-spacing:1px}
+.metals-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #2a2200;font-size:14px}
+.csv-box{background:#0e0e1e;border:1px dashed #252535;border-radius:12px;padding:11px 14px;margin-bottom:10px;text-align:center}
+.csv-box p{font-size:13px;color:#666;margin-bottom:6px}
+.csv-btns{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.btn-sm{border:1px solid #252535;border-radius:8px;padding:7px 12px;font-size:13px;background:#141428;color:#aaa;transition:background .15s,border-color .15s}
+.filter-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;background:#1e1e3a;border-radius:10px;padding:6px 12px}
+.filter-bar span{font-size:13px;color:#aaa}
+.btn-clear{background:none;border:none;color:#7B68EE;font-size:13px}
+#search-sort{display:flex;gap:7px;margin-bottom:9px}
+#search-input{flex:1;background:#0e0e1e;border:1px solid #222235;border-radius:10px;padding:9px 12px;color:#fff;font-size:14px}
+#search-input::placeholder{color:#444}
+#sort-select{background:#0e0e1e;border:1px solid #222235;border-radius:10px;padding:9px 10px;color:#aaa;font-size:13px;width:auto}
+.warn-card{background:#1a0808;border:1px solid #ff444433;border-radius:12px;padding:11px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(255,68,68,.08)}
+.warn-row{display:flex;justify-content:space-between;align-items:flex-start}
+.warn-pct{color:#ff4444;font-weight:700;font-size:16px}
+.warn-excess{font-size:12px;color:#ff7777}
+.warn-bar-bg{margin-top:8px;background:#2a0808;border-radius:5px;height:4px;overflow:hidden}
+.warn-bar-fill{height:100%;border-radius:5px}
+.warn-bar-labels{display:flex;justify-content:space-between;margin-top:3px;font-size:11px;color:#666}
+.section-label{font-size:11px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:8px;margin-top:13px}
+.settings-card{background:#111220;border:1px solid #1c1c2e;border-radius:14px;padding:15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.settings-card-title{font-size:13px;font-weight:700;color:#e8e8f0;margin-bottom:13px;letter-spacing:.2px}
+
+.setting-label{font-size:14px}
+.setting-sub{font-size:12px;color:#666;margin-top:2px}
+.setting-input{background:#0d0d1a;border:1px solid #333;border-radius:7px;padding:5px 9px;color:#fff;font-size:12px;width:64px;text-align:center}
+#fab{position:fixed;bottom:22px;right:20px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#8B7CF8,#4A90D9);border:none;color:#fff;font-size:24px;box-shadow:0 4px 24px rgba(123,104,238,.6);z-index:100;transition:transform .15s,box-shadow .15s}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:#13132a;border-radius:22px 22px 0 0;padding:22px 18px calc(16px + env(safe-area-inset-bottom));width:100%;max-height:85vh;overflow-y:auto;border-top:1px solid #2a2a40}
+/* Ensure date input native picker has room — push sheet up when date focused */
+.sheet input[type=date]:focus{position:relative;z-index:1}
+.sheet h2{font-size:17px;font-weight:700;margin-bottom:16px;color:#fff}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:#888;margin-bottom:4px}
+.field input,.field select{width:100%;background:#0a0a18;border:1px solid #252535;border-radius:10px;padding:11px 13px;color:#fff;font-size:13px;transition:border-color .15s}
+.modal-btns{display:flex;gap:8px;margin-top:12px}
+.btn-cancel{flex:1;padding:13px;background:#0e0e1e;border:1px solid #252535;border-radius:12px;color:#666;font-size:13px;transition:background .15s}
+.btn-save{flex:2;padding:13px;background:linear-gradient(135deg,#8B7CF8,#4A90D9);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;box-shadow:0 2px 12px rgba(123,104,238,.35);transition:opacity .15s}
+#risk-preview{background:#111;border-radius:9px;padding:10px 12px;margin:5px 0;display:none}
+#risk-preview .rp-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+#risk-preview .rp-divider{border-top:1px solid #222;margin:6px 0}
+#risk-preview .rp-main{display:flex;justify-content:space-between;font-size:14px}
+#f-account-wrap{display:flex;gap:7px;margin-bottom:10px}
+.acct-sel-btn{flex:1;padding:10px;border-radius:9px;border:1px solid #333;background:#0d0d1a;font-size:12px;color:#666;font-weight:400}
+.acct-sel-btn.sel-long{border-color:#1a4060;background:#0d1f2d;color:#4A90D9;font-weight:700}
+.acct-sel-btn.sel-trade{border-color:#3a1a60;background:#1a0d2e;color:#F7931A;font-weight:700}
+.all-ok{text-align:center;padding:40px 0}
+.all-ok .ok-icon{font-size:36px;margin-bottom:9px}
+.all-ok h3{font-size:14px;font-weight:700;color:#5BA85B}
+.all-ok p{font-size:11px;margin-top:4px;color:#555}
+.chart-dot{width:7px;height:7px;border-radius:50%;background:#333;cursor:pointer;transition:background .2s}
+.chart-dot.active-dot{background:#7B68EE}
+.desktop-chart-title{display:none}
+#offline-banner{display:none;background:#2a1000;border-bottom:1px solid #aa6600;padding:6px 16px;font-size:13px;color:#ffaa00;text-align:center}
+.target-bar-wrap{margin-top:6px}
+.target-bar-track{background:#1a1a2e;border-radius:4px;height:6px;position:relative;overflow:visible}
+.target-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.target-bar-marker{position:absolute;top:-3px;width:2px;height:12px;background:#fff;border-radius:1px;opacity:.7}
+.target-drift-label{font-size:11px;margin-top:3px;display:flex;justify-content:space-between}
+.goal-card{background:#111220;border:1px solid #1c1c2e;border-radius:15px;padding:17px;margin-bottom:11px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.goal-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.goal-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.goal-title{font-size:15px;font-weight:700;color:#e8e8f0;margin-bottom:2px}
+.goal-sub{font-size:12px;color:#666}
+.goal-progress-track{background:#1a1a2e;border-radius:6px;height:8px;overflow:hidden;margin:10px 0 6px}
+.goal-progress-fill{height:100%;border-radius:6px;transition:width .4s ease}
+.goal-stats{display:flex;justify-content:space-between;font-size:12px;color:#666}
+.goal-stat-val{font-size:15px;font-weight:700;color:#e8e8f0}
+.goal-stat-label{font-size:11px;color:#666;margin-top:1px}
+.goal-edit-btn{background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:#7B68EE;padding:5px 10px;font-size:13px}
+.goal-section-title{font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:18px 0 10px;font-weight:600}
+.deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.deposit-amount{font-size:24px;font-weight:700;color:#3DD68C}
+.deposit-day{font-size:13px;color:#666;margin-top:2px}
+#welcome-screen{background:#09091a;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+#app-root{display:none}
+.welcome-logo{font-size:52px;margin-bottom:4px}
+.welcome-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
+.welcome-sub{font-size:14px;color:#555;margin-bottom:36px;line-height:1.6;max-width:320px}
+.welcome-btn{width:100%;max-width:340px;padding:15px;border-radius:14px;font-size:15px;font-weight:700;border:none;margin-bottom:10px;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:10px}
+.welcome-btn:active{transform:scale(0.97);opacity:.85}
+.welcome-btn-google{background:#fff;color:#222}
+.welcome-btn-guest{background:#111228;color:#aaa;border:1px solid #1e1e35;font-size:13px;padding:13px}
+.welcome-features{display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px}
+.welcome-feature{background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888;display:flex;align-items:center;gap:5px}
+.welcome-guest-note{font-size:11px;color:#444;max-width:300px;line-height:1.5;margin-top:4px}
+
 </head>
 <body>
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px">
-  <div style="font-size:52px;margin-bottom:16px">📊</div>
-  <div style="font-size:26px;font-weight:800;margin-bottom:8px">Portfolio Tracker</div>
-  <div style="font-size:14px;color:#aaa;margin-bottom:32px">Track your investments</div>
-  <button style="background:white;color:#222;border:none;border-radius:14px;padding:15px 30px;font-size:15px;font-weight:700;cursor:pointer">Sign in with Google</button>
-  <button style="background:#111228;color:#aaa;border:1px solid #1e1e35;border-radius:14px;padding:13px 30px;font-size:13px;margin-top:10px;cursor:pointer">Continue without signing in</button>
+<div id="loading-msg" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:14px;font-family:sans-serif">Loading...</div>
+
+<!-- Welcome / Onboarding Screen -->
+<div id="welcome-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#09091a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;z-index:9999;box-sizing:border-box">
+  <div style="font-size:52px;margin-bottom:4px">📊</div>
+  <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px">Portfolio Tracker</div>
+  <div style="font-size:14px;color:#aaa;margin-bottom:36px;line-height:1.6;max-width:320px">Track your investments, manage risk, and sync across all your devices.</div>
+
+  <div style="display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px">
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📈 Live prices</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">⚡ Risk mode</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">☁️ Cloud sync</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🛑 Stop losses</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🌍 SEK / USD</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📂 Avanza CSV</div>
+  </div>
+
+  <button class="welcome-btn welcome-btn-google" onclick="welcomeSignIn()">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Sign in with Google
+  </button>
+
+  <button class="welcome-btn welcome-btn-guest" onclick="welcomeGuest()">
+    Continue without signing in
+  </button>
+  <div class="welcome-guest-note">⚠️ Without signing in, your data is only saved locally in this browser. It will be lost if you clear your browser data or switch devices.</div>
 </div>
+
+<div id="app-root">
+<div id="offline-banner">⚠️ You're offline — prices won't refresh until connection is restored</div>
+<div id="undo-toast"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
+
+<div id="header">
+  <div id="header-top">
+    <div>
+      <div id="total-label">Portfolio Tracker</div>
+      <div id="total-value">0 <span>SEK</span></div>
+      <div id="header-sub">
+        <span id="total-pnl" style="display:none"></span>
+        <span id="total-pct-chg" style="display:none"></span>
+        <span id="total-risk-kr" style="display:none;color:#ff6666"></span>
+      </div>
+      <div id="last-updated"></div>
+    </div>
+    <div id="mode-pill">
+      <button id="btn-risk" onclick="setMode('risk')">⚡ Risk</button>
+      <button id="btn-market" onclick="setMode('market')">📊 Market</button>
+    </div>
+    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle display currency" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
+      <span id="currency-pill-label">SEK</span>
+    </div>
+  </div>
+  <div id="header-stats">
+    <div class="stat-box"><div class="stat-label">Holdings</div><div class="stat-val" id="stat-holdings">0</div></div>
+    <div class="stat-box"><div class="stat-label">Invested</div><div class="stat-val" id="stat-invested" style="color:#7B68EE">0%</div></div>
+    <div class="stat-box" onclick="openCashEditor()" style="cursor:pointer">
+      <div class="stat-label">💵 Cash ✏️</div>
+      <div class="stat-val" id="stat-cash" style="color:#3DD68C">0%</div>
+    </div>
+    <div class="stat-box"><div class="stat-label">Sectors</div><div class="stat-val" id="stat-sectors">0</div></div>
+  </div>
+  <div id="acct-split">
+    <div class="acct-pill long" onclick="setAcctFilter('long');switchTab('holdings')">
+      <div class="ap-label">📈 Long Term</div>
+      <div class="ap-val" id="acct-long-val">0 kr</div>
+      <div class="ap-pct" id="acct-long-pct" style="color:#4A90D9">0%</div>
+    </div>
+    <div class="acct-pill trade" onclick="setAcctFilter('trade');switchTab('holdings')">
+      <div class="ap-label">⚡ Trading</div>
+      <div class="ap-val" id="acct-trade-val">0 kr</div>
+      <div class="ap-pct" id="acct-trade-pct" style="color:#F7931A">0%</div>
+    </div>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('chart')">📊 <span class="tab-label">Chart</span></button>
+  <button class="tab-btn" onclick="switchTab('sectors')">🗂 <span class="tab-label">Sectors</span></button>
+  <button class="tab-btn" onclick="switchTab('holdings')">📋 <span class="tab-label">Holdings</span></button>
+  <button class="tab-btn" onclick="switchTab('goals')">🎯 <span class="tab-label">Goals</span></button>
+  <button class="tab-btn" onclick="switchTab('warnings')">⚠️ <span class="tab-label">Warnings</span><span id="warn-badge" class="warn-badge" style="display:none">0</span></button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙️ <span class="tab-label">Settings</span></button>
+</div>
+
+<div id="main-content">
+
+<!-- CHART -->
+<div id="chart-panel" class="panel active">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 2px">
+    <div id="chart-title" style="font-size:13px;font-weight:700;color:#aaa;letter-spacing:.3px"></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="chart-dot active-dot" onclick="goToChart(0)" title="Total"></div>
+      <div class="chart-dot" onclick="goToChart(1)" title="Long Term"></div>
+      <div class="chart-dot" onclick="goToChart(2)" title="Trading"></div>
+    </div>
+  </div>
+  <div id="chart-swipe-wrap" style="overflow:hidden;touch-action:pan-y">
+    <div id="chart-swipe-inner" style="display:flex;transition:transform 0.35s cubic-bezier(.4,0,.2,1);width:300%">
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">🌍 Total Portfolio</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-0" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-0" style="margin-top:4px"></div>
+      </div>
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">📈 Long Term</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-1" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-1" style="margin-top:4px"></div>
+      </div>
+      <div style="width:33.333%;flex-shrink:0">
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px" class="desktop-chart-title">⚡ Trading</div>
+        <div style="position:relative;display:flex;justify-content:center">
+          <svg id="donut-svg-2" viewBox="0 0 260 260" style="display:block;width:100%;max-width:260px;margin:0 auto"></svg>
+        </div>
+        <div id="chart-legend-2" style="margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+  <div id="donut-tooltip" style="display:none;position:fixed;background:#1a1a2e;border:1px solid #333;border-radius:9px;padding:8px 12px;pointer-events:none;z-index:999;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,.5)"></div>
+</div>
+
+<!-- SECTORS -->
+<div id="sectors-panel" class="panel">
+  <div style="font-size:10px;color:#666;margin-bottom:9px" id="sectors-mode-label"></div>
+  <div class="metals-group" id="metals-group"><div class="metals-title">⚙️ METALS — <span id="metals-pct">0%</span></div><div id="metals-list"></div></div>
+  <div id="other-sectors-list"></div>
+</div>
+
+<!-- HOLDINGS -->
+<div id="holdings-panel" class="panel">
+  <div id="filter-bar" class="filter-bar" style="display:none">
+    <span>Filtered: <b id="filter-label" style="color:#fff"></b></span>
+    <button class="btn-clear" onclick="clearFilter()">Clear ✕</button>
+  </div>
+  <div id="acct-tabs">
+    <button class="acct-tab active-all" onclick="setAcctFilter('all')">All</button>
+    <button class="acct-tab" onclick="setAcctFilter('long')">📈 Long Term</button>
+    <button class="acct-tab" onclick="setAcctFilter('trade')">⚡ Trading</button>
+  </div>
+  <div class="csv-box">
+    <p>Import Avanza CSV · manage holdings below</p>
+    <div class="csv-btns">
+      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 CSV</button>
+      <button class="btn-sm" style="color:#3DD68C" onclick="exportData()">💾 Export</button>
+      <button class="btn-sm" style="color:#F7931A" onclick="refreshPrices()" id="btn-refresh">🔄 Prices</button>
+      <button class="btn-sm" style="color:#ff4444;border-color:#3a1020;margin-left:8px" onclick="resetHoldings()">🗑 Clear all</button>
+    </div>
+    <input id="csv-input" type="file" accept=".csv,.json" style="display:none" onchange="handleFile(event)"/>
+    <div id="csv-error" style="color:#ff6b6b;font-size:10px;margin-top:5px"></div>
+    <div id="refresh-status" style="font-size:10px;margin-top:5px;display:none"></div>
+  </div>
+  <div id="search-sort">
+    <input id="search-input" placeholder="🔍 Search..." oninput="render()"/>
+    <select id="sort-select" onchange="render()">
+      <option value="value">Value</option>
+      <option value="pct">%</option>
+      <option value="name">Name</option>
+      <option value="pnl">P&L</option>
+      <option value="risk">Risk</option>
+      <option value="nostop">No stop</option>
+    </select>
+  </div>
+  <div id="holdings-list"></div>
+</div>
+
+<!-- GOALS -->
+<div id="goals-panel" class="panel">
+  <div id="goals-content"></div>
+</div>
+
+<!-- WARNINGS -->
+<div id="warnings-panel" class="panel"><div id="warnings-content"></div></div>
+
+<!-- SETTINGS -->
+<div id="settings-panel" class="panel">
+
+  <!-- Cloud Sync -->
+  <div class="settings-card">
+    <div class="settings-card-title">☁️ Cloud Sync</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;color:#666">Status</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span id="sync-status-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555"></span>
+        <span id="sync-status-label" style="font-size:12px;color:#555">Not signed in</span>
+      </div>
+    </div>
+    <div id="sync-signedout-ui">
+      <div style="font-size:12px;color:#555;margin-bottom:12px">Sign in with Google to sync across all your devices.</div>
+      <button onclick="signInWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:#fff;border:none;border-radius:10px;color:#222;padding:12px 13px;font-size:13px;font-weight:600">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Sign in with Google
+      </button>
+    </div>
+    <div id="sync-signedin-ui" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <img id="sync-user-photo" src="" width="36" height="36" style="border-radius:50%;display:none"/>
+        <div>
+          <div id="sync-user-name" style="font-size:13px;font-weight:600;color:#e8e8f0"></div>
+          <div id="sync-user-email" style="font-size:11px;color:#666"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="forceSyncNow()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#5BA85B;padding:9px;font-size:12px">🔄 Sync now</button>
+        <button onclick="signOut()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#ff6b6b;padding:9px;font-size:12px">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warning Thresholds -->
+  <div class="settings-card">
+    <div class="settings-card-title">⚠️ Warning Thresholds</div>
+    <div class="setting-row">
+      <div><div class="setting-label">Max trade size</div><div class="setting-sub">Warn if single trade exceeds this % of trading total</div></div>
+      <input class="setting-input" id="set-trade-warn" type="number" min="1" max="100" value="20" onchange="saveSettings()"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Max trading account size</div><div class="setting-sub">Warn if trading account exceeds this % of Long Term + Cash</div></div>
+      <input class="setting-input" id="set-trade-account-max" type="number" min="1" max="100" value="20" onchange="saveSettings()"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Max sector size (Trading)</div><div class="setting-sub">Warn if sector exceeds this % in trading account</div></div>
+      <input class="setting-input" id="set-sector-warn" type="number" min="1" max="100" value="6" onchange="saveSettings()"/>
+    </div>
+    <div class="setting-row" style="border-bottom:none">
+      <div><div class="setting-label">Warn on missing stop loss</div><div class="setting-sub">Flag trading holdings with no stop set</div></div>
+      <button id="set-nostop-btn" onclick="toggleNoStop()" style="background:#161630;border:1px solid #252545;border-radius:20px;padding:5px 14px;font-size:12px;color:#7B68EE;min-width:44px">ON</button>
+    </div>
+  </div>
+
+  <!-- Portfolio Goal -->
+  <div class="settings-card">
+    <div class="settings-card-title">🏆 Portfolio Goal</div>
+    <div id="settings-portfolio-goal"></div>
+  </div>
+
+  <!-- Target Allocations -->
+  <div class="settings-card">
+    <div class="settings-card-title">🎯 Target Allocations <span style="color:#555;font-size:11px;font-weight:400">— set your plan, see your drift</span></div>
+    <div id="target-inputs"></div>
+    <div id="target-total-row" style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #1a1a2e;font-size:12px">
+      <span style="color:#888">Total targets</span>
+      <span id="target-total-val" style="font-weight:700">0%</span>
+    </div>
+  </div>
+
+  <!-- History & Backup -->
+  <div class="settings-card">
+    <div class="settings-card-title">📅 Snapshot History</div>
+    <div id="history-list" style="font-size:12px;color:#aaa"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="saveSnapshot()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">📸 Save snapshot</button>
+      <button onclick="autoBackup(true)" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#3DD68C;padding:9px;font-size:12px">💾 Backup now</button>
+    </div>
+  </div>
+
+  <!-- Buy Me a Coffee -->
+  <div class="settings-card">
+    <div class="settings-card-title">☕ Support Development</div>
+    <div style="font-size:12px;color:#666;margin-bottom:12px">
+      If Portfolio Tracker helps you manage your investments, consider buying me a coffee!
+    </div>
+    <a href="https://buymeacoffee.com/chcronlund" target="_blank"
+       style="display:block;width:100%;background:linear-gradient(135deg,#FFDD00,#FFB84D);border:none;border-radius:10px;color:#222;padding:12px;font-size:13px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 2px 12px rgba(255,221,0,.3);transition:transform .15s">
+      ☕ Buy Me a Coffee
+    </a>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:#333;padding:12px 8px">Portfolio Tracker · data saved locally</div>
+</div>
+
+</div><!-- end #main-content -->
+
+<button id="fab" onclick="openModal()">+</button>
+
+<!-- Goal Editor -->
+<div id="goal-overlay" class="overlay" onclick="if(event.target===this)closeGoalEditor()">
+  <div class="sheet">
+    <h2 id="goal-editor-title">Edit Goal</h2>
+    <div id="goal-editor-body"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeGoalEditor()">Cancel</button>
+      <button class="btn-save" id="goal-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cash Editor -->
+<div id="cash-overlay" class="overlay" onclick="if(event.target===this)closeCashEditor()">
+  <div class="sheet">
+    <h2>💵 Cash & Liquidity</h2>
+    <div id="cash-current-label" style="font-size:12px;color:#888;margin-bottom:13px"></div>
+    <div style="display:flex;gap:7px;margin-bottom:12px">
+      <button id="cash-btn-long" onclick="setCashAccount('long')" class="acct-sel-btn sel-long">📈 Long Term</button>
+      <button id="cash-btn-trade" onclick="setCashAccount('trade')" class="acct-sel-btn">⚡ Trading</button>
+    </div>
+    <div class="field"><label id="cash-amount-label">Amount (SEK)</label><input id="cash-input" type="number" placeholder="e.g. 50000" style="border-color:#3DD68C"/></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="closeCashEditor()" class="btn-cancel">Cancel</button>
+      <button onclick="saveCash()" style="flex:2;padding:12px;background:linear-gradient(135deg,#3DD68C,#2aaa70);border:none;border-radius:11px;color:#fff;font-size:13px;font-weight:700">Save Cash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Holding -->
+<div id="modal-overlay" class="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="sheet" id="modal">
+    <h2 id="modal-title">Add Holding</h2>
+    <div style="font-size:10px;color:#888;margin-bottom:5px">Account</div>
+    <div id="f-account-wrap">
+      <button class="acct-sel-btn sel-long" onclick="selectAccount('long')">📈 Long Term</button>
+      <button class="acct-sel-btn" onclick="selectAccount('trade')">⚡ Trading</button>
+    </div>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Boliden"/></div>
+    <div class="field"><label>Ticker Symbol <span style="color:#555">— for auto price (e.g. WULF, NEM, BTC-USD)</span></label><input id="f-ticker" placeholder="e.g. WULF" style="text-transform:uppercase"/></div>
+    <div class="field"><label>Sector</label><select id="f-sector"></select></div>
+    <div style="display:flex;gap:7px">
+      <div class="field" style="flex:1"><label>Buy Price (<span class="modal-curr-label">SEK</span>)</label><input id="f-buyprice" type="number" placeholder="320" oninput="updateRiskPreview()"/></div>
+      <div class="field" style="flex:1"><label>No. of Shares</label><input id="f-shares" type="number" placeholder="10" oninput="updateRiskPreview()"/></div>
+    </div>
+    <div class="field"><label>Current Price (<span class="modal-curr-label">SEK</span>)</label><input id="f-price" type="number" placeholder="350" oninput="updateRiskPreview()"/></div>
+    <div class="field"><label>🛑 Stop Loss Price (<span class="modal-curr-label">SEK</span>) <span style="color:#555">— optional</span></label><input id="f-stoploss" type="number" placeholder="290" oninput="updateRiskPreview()"/></div>
+    <div class="field"><label>📝 Notes <span style="color:#555">— optional</span></label><input id="f-notes" placeholder="e.g. DCA position, waiting for earnings…"/></div>
+    <div id="risk-preview">
+      <div class="rp-row"><span style="color:#888">Market value</span><span id="prev-market" style="color:#fff;font-weight:700"></span></div>
+      <div class="rp-row"><span style="color:#888">P&L vs buy price</span><span id="prev-pnl" style="font-weight:700"></span></div>
+      <div class="rp-divider"></div>
+      <div class="rp-main"><span style="color:#ff6666">⚡ Max risk if stop hits</span><span id="prev-risk-amt" style="color:#ff4444;font-weight:700"></span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveHolding()" id="btn-save-lbl">Add Holding</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #app-root -->
+
+<script>
+
+const LS_KEY='portfolio_tracker_v2',LS_SETTINGS='pt_settings',LS_HISTORY='pt_history',LS_TARGETS='pt_targets',LS_SYNC_UID='pt_sync_uid',LS_SECTOR_MEMORY='pt_sector_memory',LS_GOALS='pt_goals';
+
+// Remembers previously assigned sectors by holding name for smarter CSV imports
+function loadSectorMemory(){try{return JSON.parse(localStorage.getItem(LS_SECTOR_MEMORY)||'{}');}catch(e){return{};}}
+function saveSectorMemory(){
+  const mem={};
+  holdings.forEach(h=>{if(h.sector&&h.sector!=='Other')mem[h.name.toLowerCase().trim()]=h.sector;});
+  try{localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(mem));}catch(e){}
+}
+
+// ── Goals ─────────────────────────────────────────────────────────
+// goals = { portfolioGoal: {target, date}, longTermPct: {target}, deposit: {amount, day} }
+const DEFAULT_GOALS={portfolioGoal:{target:null,date:null},longTermPct:{target:80},deposit:{amount:null,day:25}};
+function loadGoals(){
+  try{
+    const s=localStorage.getItem(LS_GOALS);
+    if(s){
+      const saved=JSON.parse(s);
+      // Deep merge each nested goal object so new default keys survive upgrades
+      return{
+        portfolioGoal:{...DEFAULT_GOALS.portfolioGoal,...(saved.portfolioGoal||{})},
+        longTermPct:{...DEFAULT_GOALS.longTermPct,...(saved.longTermPct||{})},
+        deposit:{...DEFAULT_GOALS.deposit,...(saved.deposit||{})},
+      };
+    }
+  }catch(e){}
+  return{...DEFAULT_GOALS,portfolioGoal:{...DEFAULT_GOALS.portfolioGoal},longTermPct:{...DEFAULT_GOALS.longTermPct},deposit:{...DEFAULT_GOALS.deposit}};
+}
+function saveGoals(){try{localStorage.setItem(LS_GOALS,JSON.stringify(goals));}catch(e){}}
+
+const SECTOR_COLORS={"Silver":"#C0C0C0","Gold":"#FFD700","Gold & Silver":"#DAA520","Base Metals Mining":"#B87333","Mining Equipment":"#8B7355","Bonds":"#4A90D9","Semiconductors ETF":"#7B68EE","Crypto/Bitcoin Mining":"#F7931A","Index (Leverage)":"#FF6B6B","Construction":"#5BA85B","Biotech/Pharma":"#FF8FAB","Cash & Liquidity":"#3DD68C","Other":"#999999","Metals":"#E0C97F"};
+const SECTOR_EMOJIS={"Silver":"🥈","Gold":"🥇","Gold & Silver":"✨","Base Metals Mining":"⛏️","Mining Equipment":"🔧","Bonds":"📊","Semiconductors ETF":"💻","Crypto/Bitcoin Mining":"₿","Index (Leverage)":"📈","Construction":"🏗️","Biotech/Pharma":"🧬","Cash & Liquidity":"💵","Other":"📦","Metals":"⚙️"};
+const METAL_SECTORS=["Silver","Gold","Gold & Silver","Base Metals Mining","Mining Equipment"];
+const CRYPTO_SECTORS=["Crypto/Bitcoin Mining"];
+const CASH_SECTORS=["Cash & Liquidity"];
+const SECTOR_OPTIONS=Object.keys(SECTOR_COLORS);
+// Derived after SECTOR_OPTIONS is defined
+const STOCK_SECTORS=SECTOR_OPTIONS.filter(s=>!METAL_SECTORS.includes(s)&&!CRYPTO_SECTORS.includes(s)&&!CASH_SECTORS.includes(s)&&s!=='Other'&&s!=='Metals');
+
+// ── Template helpers ──────────────────────────────────────────────
+
+// Coloured formatted number: green if positive, red if negative, grey if zero
+// Usage: colorVal(pnl, fmt(pnl)+' kr')  or  colorVal(diff, fmtDec(diff)+'%')
+function colorVal(n, formatted){
+  const c=n>0?'#5BA85B':n<0?'#ff4444':'#888';
+  const sign=n>0?'+':'';
+  return `<span style="color:${c}">${sign}${formatted??n}</span>`;
+}
+
+// Stat tile: used in goal cards
+function statTile(value,label,color='#e8e8f0'){
+  return `<div style="background:#0d0d1a;border-radius:9px;padding:10px;text-align:center">
+    <div class="goal-stat-val" style="color:${color}">${value}</div>
+    <div class="goal-stat-label">${label}</div>
+  </div>`;
+}
+
+// Section label
+function sectionLabel(text,marginTop=13){
+  return `<div class="section-label" style="margin-top:${marginTop}px">${text}</div>`;
+}
+
+// Long term group warning thresholds (% of long term account)
+const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
+
+const INITIAL=[];
+
+// State
+let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
+let acctFilter='all',selectedAccount='long';
+let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};
+let targets={};
+let goals={};
+let lastRefreshTime=parseInt(localStorage.getItem('pt_last_refresh_ts')||'0')||null;
+// Display currency toggle — SEK or USD, display-only (data always stored in SEK)
+let displayCurrency=localStorage.getItem('pt_display_currency')||'SEK';
+let liveUsdSek=parseFloat(localStorage.getItem('pt_usd_sek_rate')||'0')||10.3;
+
+// ── Storage ───────────────────────────────────────────────────────
+function loadData(){try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){}return null;}
+function save(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(holdings));
+    const now=new Date().toISOString();
+    localStorage.setItem('pt_last_updated',now);
+    localStorage.setItem('pt_last_updated_ts',String(Date.now()));
+  }catch(e){}
+  pushToFirebase(); // sync to cloud if connected
+}
+// ── No-stop acknowledgements ──────────────────────────────────────
+const LS_NOSTOP_ACK='pt_nostop_ack';
+function loadNoStopAck(){try{return new Set(JSON.parse(localStorage.getItem(LS_NOSTOP_ACK)||'[]'));}catch(e){return new Set();}}
+function saveNoStopAck(){try{localStorage.setItem(LS_NOSTOP_ACK,JSON.stringify([...noStopAck]));}catch(e){}}
+function toggleNoStopAck(id){
+  if(noStopAck.has(id))noStopAck.delete(id);else noStopAck.add(id);
+  saveNoStopAck();render();
+}
+let noStopAck=loadNoStopAck();
+
+function loadSettings(){try{const s=localStorage.getItem(LS_SETTINGS);if(s){const p=JSON.parse(s);if(p.tradeAccountMaxPct===null)p.tradeAccountMaxPct=20;return p;}}catch(e){}return{tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};}
+function loadTargets(){try{const s=localStorage.getItem(LS_TARGETS);if(s)return JSON.parse(s);}catch(e){}return{};}
+function saveTargets(){try{localStorage.setItem(LS_TARGETS,JSON.stringify(targets));}catch(e){}}
+function saveSettings(){
+  settings.tradeWarn=parseFloat(document.getElementById('set-trade-warn').value)||2;
+  settings.sectorWarn=parseFloat(document.getElementById('set-sector-warn').value)||6;
+  settings.tradeAccountMaxPct=parseFloat(document.getElementById('set-trade-account-max').value)||20;
+  try{localStorage.setItem(LS_SETTINGS,JSON.stringify(settings));}catch(e){}
+  render();
+}
+function toggleNoStop(){settings.warnNoStop=!settings.warnNoStop;saveSettings();}
+
+// ── Calculations ──────────────────────────────────────────────────
+function effVal(h){
+  if(h.stopLoss!=null&&h.shares!=null&&h.currentPrice!=null)return Math.max(0,(h.currentPrice-h.stopLoss)*h.shares);
+  if(h.stopLoss!=null&&h.shares!=null&&h.buyPrice!=null)return Math.max(0,(h.buyPrice-h.stopLoss)*h.shares);
+  return h.value;
+}
+function getVal(h){return viewMode==='risk'?effVal(h):h.value;}
+function fmt(n){return Math.round(n).toLocaleString('sv-SE');}
+function fmtDec(n,d=1){return n.toLocaleString('sv-SE',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// Currency-aware display helpers — all values stored in SEK, converted on display
+function toDisplay(sekVal){return displayCurrency==='USD'?sekVal/liveUsdSek:sekVal;}
+function fmtC(sekVal){return fmt(toDisplay(sekVal));}
+function currLabel(){return displayCurrency==='USD'?'USD':'kr'}
+function currSymbol(){return displayCurrency==='USD'?'$':''}
+function toggleDisplayCurrency(){
+  displayCurrency=displayCurrency==='SEK'?'USD':'SEK';
+  localStorage.setItem('pt_display_currency',displayCurrency);
+  render();
+}
+
+// calcTotals is pure: pass the view mode explicitly so it does not silently
+// depend on the global viewMode and can be called safely in any context.
+function calcTotals(subset, mode){
+  const m=mode||viewMode;
+  const hs=subset||holdings;
+  const marketTotal=hs.reduce((s,h)=>s+h.value,0);
+  const riskTotal=hs.reduce((s,h)=>s+effVal(h),0);
+  const activeTotal=m==='risk'?riskTotal:marketTotal;
+  if(activeTotal===0)return{marketTotal,riskTotal,activeTotal:1,sectorArr:[],metalPct:0,cashPct:0,totalPnl:0,totalBuyVal:0,pctChg:0};
+  const sectorMap={};
+  hs.forEach(h=>{sectorMap[h.sector]=(sectorMap[h.sector]||0)+(m==='risk'?effVal(h):h.value);});
+  const sectorArr=Object.entries(sectorMap).map(([name,value])=>({name,value,pct:value/activeTotal*100})).sort((a,b)=>b.value-a.value);
+  const metalTotal=sectorArr.filter(s=>METAL_SECTORS.includes(s.name)).reduce((s,d)=>s+d.value,0);
+  const cashSector=sectorArr.find(s=>s.name==='Cash & Liquidity');
+  const cashPct=cashSector?cashSector.pct:0;
+  // Accumulate total P&L and % change across all holdings with buy price data
+  const totalBuyVal=hs.reduce((s,h)=>{
+    if(h.buyPrice!=null&&h.shares!=null)return s+h.buyPrice*h.shares;
+    return s+h.value;
+  },0);
+  const totalPnl=marketTotal-totalBuyVal;
+  const pctChg=totalBuyVal>0?totalPnl/totalBuyVal*100:0;
+  return{marketTotal,riskTotal,activeTotal,sectorArr,metalPct:metalTotal/activeTotal*100,cashPct,totalPnl,totalBuyVal,pctChg};
+}
+
+// ── Main render ───────────────────────────────────────────────────
+// Pre-compute all shared data once, then only rebuild the visible tab's DOM.
+function render(){
+  try{
+    const all=calcTotals(holdings);
+    const longH=holdings.filter(h=>h.account==='long');
+    const tradeH=holdings.filter(h=>h.account==='trade');
+    const longTotals=calcTotals(longH);
+    const tradeTotals=calcTotals(tradeH);
+    const ctx=buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals);
+    // Clear any stale error banners from previous failed renders
+    document.querySelectorAll('.render-error').forEach(el=>el.remove());
+    renderHeader(ctx);
+    renderTab(ctx);
+  }catch(err){
+    console.error('Render error:',err);
+    // Show a non-destructive recovery banner rather than a blank screen
+    const panel=document.getElementById(activeTab+'-panel');
+    if(panel&&!panel.querySelector('.render-error')){
+      const div=document.createElement('div');
+      div.className='render-error';
+      div.style.cssText='background:#1f0a0a;border:1px solid #ff4444;border-radius:11px;padding:16px;margin:16px;color:#ff6666;font-size:12px';
+      div.innerHTML=`<b>⚠️ Display error</b><br><span style="color:#888;font-size:11px">${err.message}</span><br><button onclick="this.parentElement.remove();render()" style="margin-top:8px;background:#2a0808;border:1px solid #ff4444;border-radius:7px;color:#ff6666;padding:4px 10px;font-size:11px">Retry</button>`;
+      panel.prepend(div);
+    }
+  }
+}
+
+// Build the shared context object used by all render functions.
+// Called once per render() so downstream functions don't repeat work.
+function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
+  const{marketTotal,riskTotal,activeTotal,sectorArr,metalPct,cashPct,totalPnl,totalBuyVal,pctChg}=all;
+  const cashVal=holdings.filter(h=>h.sector==='Cash & Liquidity').reduce((s,h)=>s+h.value,0);
+  const TRADE_HOLD_WARN=settings.tradeWarn;
+  const tradeActiveTotal=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
+
+  // Clear stale no-stop acks for holdings that now have a stop set
+  tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(h.id)){noStopAck.delete(h.id);saveNoStopAck();}});
+  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(h.id)):[];
+  const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
+
+  // Individual metal sub-sectors excluded — only combined group is checked
+  const overS=tradeTotals.sectorArr.filter(d=>d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name));
+  const tradeMetalPct=tradeTotals.sectorArr.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.pct,0);
+  if(tradeMetalPct>settings.sectorWarn)overS.push({name:'Metals (combined)',pct:tradeMetalPct,value:tradeTotals.sectorArr.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.value,0)});
+
+  // Long term group warnings — calculated once from market values
+  const longMarketTotal=longTotals.marketTotal||1;
+  const longSectorArr=calcTotals(longH,'market').sectorArr;
+  const groupPct=group=>longSectorArr.filter(d=>group.includes(d.name)).reduce((s,d)=>s+d.value,0)/longMarketTotal*100;
+  const longGroupWarnings=[];
+  const stocksPct=groupPct(STOCK_SECTORS);
+  const cryptoPct=groupPct(CRYPTO_SECTORS);
+  const longMetalPct=groupPct(METAL_SECTORS);
+  const longCashPct=groupPct(CASH_SECTORS);
+  if(stocksPct>LONG_GROUP_LIMITS.stocks)longGroupWarnings.push({name:'📈 Stocks (long term)',pct:stocksPct,limit:LONG_GROUP_LIMITS.stocks});
+  if(cryptoPct>LONG_GROUP_LIMITS.crypto)longGroupWarnings.push({name:'₿ Crypto (long term)',pct:cryptoPct,limit:LONG_GROUP_LIMITS.crypto});
+  if(longMetalPct>LONG_GROUP_LIMITS.metals)longGroupWarnings.push({name:'⚙️ Metals (long term)',pct:longMetalPct,limit:LONG_GROUP_LIMITS.metals});
+  if(longCashPct>LONG_GROUP_LIMITS.cash)longGroupWarnings.push({name:'💵 Cash (long term)',pct:longCashPct,limit:LONG_GROUP_LIMITS.cash});
+
+  const tradeAccountLimit=(longMarketTotal+cashVal)*(settings.tradeAccountMaxPct/100);
+  const tradeTotalMarket=tradeTotals.marketTotal;
+  const tradeAccountOversize=tradeTotalMarket>tradeAccountLimit;
+  const totalW=overH.length+overS.length+noStopHoldings.length+(tradeAccountOversize?1:0)+longGroupWarnings.length;
+
+  return{all,longH,tradeH,longTotals,tradeTotals,marketTotal,riskTotal,activeTotal,sectorArr,metalPct,
+    cashPct,cashVal,totalPnl,totalBuyVal,pctChg,TRADE_HOLD_WARN,tradeActiveTotal,noStopHoldings,
+    overH,overS,tradeAccountLimit,tradeTotalMarket,tradeAccountOversize,longGroupWarnings,totalW};
+}
+
+function renderHeader(ctx){
+  const{marketTotal,riskTotal,activeTotal,sectorArr,metalPct,cashPct,cashVal,totalPnl,totalBuyVal,pctChg,
+    longTotals,tradeTotals,totalW}=ctx;
+  const hasStops=holdings.some(h=>h.stopLoss!=null);
+  const investedPct=marketTotal>0?(marketTotal-cashVal)/marketTotal*100:0;
+
+  document.getElementById('total-value').innerHTML=`${fmtC(activeTotal)} <span>${currLabel()}</span>`;
+
+  // Show total P&L in both kr and % when buy price data is available
+  const pnlEl=document.getElementById('total-pnl');
+  const pctEl=document.getElementById('total-pct-chg');
+  if(totalBuyVal>0&&totalPnl!==0){
+    pnlEl.style.display='inline';pnlEl.style.color=totalPnl>=0?'#5BA85B':'#ff4444';
+    pnlEl.textContent=`${totalPnl>=0?'+':''}${fmtC(totalPnl)} ${currLabel()}`;
+    pctEl.style.display='inline';pctEl.style.color=totalPnl>=0?'#5BA85B':'#ff4444';
+    pctEl.textContent=`(${pctChg>=0?'+':''}${fmtDec(pctChg)}%)`;
+  }else{pnlEl.style.display='none';pctEl.style.display='none';}
+
+  const riskEl=document.getElementById('total-risk-kr');
+  if(hasStops&&viewMode==='risk'){riskEl.style.display='inline';riskEl.textContent=`⚡ ${fmtC(riskTotal)} ${currLabel()} at risk`;}
+  else riskEl.style.display='none';
+
+  document.getElementById('stat-holdings').textContent=holdings.length;
+  document.getElementById('stat-invested').textContent=fmtDec(investedPct)+'%';
+  document.getElementById('stat-cash').textContent=fmtDec(cashPct)+'%';
+  document.getElementById('stat-sectors').textContent=sectorArr.length;
+  document.getElementById('btn-risk').className=viewMode==='risk'?'active-risk':'';
+  document.getElementById('btn-market').className=viewMode==='market'?'active-market':'';
+
+  const lv=viewMode==='risk'?longTotals.riskTotal:longTotals.marketTotal;
+  const tv=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
+  const tot=lv+tv||1;
+  document.getElementById('acct-long-val').textContent=fmtC(lv)+' '+currLabel();
+  document.getElementById('acct-long-pct').textContent=fmtDec(lv/tot*100)+'% of invested';
+  document.getElementById('acct-trade-val').textContent=fmtC(tv)+' '+currLabel();
+  document.getElementById('acct-trade-pct').textContent=fmtDec(tv/tot*100)+'% of invested';
+  // Update currency pill label
+  const cp=document.getElementById('currency-pill-label');
+  if(cp){cp.textContent=displayCurrency;cp.style.color=displayCurrency==='USD'?'#4A90D9':'#7B68EE';}
+
+  try{
+    const lu=localStorage.getItem('pt_last_updated');
+    const el=document.getElementById('last-updated');
+    if(lu){
+      const d=new Date(lu),now=new Date(),diffMin=Math.floor((now-d)/60000),diffH=Math.floor(diffMin/60);
+      let label;
+      if(diffMin<1)label='🕐 Updated just now';
+      else if(diffMin<60)label=`🕐 Updated ${diffMin}m ago`;
+      else if(diffH<24)label=`🕐 Updated ${diffH}h ago`;
+      else label=`🕐 Updated ${d.toLocaleDateString('sv-SE')}`;
+      el.textContent=label;el.style.color='#666';
+    }else{el.textContent='🕐 Not yet updated';el.style.color='#555';}
+  }catch(e){}
+
+  const badge=document.getElementById('warn-badge');
+  if(totalW>0){badge.style.display='inline';badge.textContent=totalW;}else badge.style.display='none';
+  // Highlight warnings tab in red whenever there are active warnings
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    if(['chart','sectors','holdings','goals','warnings','settings'][i]==='warnings')
+      b.classList.toggle('warn-tab',totalW>0);
+  });
+}
+
+// Only render the currently visible tab — avoids rebuilding all panels on every state change
+function renderTab(ctx){
+  const{sectorArr,metalPct,activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,
+    overS,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,longGroupWarnings,tradeH,longH,longTotals,tradeTotals}=ctx;
+  try{
+    switch(activeTab){
+      case 'chart':   renderChart(sectorArr,activeTotal,longH,tradeH,longTotals,tradeTotals);break;
+      case 'sectors': renderSectors(sectorArr,metalPct);break;
+      case 'holdings':renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN);break;
+      case 'warnings':renderWarnings(overH,overS,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings);break;
+      case 'goals':   renderGoals(ctx);break;
+      case 'settings':renderSettings(ctx.sectorArr,ctx.marketTotal);renderHistory();break;
+      default:break;
+    }
+  }catch(err){
+    console.error(`renderTab error (${activeTab}):`,err);
+    throw err; // re-throw so outer render() error boundary catches it
+  }
+}
+
+// ── Charts ────────────────────────────────────────────────────────
+let currentChart=0;
+const CHART_TITLES=['🌍 Total Portfolio','📈 Long Term','⚡ Trading'];
+
+function isDesktop(){return window.innerWidth>=900;}
+
+function goToChart(idx){
+  currentChart=idx;
+  if(!isDesktop())document.getElementById('chart-swipe-inner').style.transform=`translateX(-${idx*33.333}%)`;
+  document.querySelectorAll('.chart-dot').forEach((d,i)=>d.classList.toggle('active-dot',i===idx));
+  document.getElementById('chart-title').textContent=CHART_TITLES[idx];
+}
+
+function buildSectorArr(hs,total,mode){
+  if(!hs.length)return[];
+  const m=mode||viewMode;
+  const map={};
+  hs.forEach(h=>{map[h.sector]=(map[h.sector]||0)+(m==='risk'?effVal(h):h.value);});
+  return Object.entries(map).map(([name,value])=>({name,value,pct:value/total*100})).sort((a,b)=>b.value-a.value);
+}
+
+function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotals){
+  // Show welcome screen instead of empty charts
+  if(!holdings.length){
+    ['donut-svg-0','donut-svg-1','donut-svg-2'].forEach(id=>{
+      const svg=document.getElementById(id);
+      svg.innerHTML=`
+        <circle cx="130" cy="130" r="90" fill="none" stroke="#1a1a2e" stroke-width="28"/>
+        <text x="130" y="120" text-anchor="middle" fill="#333" font-size="28" font-family="system-ui,sans-serif">📊</text>
+        <text x="130" y="148" text-anchor="middle" fill="#444" font-size="12" font-weight="600" font-family="system-ui,sans-serif">No holdings yet</text>`;
+    });
+    ['chart-legend-0','chart-legend-1','chart-legend-2'].forEach(id=>document.getElementById(id).innerHTML='');
+    document.getElementById('chart-title').textContent='';
+    // Show welcome message below charts
+    const existingWelcome=document.getElementById('welcome-msg');
+    if(!existingWelcome){
+      const div=document.createElement('div');
+      div.id='welcome-msg';
+      div.style.cssText='text-align:center;padding:28px 20px;';
+      div.innerHTML=`
+        <div style="font-size:32px;margin-bottom:12px">👋</div>
+        <div style="font-size:16px;font-weight:700;color:#e8e8f0;margin-bottom:6px">Welcome to Portfolio Tracker</div>
+        <div style="font-size:13px;color:#555;margin-bottom:20px;line-height:1.6">Import an Avanza CSV or tap <strong style="color:#7B68EE">+</strong> to add your first holding.<br>Sign in with Google in Settings to sync across devices.</div>
+        <button onclick="openModal()" style="background:linear-gradient(135deg,#8B7CF8,#4A90D9);border:none;border-radius:12px;color:#fff;padding:13px 28px;font-size:14px;font-weight:700;box-shadow:0 2px 16px rgba(123,104,238,.4)">+ Add first holding</button>`;
+      document.getElementById('chart-panel').appendChild(div);
+    }
+    return;
+  }
+  // Remove welcome message if holdings exist
+  const w=document.getElementById('welcome-msg');
+  if(w)w.remove();
+  const longActive=viewMode==='risk'?longTotals.riskTotal:longTotals.marketTotal;
+  const tradeActive=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
+  const total0=longActive+tradeActive||1;
+  const longSectors=buildSectorArr(longH,total0,viewMode);
+  // Group all metal sectors into one "Metals" slice for the total portfolio chart
+  const metalValue=longSectors.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.value,0);
+  const nonMetalLong=longSectors.filter(d=>!METAL_SECTORS.includes(d.name));
+  const chart0Base=metalValue>0?[...nonMetalLong,{name:'Metals',value:metalValue,pct:metalValue/total0*100}]:nonMetalLong;
+  const chart0Data=[...chart0Base.map(d=>({...d,pct:d.value/total0*100})),{name:'⚡ Trading Account',value:tradeActive,pct:tradeActive/total0*100}];
+  const chart1Data=buildSectorArr(longH,longActive||1,viewMode);
+  const chart2Data=buildSectorArr(tradeH,tradeActive||1,viewMode);
+  drawDonut('donut-svg-0','chart-legend-0',chart0Data,false);
+  drawDonut('donut-svg-1','chart-legend-1',chart1Data,false);
+  drawDonut('donut-svg-2','chart-legend-2',chart2Data,true);
+  document.getElementById('chart-title').textContent=CHART_TITLES[currentChart];
+
+  // Attach swipe listeners once — guard flag prevents duplicate listeners on re-render
+  if(!document.getElementById('chart-swipe-wrap')._swipeSet){
+    const wrap=document.getElementById('chart-swipe-wrap');
+    let startX=0,startY=0,dragging=false;
+    wrap.addEventListener('pointerdown',e=>{startX=e.clientX;startY=e.clientY;dragging=true;});
+    wrap.addEventListener('pointerup',e=>{
+      if(!dragging)return;dragging=false;
+      if(isDesktop())return; // swipe navigation disabled on desktop — all charts visible
+      const dx=e.clientX-startX,dy=Math.abs(e.clientY-startY);
+      if(Math.abs(dx)>40&&dy<60){if(dx<0&&currentChart<2)goToChart(currentChart+1);else if(dx>0&&currentChart>0)goToChart(currentChart-1);}
+    });
+    wrap._swipeSet=true;
+  }
+}
+
+function drawDonut(svgId,legendId,sectorArr,isTrade){
+  const svg=document.getElementById(svgId),legend=document.getElementById(legendId);
+  if(!sectorArr.length||sectorArr.every(d=>d.value===0)){
+    svg.innerHTML=`
+      <circle cx="130" cy="130" r="90" fill="none" stroke="#1a1a2e" stroke-width="28"/>
+      <text x="130" y="120" text-anchor="middle" fill="#333" font-size="28" font-family="system-ui,sans-serif">📊</text>
+      <text x="130" y="146" text-anchor="middle" fill="#555" font-size="12" font-family="system-ui,sans-serif" font-weight="600">No holdings yet</text>
+      <text x="130" y="162" text-anchor="middle" fill="#333" font-size="10" font-family="system-ui,sans-serif">Tap + to add your first</text>`;
+    legend.innerHTML='';return;
+  }
+
+  const cx=130,cy=130,ro=104,ri=72,gap=0.018;
+  const total=sectorArr.reduce((s,d)=>s+d.value,0);
+  let startAngle=-Math.PI/2;
+  const sliceData=[];
+  sectorArr.forEach(d=>{
+    const slice=(d.value/total)*(2*Math.PI-gap*sectorArr.length);
+    const endAngle=startAngle+slice;
+    sliceData.push({d,startAngle,endAngle,slice});
+    startAngle=endAngle+gap;
+  });
+
+  // Build SVG — track layer, then slices, then labels, then center
+  let html='';
+
+  // Subtle background ring
+  html+=`<circle cx="${cx}" cy="${cy}" r="${(ro+ri)/2}" fill="none" stroke="#1a1a2e" stroke-width="${ro-ri+1}" opacity="0.5"/>`;
+
+  // Slices
+  sliceData.forEach(({d,startAngle,endAngle,slice})=>{
+    const x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
+    const x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
+    const x3=cx+ri*Math.cos(endAngle),y3=cy+ri*Math.sin(endAngle);
+    const x4=cx+ri*Math.cos(startAngle),y4=cy+ri*Math.sin(startAngle);
+    const large=slice>Math.PI?1:0;
+    const color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
+    const dim=activeSector&&activeSector!==d.name?'0.15':'1';
+    html+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${large} 0 ${x4},${y4} Z"
+      fill="${color}" opacity="${dim}" style="cursor:pointer;transition:opacity .2s"
+      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmtC(d.value)} ${currLabel()}"/>`;
+  });
+
+  // Labels on top 5 slices big enough to fit
+  const top5=sliceData.slice().sort((a,b)=>b.d.value-a.d.value).slice(0,5);
+  const top5Names=new Set(top5.map(s=>s.d.name));
+  sliceData.forEach(({d,startAngle,endAngle,slice})=>{
+    if(!top5Names.has(d.name)||slice<0.22)return;
+    const mid=(startAngle+endAngle)/2;
+    const lr=(ro+ri)/2;
+    const lx=cx+lr*Math.cos(mid),ly=cy+lr*Math.sin(mid);
+    const dim=activeSector&&activeSector!==d.name?'0.15':'1';
+    const shortName=d.name.replace('⚡ Trading Account','Trade').replace(/^[^\w]*/,'').split(/[\s&/]/)[0].slice(0,6);
+    html+=`<g opacity="${dim}" pointer-events="none">
+      <text x="${lx}" y="${ly-5}" text-anchor="middle" dominant-baseline="middle"
+        fill="#fff" font-size="9.5" font-weight="700" font-family="system-ui,sans-serif"
+        style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))">${shortName}</text>
+      <text x="${lx}" y="${ly+7}" text-anchor="middle" dominant-baseline="middle"
+        fill="rgba(255,255,255,0.8)" font-size="8.5" font-family="system-ui,sans-serif">${d.pct.toFixed(1)}%</text>
+    </g>`;
+  });
+
+  // Center — total value
+  const centerLabel=activeSector?sectorArr.find(d=>d.name===activeSector):null;
+  const centerVal=centerLabel?centerLabel.value:total;
+  const centerPct=centerLabel?centerLabel.pct.toFixed(1)+'%':'';
+  const centerName=centerLabel?(centerLabel.name.length>12?centerLabel.name.slice(0,11)+'…':centerLabel.name):'Total';
+  html+=`<circle cx="${cx}" cy="${cy}" r="${ri-4}" fill="#0d0d1a"/>`;
+  html+=`<text x="${cx}" y="${cy-16}" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui,sans-serif" letter-spacing="1">${centerName.toUpperCase()}</text>`;
+  html+=`<text x="${cx}" y="${cy+7}" text-anchor="middle" fill="#fff" font-size="21" font-weight="700" font-family="system-ui,sans-serif">${fmt(centerVal)}</text>`;
+  html+=`<text x="${cx}" y="${cy+24}" text-anchor="middle" fill="#666" font-size="11" font-family="system-ui,sans-serif">${displayCurrency}${centerPct?' · '+centerPct:''}</text>`;
+
+  svg.innerHTML=html;
+
+  // Events
+  svg.querySelectorAll('path').forEach(p=>{
+    p.addEventListener('click',()=>{activeSector=activeSector===p.dataset.sector?null:p.dataset.sector;render();});
+    p.addEventListener('mousemove',e=>{
+      const tt=document.getElementById('donut-tooltip');
+      const col=p.dataset.sector==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[p.dataset.sector]||'#999');
+      tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY-14)+'px';
+      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val} kr</span>`;
+    });
+    p.addEventListener('mouseleave',()=>{document.getElementById('donut-tooltip').style.display='none';});
+  });
+
+  // Two-column compact legend
+  legend.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;padding:10px 4px 4px">${
+    sectorArr.map(d=>{
+      const isOver=isTrade&&d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name);
+      const color=d.name==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[d.name]||'#999');
+      const sel=activeSector===d.name;
+      const label=d.name==='⚡ Trading Account'?'Trading':(d.name.length>16?d.name.slice(0,15)+'…':d.name);
+      return `<div data-action="toggle-sector" data-sector="${d.name}"
+        style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:7px;cursor:pointer;
+          background:${sel?'#1e1e3a':isOver?'#1f0a0a':'transparent'};
+          border:1px solid ${sel?'#7B68EE':isOver?'#ff444433':'transparent'};transition:background .15s">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:${isOver?'#ff6666':'#ccc'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isOver?'⚠ ':''}${label}</div>
+          <div style="font-size:12px;font-weight:700;color:${isOver?'#ff4444':color}">${d.pct.toFixed(1)}%</div>
+        </div>
+      </div>`;
+    }).join('')
+  }</div>`;
+}
+
+function renderSectors(sectorArr,metalPct){
+  const metalSectors=sectorArr.filter(d=>METAL_SECTORS.includes(d.name));
+  const mg=document.getElementById('metals-group');
+  if(!metalSectors.length){mg.style.display='none';}
+  else{
+    mg.style.display='block';
+    document.getElementById('metals-pct').textContent=metalPct.toFixed(1)+'%';
+    // Warn only if the combined metals group exceeds the threshold, not individual sub-sectors
+    const anyOver=metalPct>settings.sectorWarn;
+    mg.style.background=anyOver?'#1f0a0a':'#1a1608';mg.style.borderColor=anyOver?'#ff4444':'#3a3000';
+    document.querySelector('.metals-title').style.color=anyOver?'#ff4444':'#FFD700';
+    document.getElementById('metals-list').innerHTML=metalSectors.map(d=>{
+      const isOver=false; // individual metal sectors don't warn — only the group total does
+      const target=targets[d.name];
+      const drift=target?d.pct-target:null;
+      const driftStr=drift!=null?`<span style="font-size:11px;color:${Math.abs(drift)<1?'#5BA85B':drift>0?'#ff6666':'#4A90D9'};margin-left:4px">${drift>=0?'+':''}${fmtDec(drift)}%</span>`:'';
+      const driftBar=target!=null?`<div class="target-bar-wrap">
+        <div class="target-bar-track">
+          <div class="target-bar-fill" style="width:${Math.min(d.pct,100)}%;background:${isOver?'#ff4444':SECTOR_COLORS[d.name]}88"></div>
+          <div class="target-bar-marker" style="left:${Math.min(target,100)}%"></div>
+        </div>
+        <div class="target-drift-label"><span style="color:#555">actual ${fmtDec(d.pct)}%</span><span style="color:#888">target ${fmtDec(target)}%</span></div>
+      </div>`:'';
+      return `<div class="metals-row" style="border-bottom:1px solid ${anyOver?'#3a0808':'#2a2200'};flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between">
+          <div style="color:${isOver?'#ff4444':'#e8e8f0'}">${isOver?'⚠️ ':''}${SECTOR_EMOJIS[d.name]} ${d.name}${driftStr}</div>
+          <div style="font-weight:700;color:${isOver?'#ff4444':SECTOR_COLORS[d.name]}">${d.pct.toFixed(1)}%</div>
+        </div>
+        ${driftBar}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('other-sectors-list').innerHTML=sectorArr.filter(d=>!METAL_SECTORS.includes(d.name)).map(d=>{
+    const isOver=d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity';
+    const target=targets[d.name];
+    const drift=target?d.pct-target:null;
+    const driftStr=drift!=null?`<span style="font-size:11px;color:${Math.abs(drift)<1?'#5BA85B':drift>0?'#ff6666':'#4A90D9'};margin-left:4px">${drift>=0?'+':''}${fmtDec(drift)}%</span>`:'';
+    const driftBar=target!=null?`<div class="target-bar-wrap">
+      <div class="target-bar-track">
+        <div class="target-bar-fill" style="width:${Math.min(d.pct,100)}%;background:${isOver?'#ff4444':(SECTOR_COLORS[d.name]||'#7B68EE')}88"></div>
+        <div class="target-bar-marker" style="left:${Math.min(target,100)}%"></div>
+      </div>
+      <div class="target-drift-label">
+        <span style="color:#555">actual ${fmtDec(d.pct)}%</span>
+        <span style="color:#888">target ${fmtDec(target)}%</span>
+      </div>
+    </div>`:'';
+    return `<div class="sector-row${isOver?' warn':''}">
+      <div class="sector-dot" style="background:${SECTOR_COLORS[d.name]||'#999'}"></div>
+      <div style="flex:1">
+        <div class="sector-name" style="color:#e8e8f0">${isOver?'⚠️ ':''}${SECTOR_EMOJIS[d.name]||'📦'} ${d.name}${driftStr}</div>
+        ${driftBar}
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:8px">
+        <div class="sector-pct" style="color:${isOver?'#ff4444':(SECTOR_COLORS[d.name]||'#fff')}">${d.pct.toFixed(1)}%</div>
+        <div class="sector-kr" style="color:#666">${fmtC(d.value)} ${currLabel()}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('sectors-mode-label').textContent=`Grouped by category · ${viewMode==='risk'?'⚡ risk-adjusted':'📊 market value'}`;
+}
+
+function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN){
+  const overIds=new Set(overH.map(h=>h.id));
+  const noStopIds=new Set(noStopHoldings.map(h=>h.id));
+  const search=(document.getElementById('search-input').value||'').toLowerCase();
+  const sortBy=document.getElementById('sort-select').value;
+  document.querySelectorAll('.acct-tab').forEach((b,i)=>{
+    b.className='acct-tab';
+    const f=['all','long','trade'][i];
+    if(f===acctFilter)b.classList.add(acctFilter==='long'?'active-long':acctFilter==='trade'?'active-trade':'active-all');
+  });
+  const fb=document.getElementById('filter-bar');
+  if(activeSector){fb.style.display='flex';document.getElementById('filter-label').textContent=activeSector;}else fb.style.display='none';
+  let list=[...holdings];
+  if(activeSector)list=list.filter(h=>h.sector===activeSector);
+  if(acctFilter!=='all')list=list.filter(h=>h.account===acctFilter);
+  if(search)list=list.filter(h=>h.name.toLowerCase().includes(search)||h.sector.toLowerCase().includes(search));
+  list.sort((a,b)=>{
+    if(sortBy==='value')return getVal(b)-getVal(a);
+    if(sortBy==='pct')return getVal(b)/activeTotal-getVal(a)/activeTotal;
+    if(sortBy==='name')return a.name.localeCompare(b.name);
+    if(sortBy==='pnl'){const pa=a.buyPrice&&a.shares?a.value-a.buyPrice*a.shares:0,pb=b.buyPrice&&b.shares?b.value-b.buyPrice*b.shares:0;return pb-pa;}
+    if(sortBy==='risk')return effVal(b)-effVal(a);
+    if(sortBy==='nostop'){return(a.stopLoss==null?0:1)-(b.stopLoss==null?0:1);}
+    return 0;
+  });
+  if(!list.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
+
+  // Show green/grey dot based on whether prices were fetched recently
+  const now=Date.now();
+  const freshThreshold=20*60*1000;
+
+  document.getElementById('holdings-list').innerHTML=list.map(h=>{
+    const val=getVal(h),pct=val/activeTotal*100;
+    const isOver=overIds.has(h.id)&&h.account==='trade';
+    const noStop=noStopIds.has(h.id)&&h.account==='trade';
+    const riskVal=effVal(h);
+    const buyVal=h.buyPrice&&h.shares?h.buyPrice*h.shares:null;
+    const pnl=buyVal!=null?h.value-buyVal:null;
+    // Show P&L in kr and % relative to buy price
+    const pnlPct=buyVal&&buyVal>0?pnl/buyVal*100:null;
+    const pnlStr=pnl!=null?`<span style="color:${pnl>=0?'#5BA85B':'#ff4444'};margin-left:4px">${pnl>=0?'+':''}${fmtC(pnl)} ${currLabel()}${pnlPct!=null?' ('+fmtDec(pnlPct)+'%)':''}</span>`:'';
+    const acctClass=h.account==='long'?'long-card':'trade-card';
+
+    // Only ticker holdings have live prices — show freshness indicator after first refresh
+    let freshIndicator='';
+    if(h.ticker && lastRefreshTime){
+      const isFresh=(now-lastRefreshTime)<freshThreshold;
+      freshIndicator=`<span class="${isFresh?'fresh-dot':'stale-dot'}" title="${isFresh?'Price fresh':'Price may be stale'}"></span>`;
+    }
+
+    const detailRow=(h.shares||h.buyPrice||h.currentPrice||h.stopLoss||h.notes)?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #1e1e2e;display:flex;gap:9px;flex-wrap:wrap;font-size:12px;color:#888">
+      ${h.shares!=null?`<span>×${h.shares}</span>`:''}
+      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} kr</span>`:''}
+      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} kr${pnlStr}</span>`:''}
+      ${h.currency&&h.currency!=='SEK'?`<span style="color:#7B68EE;font-family:monospace">${h.currency}</span>`:''}
+      ${h.stopLoss!=null?`<span style="color:#ff6666">🛑 ${fmtDec(toDisplay(h.stopLoss),2)} ${currLabel()} · risk: ${fmtC(riskVal)} ${currLabel()}</span>`:noStop?`<span style="color:#aa6600">⚠️ no stop set</span>`:''}
+      ${h.notes?`<div style="width:100%;margin-top:3px;color:#7B68EE;font-style:italic">📝 ${h.notes}</div>`:''}
+    </div>`:'';
+    const cardCls=[acctClass,isOver?'warn':(noStop?'no-stop':'')].filter(Boolean).join(' ');
+    return `<div class="card ${cardCls}">
+      <div class="row">
+        <div class="dot" style="background:${SECTOR_COLORS[h.sector]||'#999'}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="name" title="${h.name}">${isOver?'<span style="color:#ff4444">⚠️</span> ':noStop?'<span style="color:#aa6600">⚠️</span> ':''}${h.name}${freshIndicator}</div>
+          <div class="sub">${h.sector}${h.ticker?` · <span style="font-family:monospace;color:#666">${h.ticker}</span>`:''}</div>
+        </div>
+        <span class="acct-tag ${h.account==='long'?'long':'trade'}">${h.account==='long'?'LONG':'TRADE'}</span>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="pct" style="color:${isOver?'#ff4444':'#fff'}">${pct.toFixed(1)}%</div>
+          <div class="val">${fmtC(val)} ${currLabel()}</div>
+        </div>
+        <div class="actions">
+          <button class="btn-edit" data-action="edit" data-id="${h.id}">✏️</button>
+          <button class="btn-dup" data-action="duplicate" data-id="${h.id}" title="Duplicate">⧉</button>
+          <button class="btn-del" data-action="delete" data-id="${h.id}">🗑</button>
+        </div>
+      </div>
+      ${detailRow}
+    </div>`;
+  }).join('');
+}
+
+function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
+  // Acknowledged no-stop holdings are shown dimmed at bottom of that section
+  const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(h.id));
+  const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0);
+  const el=document.getElementById('warnings-content');
+  if(activeWarningCount===0&&!ackNoStopH.length){el.innerHTML=`<div class="all-ok"><div class="ok-icon">✅</div><h3>Trading account looks good</h3><p>No trade &gt;${TRADE_HOLD_WARN}% or sector &gt;${settings.sectorWarn}% in trading account</p></div>`;return;}
+  let html=`<div class="warn-card" style="margin-bottom:14px">
+    <div style="color:#ff4444;font-weight:700;font-size:14px;margin-bottom:3px">⚠️ ${activeWarningCount} warning${activeWarningCount>1?'s':''} · ⚡ Trading account only</div>
+    <div style="color:#aaa;font-size:12px">Trade &gt;${TRADE_HOLD_WARN}% · Sector &gt;${settings.sectorWarn}% · Long Term excluded</div>
+  </div>`;
+  if(noStopH.length||ackNoStopH.length){
+    html+=`<div class="section-label" style="margin-top:0">🛑 No Stop Loss Set</div>`;
+    noStopH.forEach(h=>{
+      html+=`<div class="warn-card" style="border-color:#aa6600;background:#1a1000">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:14px">${h.name}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #aa6600;background:#0d0d1a;flex-shrink:0;font-size:11px"></span>
+              <span style="font-size:12px;color:#cc9900">Stop loss managed by size</span>
+            </label>
+          </div>
+          <button data-action="edit" data-id="${h.id}" style="background:#2a1a00;border:1px solid #aa6600;border-radius:7px;color:#ffaa00;padding:4px 9px;font-size:12px;flex-shrink:0">Set stop</button>
+        </div>
+      </div>`;
+    });
+    ackNoStopH.forEach(h=>{
+      html+=`<div style="border:1px solid #2a2a1a;background:#131310;border-radius:11px;padding:10px 13px;margin-bottom:7px;opacity:0.65">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:12px;color:#888;text-decoration:line-through">${h.name}</div>
+            <div style="font-size:10px;color:#666;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #5BA85B;background:#0d1a0d;flex-shrink:0;font-size:11px;color:#5BA85B">✓</span>
+              <span style="font-size:12px;color:#5BA85B">Stop loss managed by size</span>
+            </label>
+          </div>
+          <button data-action="edit" data-id="${h.id}" style="background:#1a2a1a;border:1px solid #3a5a3a;border-radius:7px;color:#5BA85B;padding:4px 9px;font-size:12px;flex-shrink:0">Set stop</button>
+        </div>
+      </div>`;
+    });
+  }
+  if(overH.length){
+    html+=`<div class="section-label">Overweight Trades</div>`;
+    [...overH].sort((a,b)=>getVal(b)-getVal(a)).forEach(h=>{
+      const pct=tradeActiveTotal>0?getVal(h)/tradeActiveTotal*100:0,excess=pct-TRADE_HOLD_WARN;
+      html+=`<div class="warn-card">
+        <div class="warn-row">
+          <div><div style="font-weight:700;font-size:14px">${h.name}</div><div style="font-size:10px;color:#888;margin-top:2px">${h.sector}${h.stopLoss!=null?' · 🛑 '+h.stopLoss+' kr':' · no stop'}</div></div>
+          <div style="text-align:right"><div class="warn-pct">${pct.toFixed(1)}%</div><div class="warn-excess">+${excess.toFixed(1)}% over</div></div>
+        </div>
+        <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(pct/40*100,100)}%;background:linear-gradient(90deg,#ff4444,#ff0000)"></div></div>
+        <div class="warn-bar-labels"><span>0%</span><span style="color:#ff8888">limit ${TRADE_HOLD_WARN}%</span><span>40%+</span></div>
+      </div>`;
+    });
+  }
+  if(overS.length){
+    html+=`<div class="section-label">Overweight Sectors</div>`;
+    [...overS].sort((a,b)=>b.pct-a.pct).forEach(d=>{
+      html+=`<div class="warn-card">
+        <div class="warn-row">
+          <div style="font-weight:700;font-size:14px">${SECTOR_EMOJIS[d.name]||'📦'} ${d.name}</div>
+          <div style="text-align:right"><div class="warn-pct">${d.pct.toFixed(1)}%</div><div class="warn-excess">+${(d.pct-settings.sectorWarn).toFixed(1)}% over</div></div>
+        </div>
+        <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(d.pct/60*100,100)}%;background:linear-gradient(90deg,#ff8800,#ff4444)"></div></div>
+        <div class="warn-bar-labels"><span>0%</span><span style="color:#ff8888">limit ${settings.sectorWarn}%</span><span>60%+</span></div>
+      </div>`;
+    });
+  }
+  if(tradeAccountOversize){
+    const excess=tradeTotalMarket-tradeAccountLimit;
+    const pct=tradeAccountLimit>0?tradeTotalMarket/tradeAccountLimit*100:0;
+    html+=`<div class="section-label">⚡ Trading Account Size</div>
+    <div class="warn-card">
+      <div class="warn-row">
+        <div>
+          <div style="font-weight:700;font-size:14px">Trading account too large</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">Should be ≤${settings.tradeAccountMaxPct}% of Long Term + Cash</div>
+        </div>
+        <div style="text-align:right">
+          <div class="warn-pct">${fmtC(tradeTotalMarket)} ${currLabel()}</div>
+          <div class="warn-excess">+${fmtC(excess)} ${currLabel()} over limit</div>
+        </div>
+      </div>
+      <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(pct/200*100,100)}%;background:linear-gradient(90deg,#ff8800,#ff4444)"></div></div>
+      <div class="warn-bar-labels"><span>0</span><span style="color:#ff8888">limit ${fmtC(tradeAccountLimit)} ${currLabel()}</span><span>${fmtC(tradeAccountLimit*2)}+</span></div>
+    </div>`;
+  }
+  if(longGroupWarnings.length){
+    html+=`<div class="section-label">📈 Long Term — Group Limits</div>`;
+    longGroupWarnings.forEach(w=>{
+      const excess=w.pct-w.limit;
+      const barW=Math.min(w.pct/(w.limit*2)*100,100);
+      html+=`<div class="warn-card" style="border-color:#aa6600;background:#1a1000">
+        <div class="warn-row">
+          <div>
+            <div style="font-weight:700;font-size:14px">${w.name}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">Limit ${w.limit}% of long term account</div>
+          </div>
+          <div style="text-align:right">
+            <div class="warn-pct" style="color:#ffaa00">${w.pct.toFixed(1)}%</div>
+            <div class="warn-excess" style="color:#ffaa00">+${excess.toFixed(1)}% over</div>
+          </div>
+        </div>
+        <div class="warn-bar-bg" style="background:#2a1a00"><div class="warn-bar-fill" style="width:${barW}%;background:linear-gradient(90deg,#ffaa00,#ff6600)"></div></div>
+        <div class="warn-bar-labels"><span>0%</span><span style="color:#ffaa00">limit ${w.limit}%</span><span>${w.limit*2}%+</span></div>
+      </div>`;
+    });
+  }
+  el.innerHTML=html;
+}
+
+function renderSettings(sectorArr, marketTotal){
+  document.getElementById('set-trade-warn').value=settings.tradeWarn;
+  document.getElementById('set-sector-warn').value=settings.sectorWarn;
+  document.getElementById('set-trade-account-max').value=settings.tradeAccountMaxPct;
+  document.getElementById('set-nostop-btn').textContent=settings.warnNoStop?'ON':'OFF';
+  document.getElementById('set-nostop-btn').style.color=settings.warnNoStop?'#7B68EE':'#666';
+
+  // Portfolio goal inline in settings
+  const pg=goals.portfolioGoal;
+  const pgEl=document.getElementById('settings-portfolio-goal');
+  if(pgEl){
+    const totalMarket=marketTotal??calcTotals(holdings,'market').marketTotal;
+    if(pg.target&&pg.date){
+      const pct=Math.min(totalMarket/pg.target*100,100);
+      const remaining=Math.max(pg.target-totalMarket,0);
+      const targetDate=new Date(pg.date);
+      const now=new Date();
+      const daysLeft=Math.ceil((targetDate-now)/(1000*60*60*24));
+      const barColor=pct>=100?'#5BA85B':pct>=70?'#7B68EE':'#4A90D9';
+      pgEl.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#e8e8f0">${fmtC(pg.target)} ${currLabel()}</div>
+            <div style="font-size:10px;color:#666;margin-top:1px">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})} · ${daysLeft>0?daysLeft+' days left':'past deadline'}</div>
+          </div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">Edit</button>
+        </div>
+        <div class="goal-progress-track">
+          <div class="goal-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px;color:#666">
+          <span>${pct.toFixed(1)}% reached · ${fmtC(totalMarket)} ${currLabel()} now</span>
+          <span style="color:${pct>=100?'#5BA85B':'#888'}">${pct>=100?'🎉 Done!':fmtC(remaining)+' '+currLabel()+' to go'}</span>
+        </div>`;
+    } else {
+      pgEl.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:11px;color:#555">No goal set yet</div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">+ Set goal</button>
+        </div>`;
+    }
+  }
+
+  // Build target inputs — use pre-computed sectorArr from render context when available
+  const arr=sectorArr||calcTotals(holdings).sectorArr;
+  const allSectors=SECTOR_OPTIONS.filter(s=>s!=='Other');
+  const el=document.getElementById('target-inputs');
+  el.innerHTML=allSectors.map(s=>{
+    const color=SECTOR_COLORS[s]||'#999';
+    const actual=arr.find(d=>d.name===s);
+    const actualPct=actual?actual.pct:0;
+    const targetPct=targets[s]||0;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1a1a2e">
+      <div style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></div>
+      <div style="flex:1;font-size:11px;color:#e8e8f0">${SECTOR_EMOJIS[s]||''} ${s}</div>
+      <div style="font-size:10px;color:#666;width:32px;text-align:right">${fmtDec(actualPct)}%</div>
+      <input type="number" min="0" max="100" step="1" value="${targetPct||''}" placeholder="0"
+        style="width:52px;background:#0d0d1a;border:1px solid #333;border-radius:6px;padding:4px 6px;color:#fff;font-size:11px;text-align:center"
+        oninput="updateTarget('${s}',this.value)"/>
+    </div>`;
+  }).join('');
+
+  // Total
+  const total=Object.values(targets).reduce((s,v)=>s+(v||0),0);
+  const totalEl=document.getElementById('target-total-val');
+  totalEl.textContent=fmtDec(total)+'%';
+  totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
+}
+
+function updateTarget(sector,val){
+  const v=parseFloat(val);
+  if(isNaN(v)||v<=0)delete targets[sector];
+  else targets[sector]=v;
+  saveTargets();
+  // Update total display without a full render
+  const total=Object.values(targets).reduce((s,v)=>s+(v||0),0);
+  const totalEl=document.getElementById('target-total-val');
+  totalEl.textContent=fmtDec(total)+'%';
+  totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
+  // Re-render sectors tab to update drift bars (only if sectors tab is active)
+  if(activeTab==='sectors')render();
+}
+
+function saveSnapshot(){
+  const all=calcTotals(holdings,'market');
+  const longH=holdings.filter(h=>h.account==='long');
+  const tradeH=holdings.filter(h=>h.account==='trade');
+  const longTotal=calcTotals(longH,'market').marketTotal;
+  const tradeTotal=calcTotals(tradeH,'market').marketTotal;
+  const snap={
+    date:new Date().toLocaleDateString('sv-SE'),
+    market:all.marketTotal,
+    risk:all.riskTotal,
+    count:holdings.length,
+    pnl:all.totalPnl,
+    pctChg:all.pctChg,
+    cashPct:all.cashPct,
+    longTotal,
+    tradeTotal,
+  };
+  try{const h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');h.unshift(snap);localStorage.setItem(LS_HISTORY,JSON.stringify(h.slice(0,30)));}catch(e){}
+  renderHistory(); // always update — history list reads from localStorage directly
+}
+
+// ── Goals rendering ───────────────────────────────────────────────
+function renderGoals(ctx){
+  const{marketTotal,longTotals}=ctx;
+  const el=document.getElementById('goals-content');
+  const longMarket=longTotals.marketTotal;
+
+  // ── Portfolio Goal ────────────────────────────────────────────────
+  const pg=goals.portfolioGoal;
+  let portfolioGoalCard='';
+  if(pg.target&&pg.date){
+    const pct=Math.min(marketTotal/pg.target*100,100);
+    const remaining=Math.max(pg.target-marketTotal,0);
+    const targetDate=new Date(pg.date);
+    const now=new Date();
+    const daysLeft=Math.ceil((targetDate-now)/(1000*60*60*24));
+    const monthsLeft=Math.max((targetDate.getFullYear()-now.getFullYear())*12+(targetDate.getMonth()-now.getMonth()),0);
+    const monthlyNeeded=monthsLeft>0?remaining/monthsLeft:remaining;
+    const onTrack=goals.deposit.amount&&goals.deposit.amount>=monthlyNeeded;
+    const barColor=pct>=100?'#5BA85B':pct>=70?'#7B68EE':pct>=40?'#4A90D9':'#F7931A';
+    portfolioGoalCard=`
+      <div class="goal-card" style="border-color:${pct>=100?'#2a4a2a':'#1e1e2e'}">
+        <div class="goal-card-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="goal-icon" style="background:${pct>=100?'#0d2a0d':'#1a1a2e'};font-size:20px">🏆</div>
+            <div>
+              <div class="goal-title">${fmtC(pg.target)} ${currLabel()}</div>
+              <div class="goal-sub">by ${targetDate.toLocaleDateString('sv-SE',{year:'numeric',month:'short',day:'numeric'})}</div>
+            </div>
+          </div>
+          <button class="goal-edit-btn" onclick="openGoalEditor('portfolio')">Edit</button>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0 2px">
+          <span style="font-size:28px;font-weight:800;color:${barColor}">${pct.toFixed(1)}%</span>
+          <span style="font-size:11px;color:#666">${pct>=100?'🎉 Goal reached!':'of goal reached'}</span>
+        </div>
+        <div style="background:#1a1a2e;border-radius:8px;height:12px;overflow:hidden;margin:8px 0">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor}88,${barColor});border-radius:8px;transition:width .5s ease"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(${pct<100?3:2},1fr);gap:8px;margin-top:10px">
+          ${statTile(fmtC(marketTotal)+' '+currLabel(),'Current value','#e8e8f0')}
+          ${pct<100?statTile(fmtC(remaining)+' '+currLabel(),'Still needed','#F7931A'):''}
+          ${pct<100?statTile(daysLeft>0?String(daysLeft):'0',daysLeft<30&&daysLeft>0?'⚠️ Days left':'Days left',daysLeft<30&&daysLeft>0?'#ff6666':'#888'):statTile('🎉','Completed!','#5BA85B')}
+        </div>
+        ${pct<100&&monthlyNeeded>0?`
+          <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:#666">Monthly deposit needed</span>
+            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
+          </div>`:''}
+      </div>`;
+  } else {
+    portfolioGoalCard=`
+      <div class="goal-card" style="border-style:dashed;cursor:pointer" onclick="openGoalEditor('portfolio')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#1a1a2e">🏆</div>
+          <div>
+            <div class="goal-title" style="color:#555">Set a portfolio goal</div>
+            <div class="goal-sub">Target value + deadline — configure in Settings</div>
+          </div>
+          <div style="margin-left:auto;color:#7B68EE;font-size:20px">+</div>
+        </div>
+      </div>`;
+  }
+
+  // ── Account Balance ───────────────────────────────────────────────
+  const lt=goals.longTermPct;
+  const actualLongPct=marketTotal>0?longMarket/marketTotal*100:0;
+  const ltTarget=lt.target||80;
+  const ltDiff=actualLongPct-ltTarget;
+  const ltColor=Math.abs(ltDiff)<2?'#5BA85B':ltDiff>0?'#4A90D9':'#F7931A';
+
+  const accountBalanceCard=`
+    <div class="goal-card">
+      <div class="goal-card-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#0d1f2d">📈</div>
+          <div>
+            <div class="goal-title">Long Term ${ltTarget}% of total</div>
+            <div class="goal-sub">Currently ${fmtDec(actualLongPct)}% · Trading ${fmtDec(100-actualLongPct)}%</div>
+          </div>
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalEditor('longterm')">Edit</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        ${statTile(fmtDec(actualLongPct)+'%','Long Term now','#4A90D9')}
+        ${statTile(fmtDec(100-actualLongPct)+'%','Trading now','#F7931A')}
+      </div>
+      <div style="background:#1a1a2e;border-radius:8px;height:10px;position:relative;overflow:hidden;margin:8px 0">
+        <div style="height:100%;width:${Math.min(actualLongPct,100)}%;background:linear-gradient(90deg,#1a4060,#4A90D9);border-radius:8px;transition:width .4s"></div>
+        <div style="position:absolute;top:-2px;height:14px;width:2px;background:#fff;opacity:.7;left:${ltTarget}%;border-radius:1px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px">
+        <span style="color:#4A90D9">Long Term</span>
+        <span style="color:${ltColor};font-weight:700">${ltDiff>=0?'+':''}${fmtDec(ltDiff)}% vs target</span>
+        <span style="color:#F7931A">Trading</span>
+      </div>
+    </div>`;
+
+  // ── Monthly Savings Plan ──────────────────────────────────────────
+  const dep=goals.deposit;
+  const depDay=dep.day||25;
+  const today=new Date().getDate();
+  const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+  const daysUntilDeposit=depDay>=today?depDay-today:depDay+(daysInMonth-today);
+  const annualSavings=(dep.amount||0)*12;
+
+  const depositCard=`
+    <div class="goal-card">
+      <div class="goal-card-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="goal-icon" style="background:#0d1a0d">💰</div>
+          <div>
+            <div class="goal-title">${dep.amount?fmtC(dep.amount)+' '+currLabel()+' / month':'Set monthly deposit'}</div>
+            <div class="goal-sub">${dep.amount?`Every month on the ${ordinal(dep.day)} · ${fmtC(annualSavings)} ${currLabel()}/year`:'Tap Edit to configure'}</div>
+          </div>
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalEditor('deposit')">Edit</button>
+      </div>
+      ${dep.amount?`
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          ${statTile(fmtC(dep.amount),'Monthly ('+currLabel()+')','#3DD68C')}
+          ${statTile(daysUntilDeposit===0?'Today':String(daysUntilDeposit),daysUntilDeposit===0?'Deposit day!':'Days until next')}
+          ${statTile(fmtC(annualSavings),'Annual ('+currLabel()+')','#7B68EE')}
+        </div>
+        ${goals.portfolioGoal.target?`
+          <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:11px;color:#666">
+            💡 At ${fmtC(dep.amount)} ${currLabel()}/month you'll add <span style="color:#e8e8f0;font-weight:700">${fmtC(annualSavings)} ${currLabel()}</span> per year
+          </div>`:''}
+      `:`<div style="font-size:11px;color:#444;text-align:center;padding:8px">No deposit plan set — tap Edit to configure</div>`}
+    </div>`;
+
+  el.innerHTML=
+    sectionLabel('Portfolio Goal',0)+
+    portfolioGoalCard+
+    sectionLabel('Account Balance')+
+    accountBalanceCard+
+    sectionLabel('Monthly Savings Plan')+
+    depositCard;
+}
+
+function ordinal(n){
+  // Special case: 11,12,13 always use 'th' regardless of last digit
+  const v=n%100;
+  if(v>=11&&v<=13)return n+'th';
+  const s=['th','st','nd','rd'];
+  return n+(s[n%10]||s[0]);
+}
+
+// ── Goal editor overlay ───────────────────────────────────────────
+function openGoalEditor(type){
+  const o=document.getElementById('goal-overlay');
+  const title=document.getElementById('goal-editor-title');
+  const body=document.getElementById('goal-editor-body');
+  const pg=goals.portfolioGoal;
+  const lt=goals.longTermPct;
+  const dep=goals.deposit;
+
+  if(type==='portfolio'){
+    title.textContent='🏆 Portfolio Goal';
+    const dispTarget=pg.target?fmtDec(toDisplay(pg.target),0):'';
+    body.innerHTML=`
+      <div class="field"><label>Target Value (${displayCurrency})</label>
+        <input id="ge-target" type="number" placeholder="e.g. ${displayCurrency==='USD'?'100000':'1000000'}" value="${dispTarget}" style="border-color:#7B68EE33"/></div>
+      <div class="field"><label>Target Date</label>
+        <input id="ge-date" type="date" value="${pg.date||''}" style="border-color:#7B68EE33"
+          onfocus="this.closest('.sheet').style.paddingBottom='340px';this.scrollIntoView({behavior:'smooth',block:'center'})"
+          onblur="this.closest('.sheet').style.paddingBottom=''"/></div>`;
+  } else if(type==='longterm'){
+    title.textContent='📈 Long Term Target';
+    body.innerHTML=`
+      <div class="field"><label>Long Term % of Total Portfolio</label>
+        <input id="ge-ltpct" type="number" min="1" max="99" placeholder="80" value="${lt.target||80}" style="border-color:#4A90D933"/>
+        <div style="font-size:10px;color:#555;margin-top:4px">The rest will be Trading account</div></div>`;
+  } else if(type==='deposit'){
+    title.textContent='💰 Monthly Savings Plan';
+    const dispAmt=goals.deposit.amount?fmtDec(toDisplay(goals.deposit.amount),0):'';
+    body.innerHTML=`
+      <div class="field"><label>Monthly Deposit Amount (${displayCurrency})</label>
+        <input id="ge-amount" type="number" placeholder="e.g. ${displayCurrency==='USD'?'500':'5000'}" value="${dispAmt}" style="border-color:#3DD68C33"/></div>
+      <div class="field"><label>Day of Month</label>
+        <input id="ge-day" type="number" min="1" max="28" placeholder="25" value="${goals.deposit.day||25}" style="border-color:#3DD68C33"/>
+        <div style="font-size:10px;color:#555;margin-top:4px">Choose 1–28 to avoid month-end variation</div></div>`;
+  }
+
+  document.getElementById('goal-save-btn').onclick=()=>saveGoalEditor(type);
+  o.classList.add('open');
+  setTimeout(()=>body.querySelector('input')?.focus(),100);
+}
+
+function saveGoalEditor(type){
+  if(type==='portfolio'){
+    const t=parseFloat(document.getElementById('ge-target').value);
+    const tSek=displayCurrency==='USD'&&t>0?t*liveUsdSek:t;
+    const d=document.getElementById('ge-date').value;
+    goals.portfolioGoal={target:tSek>0?tSek:null,date:d||null};
+  } else if(type==='longterm'){
+    const v=parseFloat(document.getElementById('ge-ltpct').value);
+    goals.longTermPct={target:v>0&&v<100?v:80};
+  } else if(type==='deposit'){
+    const a=parseFloat(document.getElementById('ge-amount').value);
+    const aSek=displayCurrency==='USD'&&a>0?a*liveUsdSek:a;
+    const d=parseInt(document.getElementById('ge-day').value);
+    goals.deposit={amount:aSek>0?aSek:null,day:d>=1&&d<=28?d:25};
+  }
+  saveGoals();
+  document.getElementById('goal-overlay').classList.remove('open');
+  render(); // always re-render — goal block in settings and goals tab both need updating
+}
+function closeGoalEditor(){document.getElementById('goal-overlay').classList.remove('open');}
+
+function renderHistory(){
+  try{
+    const history=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    const el=document.getElementById('history-list');
+    if(!history.length){el.textContent='No snapshots yet';return;}
+    el.innerHTML=history.slice(0,8).map((s,i)=>{
+      const prev=history[i+1];
+      const diff=prev?s.market-prev.market:null;
+      const diffStr=diff!=null?`<span style="color:${diff>=0?'#5BA85B':'#ff4444'};font-size:10px;font-weight:700">${diff>=0?'+':''}${fmtC(diff)}</span>`:'';
+      const pnlStr=s.pnl!=null&&s.pnl!==0?`<span style="color:${s.pnl>=0?'#5BA85B':'#ff4444'};font-size:9px">${s.pnl>=0?'+':''}${fmtC(s.pnl)} ${currLabel()} P&L</span>`:'';
+      const splitStr=(s.longTotal!=null&&s.tradeTotal!=null)?
+        `<div style="display:flex;gap:8px;margin-top:3px;font-size:11px;color:#666">
+          <span style="color:#4A90D9">📈 ${fmtC(s.longTotal)} ${currLabel()}</span>
+          <span style="color:#F7931A">⚡ ${fmtC(s.tradeTotal)} ${currLabel()}</span>
+          ${s.cashPct!=null?`<span style="color:#3DD68C">💵 ${s.cashPct.toFixed(1)}%</span>`:''}
+        </div>`:''
+      return `<div style="padding:7px 0;border-bottom:1px solid #1a1a2e">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:#666;font-size:10px">${s.date}</span>
+          <span style="font-size:12px;font-weight:700">${fmtC(s.market)} ${currLabel()}</span>
+          ${diffStr}
+          <span style="color:#888;font-size:10px">${s.count} hdgs</span>
+        </div>
+        ${pnlStr?`<div style="margin-top:2px">${pnlStr}</div>`:''}
+        ${splitStr}
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+// ── Actions ───────────────────────────────────────────────────────
+function setMode(m){viewMode=m;render();}
+function toggleSector(s){activeSector=activeSector===s?null:s;render();}
+function clearFilter(){activeSector=null;render();}
+function setAcctFilter(f){acctFilter=f;render();}
+
+function switchTab(tab){
+  activeTab=tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    const names=['chart','sectors','holdings','goals','warnings','settings'];
+    b.classList.toggle('active',names[i]===tab);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(tab+'-panel').classList.add('active');
+  const mc=document.getElementById('main-content');
+  if(mc)mc.scrollTop=0;
+  render();
+}
+
+let _deletedHolding=null,_undoTimer=null;
+function deleteHolding(id){
+  const h=holdings.find(x=>x.id===id);
+  if(!h)return;
+  _deletedHolding=h;
+  holdings=holdings.filter(x=>x.id!==id);
+  // Save locally immediately but delay cloud push until undo window closes
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(holdings));
+    localStorage.setItem('pt_last_updated',new Date().toISOString());
+    localStorage.setItem('pt_last_updated_ts',String(Date.now()));
+  }catch(e){}
+  render();
+  const toast=document.getElementById('undo-toast');
+  document.getElementById('undo-msg').textContent=`Deleted "${h.name}"`;
+  toast.classList.add('show');
+  clearTimeout(_undoTimer);
+  _undoTimer=setTimeout(()=>{
+    toast.classList.remove('show');
+    if(_deletedHolding===null)pushToFirebase(); // only push if not undone
+    _deletedHolding=null;
+  },5000);
+}
+function duplicateHolding(id){
+  const h=holdings.find(x=>x.id===id);
+  if(!h)return;
+  const copy={...h,id:newId(),name:h.name+' (copy)'};
+  holdings.push(copy);
+  save();render();
+  // Open the copy immediately for editing so user can tweak it
+  openEdit(copy.id);
+}
+function undoDelete(){
+  if(!_deletedHolding)return;
+  holdings.push(_deletedHolding);
+  _deletedHolding=null;
+  clearTimeout(_undoTimer);
+  document.getElementById('undo-toast').classList.remove('show');
+  save();render(); // full save+push now that undo is confirmed
+}
+function resetHoldings(){
+  if(!confirm('Are you sure you want to delete all holdings?'))return;
+  if(!confirm('This cannot be undone. Delete everything?'))return;
+  holdings=[];save();render();
+}
+
+// ── Event delegation for holdings list ───────────────────────────
+// One listener handles all edit/delete buttons rather than inline onclick per card
+document.getElementById('holdings-list').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  const id=parseInt(btn.dataset.id);
+  if(btn.dataset.action==='edit')openEdit(id);
+  else if(btn.dataset.action==='duplicate')duplicateHolding(id);
+  else if(btn.dataset.action==='delete')deleteHolding(id);
+});
+
+// Delegation for warnings panel — covers "Set stop" buttons in no-stop cards
+document.getElementById('warnings-panel').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  const id=parseInt(btn.dataset.id);
+  if(btn.dataset.action==='edit')openEdit(id);
+});
+
+// Delegation for chart legend — covers sector filter clicks
+document.getElementById('chart-panel').addEventListener('click',e=>{
+  const row=e.target.closest('[data-action="toggle-sector"]');
+  if(row)toggleSector(row.dataset.sector);
+});
+
+// ── Keyboard shortcuts ────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('modal-overlay').classList.contains('open'))closeModal();
+    else if(document.getElementById('cash-overlay').classList.contains('open'))closeCashEditor();
+    else if(document.getElementById('goal-overlay').classList.contains('open'))closeGoalEditor();
+  }
+});
+
+// ── Modal ─────────────────────────────────────────────────────────
+const sel=document.getElementById('f-sector');
+SECTOR_OPTIONS.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=(SECTOR_EMOJIS[s]||'')+' '+s;sel.appendChild(o);});
+
+function updateModalCurrLabels(){
+  document.querySelectorAll('.modal-curr-label').forEach(el=>el.textContent=displayCurrency);
+}
+
+function selectAccount(acct){
+  selectedAccount=acct;
+  document.querySelectorAll('.acct-sel-btn').forEach((b,i)=>{
+    b.className='acct-sel-btn';
+    if(i===0&&acct==='long')b.classList.add('sel-long');
+    if(i===1&&acct==='trade')b.classList.add('sel-trade');
+  });
+}
+
+function openModal(){
+  editId=null;
+  document.getElementById('modal-title').textContent='Add Holding';
+  document.getElementById('btn-save-lbl').textContent='Add Holding';
+  ['f-name','f-ticker','f-buyprice','f-shares','f-price','f-stoploss','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-sector').value=SECTOR_OPTIONS[0];
+  document.getElementById('risk-preview').style.display='none';
+  selectAccount(acctFilter==='trade'?'trade':'long');
+  document.getElementById('modal-overlay').classList.add('open');
+  updateModalCurrLabels();
+}
+
+function openEdit(id){
+  const h=holdings.find(x=>x.id===id);
+  if(!h)return;
+  editId=id;
+  document.getElementById('modal-title').textContent='Edit Holding';
+  document.getElementById('btn-save-lbl').textContent='Save Changes';
+  document.getElementById('f-name').value=h.name;
+  document.getElementById('f-ticker').value=h.ticker||'';
+  document.getElementById('f-sector').value=h.sector;
+  document.getElementById('f-buyprice').value=h.buyPrice!=null?fmtDec(toDisplay(h.buyPrice),2):'';
+  document.getElementById('f-shares').value=h.shares??'';
+  document.getElementById('f-price').value=h.currentPrice!=null?fmtDec(toDisplay(h.currentPrice),2):'';
+  document.getElementById('f-stoploss').value=h.stopLoss!=null?fmtDec(toDisplay(h.stopLoss),2):'';
+  document.getElementById('f-notes').value=h.notes||'';
+  selectAccount(h.account||'long');
+  updateRiskPreview();
+  document.getElementById('modal-overlay').classList.add('open');
+  updateModalCurrLabels();
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+
+function updateRiskPreview(){
+  const buy=parseFloat(document.getElementById('f-buyprice').value);
+  const n=parseFloat(document.getElementById('f-shares').value);
+  const cur=parseFloat(document.getElementById('f-price').value);
+  const stop=parseFloat(document.getElementById('f-stoploss').value);
+  const prev=document.getElementById('risk-preview');
+  if(isNaN(n)||(isNaN(buy)&&isNaN(cur))){prev.style.display='none';return;}
+  prev.style.display='block';
+  // Inputs are already in display currency — compute in display currency directly
+  const marketVal=!isNaN(cur)?cur*n:buy*n;
+  const buyVal=!isNaN(buy)?buy*n:null;
+  const pnl=buyVal!=null?marketVal-buyVal:null;
+  const riskAmt=!isNaN(stop)&&!isNaN(cur)?Math.max(0,(cur-stop)*n):!isNaN(stop)&&!isNaN(buy)?Math.max(0,(buy-stop)*n):null;
+  const cl=currLabel();
+  document.getElementById('prev-market').textContent=`${fmt(marketVal)} ${cl}`;
+  const pnlEl=document.getElementById('prev-pnl');
+  if(pnl!=null){pnlEl.textContent=`${pnl>=0?'+':''}${fmt(pnl)} ${cl}`;pnlEl.style.color=pnl>=0?'#5BA85B':'#ff4444';}
+  else pnlEl.textContent='—';
+  document.getElementById('prev-risk-amt').textContent=riskAmt!=null?`${fmt(riskAmt)} ${cl}`:'—';
+}
+
+function saveHolding(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name)return;
+  const ticker=document.getElementById('f-ticker').value.trim().toUpperCase();
+  const sector=document.getElementById('f-sector').value;
+  const buyPrice=parseFloat(document.getElementById('f-buyprice').value);
+  const shares=parseFloat(document.getElementById('f-shares').value);
+  const curPrice=parseFloat(document.getElementById('f-price').value);
+  const stopLoss=parseFloat(document.getElementById('f-stoploss').value);
+  // Convert from display currency back to SEK for storage
+  const toSek=v=>displayCurrency==='USD'?v*liveUsdSek:v;
+  const buyPriceSek=!isNaN(buyPrice)?toSek(buyPrice):NaN;
+  const curPriceSek=!isNaN(curPrice)?toSek(curPrice):NaN;
+  const stopLossSek=!isNaN(stopLoss)?toSek(stopLoss):NaN;
+  const notes=document.getElementById('f-notes').value.trim()||null;
+  let value;
+  if(!isNaN(curPriceSek)&&!isNaN(shares))value=curPriceSek*shares;
+  else if(!isNaN(buyPriceSek)&&!isNaN(shares))value=buyPriceSek*shares;
+  else if(editId!=null)value=holdings.find(h=>h.id===editId)?.value||0;
+  else return;
+  const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
+    shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
+    currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
+  if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
+  else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
+  save();saveSectorMemory();render();closeModal();
+}
+
+// Generates a collision-resistant ID using timestamp + random suffix
+function newId(){return Date.now()+Math.floor(Math.random()*10000);}
+
+// ── File import/export ────────────────────────────────────────────
+function handleFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const text=ev.target.result.trim();
+    if(file.name.endsWith('.json')){
+      try{
+        const data=JSON.parse(text);
+        // Support both old format (array) and new backup format ({holdings, goals})
+        const importedHoldings=Array.isArray(data)?data:(Array.isArray(data.holdings)?data.holdings:null);
+        if(!importedHoldings)throw new Error();
+        if(!confirm(`Import ${importedHoldings.length} holdings? This replaces current data.`))return;
+        holdings=importedHoldings;
+        if(data.goals){goals={...DEFAULT_GOALS,...data.goals};saveGoals();}
+        save();render();document.getElementById('csv-error').textContent='';
+      }catch(e){showCsvErr('Invalid JSON file');}
+      return;
+    }
+    const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
+    const sep=lines[0].includes(';')?';':',';
+    const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase());
+    const ni=headers.findIndex(h=>h==='namn'||h==='name');
+    const vi=headers.findIndex(h=>h==='marknadsvärde'||h==='value'||h==='market value');
+    const gavI=headers.findIndex(h=>h.includes('gav'));
+    const volI=headers.findIndex(h=>h==='volym'||h==='volume'||h==='shares');
+    if(ni===-1||vi===-1){showCsvErr('Could not find required columns');return;}
+    const sectorMem=loadSectorMemory();
+    const parsed=lines.slice(1).map((line,i)=>{
+      const cols=line.split(sep);
+      const rawVal=(cols[vi]||'0').replace(/\s/g,'').replace(',','.');
+      const rawGav=gavI>=0?(cols[gavI]||'').replace(/\s/g,'').replace(',','.'):null;
+      const rawVol=volI>=0?(cols[volI]||'').replace(/\s/g,'').replace(',','.'):null;
+      const value=parseFloat(rawVal)||0;
+      const buyPrice=rawGav?parseFloat(rawGav)||null:null;
+      const shares=rawVol?parseFloat(rawVol)||null:null;
+      const name=cols[ni]?.trim()||'Unknown';
+      return{id:newId()+i*17,name,value,sector:sectorMem[name.toLowerCase().trim()]||'Other',account:acctFilter==='trade'?'trade':'long',
+        buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null,ticker:null};
+    }).filter(h=>h.value>0);
+    if(!parsed.length){showCsvErr('No valid holdings found');return;}
+    // Smart merge — compute diff first, then show preview before committing
+    const existing=new Map(holdings.map(h=>[h.name.toLowerCase().trim(),h]));
+    const merged=parsed.map(incoming=>{
+      const prev=existing.get(incoming.name.toLowerCase().trim());
+      if(prev){return{...prev,value:incoming.value,currentPrice:incoming.currentPrice??prev.currentPrice,buyPrice:incoming.buyPrice??prev.buyPrice,shares:incoming.shares??prev.shares,_isUpdate:true};}
+      return{...incoming,_isNew:true};
+    });
+    const csvNames=new Set(parsed.map(h=>h.name.toLowerCase().trim()));
+    const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim()));
+    const newOnes=merged.filter(h=>h._isNew);
+    const updated=merged.filter(h=>h._isUpdate);
+
+    // Build preview and ask user to confirm
+    const previewLines=[
+      updated.length?`✏️ ${updated.length} updated: ${updated.slice(0,3).map(h=>h.name).join(', ')}${updated.length>3?` +${updated.length-3} more`:''}`:null,
+      newOnes.length?`➕ ${newOnes.length} new: ${newOnes.slice(0,3).map(h=>h.name).join(', ')}${newOnes.length>3?` +${newOnes.length-3} more`:''}`:null,
+      manualOnly.length?`📌 ${manualOnly.length} manual holdings kept`:null,
+    ].filter(Boolean).join('\n');
+
+    if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
+
+    holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
+    save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
+    showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
+  };
+  reader.readAsText(file,'UTF-8');e.target.value='';
+}
+function showCsvErr(msg){document.getElementById('csv-error').textContent=msg;}
+
+function exportData(){
+  const json=JSON.stringify({holdings,goals},null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`portfolio-${new Date().toISOString().slice(0,10)}.json`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// ── Price refresh ─────────────────────────────────────────────────
+// Show offline banner and suppress price refresh when network is unavailable
+window.addEventListener('online',()=>{document.getElementById('offline-banner').style.display='none';});
+window.addEventListener('offline',()=>{document.getElementById('offline-banner').style.display='block';});
+if(!navigator.onLine)document.getElementById('offline-banner').style.display='block';
+
+// Re-render when window crosses the mobile/desktop breakpoint so chart
+// layout (swipe vs grid) and goToChart behaviour update without a page reload
+let _lastDesktop=isDesktop();
+window.addEventListener('resize',()=>{
+  const nowDesktop=isDesktop();
+  if(nowDesktop!==_lastDesktop){
+    _lastDesktop=nowDesktop;
+    render();
+  }
+});
+
+const PROXIES=[
+  url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url=>`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchWithFallback(yahooUrl){
+  for(const proxy of PROXIES){
+    try{
+      const res=await fetch(proxy(yahooUrl),{signal:AbortSignal.timeout(8000)});
+      if(res.ok)return await res.json();
+    }catch(e){continue;}
+  }
+  throw new Error('All proxies failed');
+}
+
+// Only auto-refresh prices during trading hours to avoid unnecessary API calls
+function isMarketHours(){
+  const now=new Date();
+  const day=now.getDay(); // 0=Sun,6=Sat
+  if(day===0||day===6)return false;
+  const cetHour=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Stockholm'})).getHours();
+  return cetHour>=9&&cetHour<23;
+}
+
+let refreshStatusTimer=null;
+
+async function refreshPrices(silent=false){
+  // Abort silently if offline — banner already informs the user
+  if(!navigator.onLine){
+    if(!silent)showRefreshStatus('⚠️ Offline — cannot fetch prices','#aa6600');
+    return;
+  }
+  const tickerHoldings=holdings.filter(h=>h.ticker&&h.shares);
+  const tickerNoShares=holdings.filter(h=>h.ticker&&!h.shares);
+  if(!tickerHoldings.length){
+    if(!silent){
+      const msg=tickerNoShares.length
+        ?`No share count set for: ${tickerNoShares.map(h=>h.ticker).join(', ')} — edit holding to add shares`
+        :'No tickers set. Edit a holding to add a ticker.';
+      showRefreshStatus(msg,'#888');
+    }
+    return;
+  }
+  const btn=document.getElementById('btn-refresh');
+  btn.textContent='🔄...';btn.disabled=true;
+  if(!silent)showRefreshStatus(`Fetching ${tickerHoldings.length} prices...`,'#888');
+  // Fetch exchange rates for USD, EUR and CAD to convert prices to SEK
+  const tickers=[...new Set(tickerHoldings.map(h=>h.ticker))].join(',');
+  const allTickers=tickers+',USDSEK=X,EURSEK=X,CADSEK=X,GBPSEK=X';
+  const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${allTickers}&fields=regularMarketPrice,currency`;
+  try{
+    const data=await fetchWithFallback(yahooUrl);
+    const quotes=data.quoteResponse?.result||[];
+    if(!quotes.length)throw new Error('No data');
+    const usdSek=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice||10.3;
+    const eurSek=quotes.find(q=>q.symbol==='EURSEK=X')?.regularMarketPrice||11.2;
+    const cadSek=quotes.find(q=>q.symbol==='CADSEK=X')?.regularMarketPrice||(usdSek*0.74);
+    const gbpSek=quotes.find(q=>q.symbol==='GBPSEK=X')?.regularMarketPrice||(usdSek*1.27);
+    // Store rate globally for currency display toggle
+    liveUsdSek=usdSek;
+    localStorage.setItem('pt_usd_sek_rate',String(usdSek));
+    let updated=0,failed=[];
+    holdings=holdings.map(h=>{
+      if(!h.ticker||!h.shares)return h;
+      const q=quotes.find(r=>r.symbol===h.ticker);
+      if(!q){failed.push(h.ticker);return h;}
+      const priceRaw=q.regularMarketPrice,currency=q.currency||'USD';
+      let priceSek=priceRaw;
+      if(currency==='USD')priceSek=priceRaw*usdSek;
+      else if(currency==='EUR')priceSek=priceRaw*eurSek;
+      else if(currency==='CAD')priceSek=priceRaw*cadSek;
+      else if(currency==='GBP')priceSek=priceRaw*gbpSek;
+      else if(currency==='GBp')priceSek=priceRaw/100*gbpSek; // LSE quotes pence
+      updated++;
+      return{...h,currency,currentPrice:Math.round(priceSek*100)/100,value:Math.round(priceSek*h.shares*100)/100};
+    });
+    lastRefreshTime=Date.now();
+    localStorage.setItem('pt_last_refresh_ts',String(lastRefreshTime));
+    save();render();
+    let msg=`✅ ${updated} price${updated!==1?'s':''} updated`;
+    if(failed.length)msg+=` · ❌ ${[...new Set(failed)].join(', ')}`;
+    if(tickerNoShares.length)msg+=` · ⚠️ no shares: ${tickerNoShares.map(h=>h.ticker).join(', ')}`;
+    showRefreshStatus(msg,updated>0?'#5BA85B':'#ff6b6b');
+  }catch(err){
+    showRefreshStatus('❌ Failed to fetch prices. Check connection.','#ff6b6b');
+  }
+  btn.textContent='🔄 Prices';btn.disabled=false;
+}
+
+// Auto-dismiss the status bar after 8 seconds so it does not linger
+function showRefreshStatus(msg,color='#888'){
+  const el=document.getElementById('refresh-status');
+  el.style.display='block';el.style.color=color;el.textContent=msg;
+  clearTimeout(refreshStatusTimer);
+  refreshStatusTimer=setTimeout(()=>{el.style.display='none';},8000);
+}
+
+// ── Cash editor ───────────────────────────────────────────────────
+let cashEditorAccount='long';
+
+function setCashAccount(acct){
+  cashEditorAccount=acct;
+  document.getElementById('cash-btn-long').className='acct-sel-btn'+(acct==='long'?' sel-long':'');
+  document.getElementById('cash-btn-trade').className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
+  // Update input with the value for this account
+  const c=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account===acct);
+  document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
+  updateCashLabel();
+}
+
+function updateCashLabel(){
+  const longC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='long');
+  const tradeC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='trade');
+  const parts=[];
+  if(longC)parts.push(`📈 ${fmtC(longC.value)} ${currLabel()}`);
+  if(tradeC)parts.push(`⚡ ${fmtC(tradeC.value)} ${currLabel()}`);
+  document.getElementById('cash-current-label').textContent=parts.length?parts.join('  ·  '):'No cash set yet';
+}
+
+function openCashEditor(){
+  cashEditorAccount=acctFilter==='trade'?'trade':'long';
+  setCashAccount(cashEditorAccount);
+  const cashLabel=document.getElementById('cash-amount-label');
+  if(cashLabel)cashLabel.textContent=`Amount (${displayCurrency})`;
+  updateCashLabel();
+  document.getElementById('cash-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('cash-input').focus(),100);
+}
+
+function closeCashEditor(){document.getElementById('cash-overlay').classList.remove('open');}
+
+function saveCash(){
+  const raw=parseFloat(document.getElementById('cash-input').value);
+  if(isNaN(raw)||raw<0)return;
+  const val=displayCurrency==='USD'?raw*liveUsdSek:raw;
+  // Remove existing cash for this account only, keep the other account's cash
+  holdings=holdings.filter(h=>!(h.sector==='Cash & Liquidity'&&h.account===cashEditorAccount));
+  if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:cashEditorAccount,stopLoss:null});
+  save();render();closeCashEditor();
+}
+
+// ── Firebase Cloud Sync (Google Login) ───────────────────────────
+let db=null,syncUid=null,syncUnsubscribe=null,syncPaused=false;
+
+async function initFirebase(){
+  try{
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js');
+
+    const firebaseConfig={
+      apiKey:"AIzaSyAWU8pfGBfxLa2I9vWOMrvD_WLvSWzzISQ",
+      authDomain:"portfolio-tracker-6f9c0.firebaseapp.com",
+      projectId:"portfolio-tracker-6f9c0",
+      storageBucket:"portfolio-tracker-6f9c0.firebasestorage.app",
+      messagingSenderId:"37202666172",
+      appId:"1:37202666172:web:24be6c294561ee9b8e26b9"
+    };
+
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+
+    // Listen for auth state changes
+    firebase.auth().onAuthStateChanged(user=>{
+      if(user){
+        syncUid=user.uid;
+        setSyncUI(true,user);
+        dismissWelcome();
+        startSync();
+      }else{
+        syncUid=null;
+        setSyncUI(false);
+        render(); // make sure app is always visible after auth state resolves
+      }
+    });
+  }catch(e){
+    // Firebase scripts blocked (e.g. file://, CSP, offline) — sync unavailable but app works fine
+    if(e.message&&e.message.includes('Failed to load script')){
+      console.info('Firebase sync unavailable (scripts could not load — sync requires a hosted environment)');
+    }else{
+      console.warn('Firebase init failed:',e);
+    }
+  }
+}
+
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
+    const s=document.createElement('script');
+    s.src=src;s.onload=resolve;
+    s.onerror=()=>reject(new Error('Failed to load script: '+src));
+    document.head.appendChild(s);
+  });
+}
+
+function setSyncUI(signedIn,user=null){
+  const dot=document.getElementById('sync-status-dot');
+  const label=document.getElementById('sync-status-label');
+  const inUI=document.getElementById('sync-signedin-ui');
+  const outUI=document.getElementById('sync-signedout-ui');
+  if(!dot)return;
+  if(signedIn&&user){
+    dot.style.background='#5BA85B';
+    label.textContent='Synced';label.style.color='#5BA85B';
+    inUI.style.display='block';outUI.style.display='none';
+    document.getElementById('sync-user-name').textContent=user.displayName||'Signed in';
+    document.getElementById('sync-user-email').textContent=user.email||'';
+    const photo=document.getElementById('sync-user-photo');
+    if(user.photoURL){photo.src=user.photoURL;photo.style.display='block';}
+  }else{
+    dot.style.background='#555';
+    label.textContent='Not signed in';label.style.color='#555';
+    inUI.style.display='none';outUI.style.display='block';
+  }
+}
+
+// ── Google Sign-In via GSI token flow ────────────────────────────
+const GSI_CLIENT_ID='37202666172-t2hkd4gfv2d5pau9gmh33u5qllue1ic5.apps.googleusercontent.com';
+let _gsiClient=null;
+
+function signInWithGoogle(){
+  // Show loading state immediately so user knows something is happening
+  showRefreshStatus('🔄 Opening Google sign-in…','#888');
+
+  // Ensure Firebase is fully loaded before we try to use it
+  const trySignIn=()=>{
+    loadScript('https://accounts.google.com/gsi/client').then(()=>{
+      if(!_gsiClient){
+        _gsiClient=google.accounts.oauth2.initTokenClient({
+          client_id:GSI_CLIENT_ID,
+          scope:'email profile openid',
+          callback:(tokenResponse)=>{
+            if(tokenResponse.error){
+              showRefreshStatus('❌ Google error: '+tokenResponse.error+' — '+( tokenResponse.error_description||''),'#ff4444');
+              console.error('GSI error:',tokenResponse);
+              return;
+            }
+            if(!tokenResponse.access_token){
+              showRefreshStatus('❌ No token received from Google','#ff4444');
+              return;
+            }
+            showRefreshStatus('🔄 Signing in to Firebase…','#888');
+            if(!firebase||!firebase.auth){
+              showRefreshStatus('❌ Firebase not ready — please try again','#ff4444');
+              return;
+            }
+            const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
+            firebase.auth().signInWithCredential(credential)
+              .then(result=>{
+                showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
+              })
+              .catch(e=>{
+                showRefreshStatus('❌ '+e.code+': '+e.message,'#ff4444');
+              });
+          },
+          error_callback:(err)=>{
+            // User closed the popup or other non-OAuth error
+            if(err.type!=='popup_closed')
+              showRefreshStatus('❌ Sign in cancelled or blocked: '+err.type,'#ff4444');
+            else
+              showRefreshStatus('Sign in cancelled','#888');
+          }
+        });
+      }
+      _gsiClient.requestAccessToken();
+    }).catch(e=>{
+      showRefreshStatus('❌ Could not load Google Sign-In. Check your connection.','#ff4444');
+      console.error('GSI load error:',e);
+    });
+  };
+
+  // If Firebase isn't ready yet, wait for it
+  if(!db){
+    showRefreshStatus('⏳ Loading Firebase, please wait…','#888');
+    let attempts=0;
+    const wait=setInterval(()=>{
+      attempts++;
+      if(db){ clearInterval(wait); trySignIn(); }
+      else if(attempts>20){ clearInterval(wait); showRefreshStatus('❌ Firebase failed to load. Check your connection.','#ff4444'); }
+    },300);
+  } else {
+    trySignIn();
+  }
+}
+
+async function signOut(){
+  if(!confirm('Sign out? Your data stays saved locally.'))return;
+  if(syncUnsubscribe)syncUnsubscribe();
+  await firebase.auth().signOut();
+  syncUid=null;
+  setSyncUI(false);
+  sessionStorage.removeItem('pt_welcome_dismissed');
+  _welcomeDismissed=false;
+  // Always re-render the app so it's never blank
+  render();
+  const localHoldings=loadData()||[];
+  if(localHoldings.length===0){
+    document.getElementById('welcome-screen').style.display='flex';
+    document.getElementById('app-root').style.display='none';
+  }
+  showRefreshStatus('Signed out — data saved locally','#888');
+}
+
+async function pushToFirebase(){
+  if(!db||!syncUid||syncPaused)return;
+  try{
+    await db.collection('portfolios').doc(syncUid).set({
+      holdings:JSON.stringify(holdings),
+      settings:JSON.stringify(settings),
+      targets:JSON.stringify(targets),
+      goals:JSON.stringify(goals),
+      updatedAt:Date.now()
+    });
+  }catch(e){console.warn('Push failed:',e);}
+}
+
+function startSync(){
+  if(syncUnsubscribe)syncUnsubscribe();
+  syncUnsubscribe=db.collection('portfolios').doc(syncUid).onSnapshot(async snap=>{
+    if(!snap.exists)return;
+    const data=snap.data();
+    const remote=data.updatedAt||0;
+    const localTs=parseInt(localStorage.getItem('pt_last_updated_ts')||'0');
+    if(remote>localTs+2000){
+      syncPaused=true; // pause outgoing pushes while we apply remote data
+      try{
+        const remoteH=JSON.parse(data.holdings||'[]');
+        const remoteS=JSON.parse(data.settings||'{}');
+        const remoteT=JSON.parse(data.targets||'{}');
+        const remoteG=JSON.parse(data.goals||'{}');
+        if(remoteH.length){
+          holdings=remoteH;
+          settings={...settings,...remoteS};
+          if(settings.tradeAccountMaxPct===null)settings.tradeAccountMaxPct=20;
+          targets={...remoteT};
+          goals={...DEFAULT_GOALS,...remoteG};
+          // Persist locally without triggering a push back to Firebase
+          try{
+            localStorage.setItem('pt_last_updated_ts',String(remote));
+            localStorage.setItem('pt_last_updated',new Date(remote).toISOString());
+            localStorage.setItem(LS_KEY,JSON.stringify(holdings));
+            localStorage.setItem(LS_SETTINGS,JSON.stringify(settings));
+            localStorage.setItem(LS_TARGETS,JSON.stringify(targets));
+          }catch(e){}
+          render();
+          showRefreshStatus('☁️ Synced from cloud','#5BA85B');
+        }
+      }catch(e){console.warn('Sync apply failed:',e);}
+      // Delay un-pausing so any in-flight save() calls that queued up don't fire immediately
+      setTimeout(()=>{syncPaused=false;},1000);
+    }
+  },err=>console.warn('Sync error:',err));
+}
+
+async function forceSyncNow(){
+  await pushToFirebase();
+  showRefreshStatus('☁️ Pushed to cloud','#5BA85B');
+}
+
+// ── Auto-backup ───────────────────────────────────────────────────
+const LS_LAST_BACKUP='pt_last_backup';
+
+function autoBackup(force=false){
+  if(!holdings.length) return;
+  const last=localStorage.getItem(LS_LAST_BACKUP);
+  const now=Date.now();
+  const weekMs=7*24*60*60*1000;
+  if(!force && last && (now-parseInt(last))<weekMs) return; // not due yet
+  try{
+    const json=JSON.stringify({holdings,goals},null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    localStorage.setItem(LS_LAST_BACKUP,String(now));
+    showRefreshStatus('💾 Weekly backup saved to Downloads','#5BA85B');
+  }catch(e){}
+}
+
+// ── Welcome Screen ────────────────────────────────────────────────
+let _welcomeDismissed=false;
+
+function dismissWelcome(){
+  _welcomeDismissed=true;
+  sessionStorage.setItem('pt_welcome_dismissed','1');
+  document.getElementById('welcome-screen').style.display='none';
+  document.getElementById('app-root').style.display='block';
+}
+
+function welcomeSignIn(){
+  // Dismiss welcome and trigger Google sign in
+  dismissWelcome();
+  // Wait a tick so the UI updates before the sign-in popup
+  setTimeout(()=>signInWithGoogle(),100);
+}
+
+function welcomeGuest(){
+  dismissWelcome();
+  showRefreshStatus('⚠️ Guest mode — data saved locally only. Sign in via Settings to enable cloud sync.','#F7931A');
+}
+
+function maybeShowWelcome(){
+  // Always shown via inline style — dismissed by Firebase auth or user tapping a button
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.getElementById('loading-msg').style.display='none';
+settings=loadSettings();
+targets=loadTargets();
+goals=loadGoals();
+holdings=loadData()||[];
+holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
+maybeShowWelcome();
+render();
+
+// Init Firebase sync (non-blocking)
+initFirebase();
+
+// Weekly auto-backup (runs 3 seconds after open so UI is ready)
+setTimeout(()=>autoBackup(),3000);
+
+// Auto-refresh prices 2s after load, then every 15 min during market hours
+setTimeout(async()=>{
+  await refreshPrices(true);
+  setInterval(()=>{
+    if(isMarketHours())refreshPrices(true);
+  },15*60*1000);
+},2000);
+
+</script>
 </body>
 </html>
