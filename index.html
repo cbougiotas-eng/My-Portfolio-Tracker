@@ -2185,12 +2185,23 @@ async function initFirebase(){
       if(user){
         syncUid=user.uid;
         setSyncUI(true,user);
-        dismissWelcome();
-        startSync();
+        // Show "loading your portfolio" message on welcome screen before dismissing
+        const ws=document.getElementById('welcome-screen');
+        if(ws&&ws.style.display!=='none'){
+          ws.innerHTML=`<div style="text-align:center">
+            <div style="font-size:52px;margin-bottom:16px">📊</div>
+            <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Welcome back!</div>
+            <div style="font-size:13px;color:#555">Loading your portfolio…</div>
+          </div>`;
+          setTimeout(()=>{ dismissWelcome(); startSync(); },800);
+        } else {
+          dismissWelcome();
+          startSync();
+        }
       }else{
         syncUid=null;
         setSyncUI(false);
-        render(); // make sure app is always visible after auth state resolves
+        render();
       }
     });
   }catch(e){
