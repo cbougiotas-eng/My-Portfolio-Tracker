@@ -1949,6 +1949,43 @@ function handleFile(e){
     const landI=headers.findIndex(h=>h==='land'||h==='country');
     if(ni===-1||vi===-1){showCsvErr('Could not find required columns');return;}
     const sectorMem=loadSectorMemory();
+
+    // Rule-based sector classifier — instant, no API needed
+    function guessSector(name,ticker,typ,land){
+      const n=name.toLowerCase(); const t=(ticker||'').toLowerCase();
+      // Sector memory takes priority
+      if(sectorMem[name.toLowerCase().trim()]) return sectorMem[name.toLowerCase().trim()];
+      // Leverage / warrants / turbos
+      if(/turbo|mini l|mini s|bull|bear|warrant/i.test(name)||typ==='WARRANT') return 'Index (Leverage)';
+      // Crypto / Bitcoin miners
+      if(/bitcoin|crypto|wulf|terawulf|riot|marathon|mara|hut 8|bitfarms|cleanspark|core scien/i.test(n)||/wulf|mara|riot|hut|bitf|clsk/i.test(t)) return 'Crypto/Bitcoin Mining';
+      // Silver — miners, ETFs, certificates
+      if(/silver|slvr|silv|ava.*silv|silv.*ava|track silver|gr silver|minaurum|first majestic|pan american|endeavour silver|coeur|hecla/i.test(n)||/slvr|silv|mgj|grsl|mgm/i.test(t)) return 'Silver';
+      // Gold — miners, ETFs, certificates
+      if(/gold|guld|newmont|barrick|agnico|kinross|gold fields|harmony gold|equinox gold|hycroft|alamos|eldorado|b2gold|torex/i.test(n)||/nem|gold|guld|abx|agn|eqx|hymc/i.test(t)) return 'Gold';
+      // Gold & Silver combined
+      if(/gold.*silver|silver.*gold|wheaton|royal gold|franco.nevada|sandstorm/i.test(n)) return 'Gold & Silver';
+      // Base metals / mining
+      if(/boliden|lundin|copper|zinc|nickel|base metal|glencore|freeport|teck|ivanhoe|hudbay/i.test(n)||/bol|lumi|fcx|teck/i.test(t)) return 'Base Metals Mining';
+      // Mining equipment / services
+      if(/epiroc|atlas copco|sandvik|caterpillar|komatsu|mining equip|drilling/i.test(n)||/epi|atco/i.test(t)) return 'Mining Equipment';
+      // Bonds / fixed income
+      if(/bond|treasury|obligat|fixed income|iboxx|govt|government|is04|idtl/i.test(n)||typ==='EXCHANGE_TRADED_FUND'&&/bond|treas/i.test(n)) return 'Bonds';
+      // Semiconductors
+      if(/semiconductor|chip|nvidia|amd|intel|tsmc|asml|qualcomm|broadcom|micron|vvsm|soxx|soxq/i.test(n)||/nvda|amd|intc|tsm|asml|qcom|avgo|mu|vvsm/i.test(t)) return 'Semiconductors ETF';
+      // Construction / real estate
+      if(/skanska|ncc|peab|construction|byggnad|fastighet|real estate|reit/i.test(n)||/ska|ncc/i.test(t)) return 'Construction';
+      // Biotech / Pharma
+      if(/pharma|biotech|therapeutics|bioscience|medical|oncology|genomic|atossa|cardiol|caribou|eledon|eldn|atos|crdl|crbu/i.test(n)||/atos|crdl|crbu|eldn/i.test(t)) return 'Biotech/Pharma';
+      // ETFs — try to classify by name keywords before falling through
+      if(typ==='EXCHANGE_TRADED_FUND'){
+        if(/vaneck|global x|ishares|xtrackers|invesco/i.test(n)) return 'Other';
+      }
+      // Certificate fallback
+      if(typ==='CERTIFICATE') return 'Other';
+      return 'Other';
+    }
+
     const parsed=lines.slice(1).map((line)=>{
       const cols=line.split(sep);
       const rawVal=(cols[vi]||'0').replace(/\s/g,'').replace(',','.');
@@ -1961,9 +1998,9 @@ function handleFile(e){
       const ticker=tickerI>=0?(cols[tickerI]||'').trim()||null:null;
       const typ=typI>=0?(cols[typI]||'').trim().toUpperCase():'';
       const land=landI>=0?(cols[landI]||'').trim().toUpperCase():'';
-      const knownSector=sectorMem[name.toLowerCase().trim()]||null;
-      return{id:newId(),name,value,ticker,_typ:typ,_land:land,
-        sector:knownSector,account:acctFilter==='trade'?'trade':'long',
+      const sector=guessSector(name,ticker,typ,land);
+      return{id:newId(),name,value,ticker,sector,
+        account:acctFilter==='trade'?'trade':'long',
         buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
@@ -1973,7 +2010,8 @@ function handleFile(e){
     const merged=parsed.map(incoming=>{
       const prev=existing.get(incoming.name.toLowerCase().trim());
       if(prev){
-        const sector=incoming.sector||prev.sector||null;
+        // Keep manually set sector if it exists, otherwise use classifier result
+        const sector=prev.sector&&prev.sector!=='Other'?prev.sector:incoming.sector;
         return{...prev,value:incoming.value,sector,ticker:prev.ticker||incoming.ticker,
           currentPrice:incoming.currentPrice??prev.currentPrice,
           buyPrice:incoming.buyPrice??prev.buyPrice,
@@ -1985,50 +2023,22 @@ function handleFile(e){
     const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim()));
     const newOnes=merged.filter(h=>h._isNew);
     const updated=merged.filter(h=>h._isUpdate);
+    const autoClassified=merged.filter(h=>h.sector&&h.sector!=='Other');
 
-    // AI-classify holdings with no known sector
-    const needsClassification=merged.filter(h=>!h.sector);
-    if(needsClassification.length>0){
-      showRefreshStatus('🤖 AI classifying sectors…','#7B68EE');
-      try{
-        const prompt='You are a portfolio sector classifier. Classify each holding into exactly one of these sectors:\n'+SECTOR_OPTIONS.join(', ')+'\n\nHints:\n- Silver miners, silver ETFs/certificates → Silver\n- Gold miners, gold ETFs/certificates → Gold\n- Mixed gold+silver funds → Gold & Silver\n- Copper, zinc, base metal miners → Base Metals Mining\n- Mining equipment/services → Mining Equipment\n- Bond/treasury ETFs → Bonds\n- Semiconductor ETFs → Semiconductors ETF\n- Bitcoin miners, crypto companies → Crypto/Bitcoin Mining\n- Leveraged index warrants/turbos → Index (Leverage)\n- Construction, real estate → Construction\n- Biotech, pharma, therapeutics → Biotech/Pharma\n- Cash, money market → Cash & Liquidity\n- Anything else → Other\n\nHoldings (name | ticker | type | country):\n'+needsClassification.map(h=>h.name+' | '+(h.ticker||'?')+' | '+(h._typ||'?')+' | '+(h._land||'?')).join('\n')+'\n\nRespond ONLY with a JSON array: [{"name":"...","sector":"..."}]. No markdown.';
-        const resp=await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-        });
-        const data=await resp.json();
-        const raw=(data.content||[]).map(c=>c.text||'').join('').trim();
-        const clean=raw.replace(/```json|```/g,'').trim();
-        const classifications=JSON.parse(clean);
-        const classMap=new Map(classifications.map(c=>[c.name.toLowerCase().trim(),c.sector]));
-        merged.forEach(h=>{
-          if(!h.sector){
-            const s=classMap.get(h.name.toLowerCase().trim());
-            h.sector=(s&&SECTOR_OPTIONS.includes(s))?s:'Other';
-          }
-        });
-        // Save to sector memory and push to Firebase on next save()
-        merged.forEach(h=>{if(h.sector&&h.sector!=='Other')sectorMem[h.name.toLowerCase().trim()]=h.sector;});
-        localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(sectorMem));
-      }catch(e){
-        merged.forEach(h=>{if(!h.sector)h.sector='Other';});
-        console.warn('AI sector classification failed:',e);
-      }
-    } else {
-      merged.forEach(h=>{if(!h.sector)h.sector='Other';});
-    }
+    // Save classifications to sector memory so future imports skip the classifier
+    merged.forEach(h=>{if(h.sector&&h.sector!=='Other')sectorMem[h.name.toLowerCase().trim()]=h.sector;});
+    localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(sectorMem));
 
     const previewLines=[
       updated.length?'✏️ '+updated.length+' updated: '+updated.slice(0,3).map(h=>h.name).join(', ')+(updated.length>3?' +'+(updated.length-3)+' more':''):null,
       newOnes.length?'➕ '+newOnes.length+' new: '+newOnes.slice(0,3).map(h=>h.name).join(', ')+(newOnes.length>3?' +'+(newOnes.length-3)+' more':''):null,
-      needsClassification.length?'🤖 '+needsClassification.length+' AI-classified':null,
+      autoClassified.length?'🏷️ '+autoClassified.length+' auto-classified into sectors':null,
       manualOnly.length?'📌 '+manualOnly.length+' manual holdings kept':null,
     ].filter(Boolean).join('\n');
 
     if(!confirm('Import preview:\n\n'+previewLines+'\n\nProceed?'))return;
 
-    holdings=[...merged.map(({_isNew,_isUpdate,_typ,_land,...h})=>h),...manualOnly];
+    holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
     acctFilter='all';
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
     showRefreshStatus('✅ CSV merged: '+updated.length+' updated · '+newOnes.length+' new · '+manualOnly.length+' manual kept','#5BA85B');
@@ -2432,14 +2442,7 @@ function startSync(){
           targets={...remoteT};
           goals={...DEFAULT_GOALS,...remoteG};
           // Merge remote sector memory into local (remote wins on conflicts)
-          if(data.sectorMemory){
-            try{
-              const remoteSM=JSON.parse(data.sectorMemory||'{}');
-              const localSM=loadSectorMemory();
-              const merged={...localSM,...remoteSM};
-              localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(merged));
-            }catch(e){}
-          }
+          if(data.sectorMemory){try{const rSM=JSON.parse(data.sectorMemory||'{}');localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify({...loadSectorMemory(),...rSM}));}catch(e){}}
           // Persist locally without triggering a push back to Firebase
           try{
             localStorage.setItem('pt_last_updated_ts',String(remote));
