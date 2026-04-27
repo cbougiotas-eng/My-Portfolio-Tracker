@@ -738,7 +738,8 @@ const LS_NOSTOP_ACK='pt_nostop_ack';
 function loadNoStopAck(){try{return new Set(JSON.parse(localStorage.getItem(LS_NOSTOP_ACK)||'[]'));}catch(e){return new Set();}}
 function saveNoStopAck(){try{localStorage.setItem(LS_NOSTOP_ACK,JSON.stringify([...noStopAck]));}catch(e){}}
 function toggleNoStopAck(id){
-  if(noStopAck.has(id))noStopAck.delete(id);else noStopAck.add(id);
+  const sid=String(id);
+  if(noStopAck.has(sid))noStopAck.delete(sid);else noStopAck.add(sid);
   saveNoStopAck();render();
 }
 let noStopAck=loadNoStopAck();
@@ -837,8 +838,8 @@ function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const tradeActiveTotal=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
 
   // Clear stale no-stop acks for holdings that now have a stop set
-  tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(h.id)){noStopAck.delete(h.id);saveNoStopAck();}});
-  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(h.id)):[];
+  tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(String(h.id))){noStopAck.delete(String(h.id));saveNoStopAck();}});
+  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
   const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
 
   // Individual metal sub-sectors excluded — only combined group is checked
@@ -1315,7 +1316,7 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 
 function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
   // Acknowledged no-stop holdings are shown dimmed at bottom of that section
-  const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(h.id));
+  const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(String(h.id)));
   const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0)+longGroupWarnings.length;
   const el=document.getElementById('warnings-content');
   if(activeWarningCount===0&&!ackNoStopH.length){el.innerHTML=`<div class="all-ok"><div class="ok-icon">✅</div><h3>Trading account looks good</h3><p>No trade &gt;${TRADE_HOLD_WARN}% or sector &gt;${settings.sectorWarn}% in trading account</p></div>`;return;}
@@ -1331,7 +1332,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:14px">${h.name}</div>
             <div style="font-size:12px;color:#888;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
-            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck('${h.id}')">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #aa6600;background:#0d0d1a;flex-shrink:0;font-size:11px"></span>
               <span style="font-size:12px;color:#cc9900">Stop loss managed by size</span>
             </label>
@@ -1346,7 +1347,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:12px;color:#888;text-decoration:line-through">${h.name}</div>
             <div style="font-size:10px;color:#666;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
-            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck('${h.id}')">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #5BA85B;background:#0d1a0d;flex-shrink:0;font-size:11px;color:#5BA85B">✓</span>
               <span style="font-size:12px;color:#5BA85B">Stop loss managed by size</span>
             </label>
