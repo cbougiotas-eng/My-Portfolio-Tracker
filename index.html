@@ -1792,10 +1792,10 @@ function switchTab(tab){
 
 let _deletedHolding=null,_undoTimer=null;
 function deleteHolding(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
   _deletedHolding=h;
-  holdings=holdings.filter(x=>x.id!==id);
+  holdings=holdings.filter(x=>String(x.id)!==String(id));
   // Save locally immediately but delay cloud push until undo window closes
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(holdings));
@@ -1814,7 +1814,7 @@ function deleteHolding(id){
   },5000);
 }
 function duplicateHolding(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
   const copy={...h,id:newId(),name:h.name+' (copy)'};
   holdings.push(copy);
@@ -1841,7 +1841,8 @@ function resetHoldings(){
 document.getElementById('holdings-list').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const id=btn.dataset.id; // keep as string — IDs are now UUIDs
+  const raw=btn.dataset.id;
+  const id=holdings.find(h=>String(h.id)===String(raw))?.id??raw;
   if(btn.dataset.action==='edit')openEdit(id);
   else if(btn.dataset.action==='duplicate')duplicateHolding(id);
   else if(btn.dataset.action==='delete')deleteHolding(id);
@@ -1851,7 +1852,8 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
 document.getElementById('warnings-panel').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const id=btn.dataset.id; // keep as string — IDs are now UUIDs
+  const raw=btn.dataset.id;
+  const id=holdings.find(h=>String(h.id)===String(raw))?.id??raw;
   if(btn.dataset.action==='edit')openEdit(id);
 });
 
@@ -1900,9 +1902,9 @@ function openModal(){
 }
 
 function openEdit(id){
-  const h=holdings.find(x=>x.id===id);
+  const h=holdings.find(x=>String(x.id)===String(id));
   if(!h)return;
-  editId=id;
+  editId=h.id; // use actual id from holdings (preserves type)
   document.getElementById('modal-title').textContent='Edit Holding';
   document.getElementById('btn-save-lbl').textContent='Save Changes';
   document.getElementById('f-name').value=h.name;
@@ -1965,7 +1967,7 @@ function saveHolding(){
   const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
     shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
     currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
-  if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
+  if(editId!=null)holdings=holdings.map(h=>String(h.id)===String(editId)?{...h,...entry}:h);
   else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
   save();saveSectorMemory();render();closeModal();
 }
