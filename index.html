@@ -584,6 +584,32 @@ select option{background:#0d0d1a;color:#fff}
 <!-- Cash Editor -->
 
 <!-- Konto Import Modal -->
+
+<!-- Manual Cash Account Modal -->
+<div id="manual-cash-overlay" class="overlay" onclick="if(event.target===this)closeManualCash()">
+  <div class="sheet">
+    <h2>💵 Add Cash Account</h2>
+    <div class="field">
+      <label>Name <span style="color:#555">— e.g. KuCoin, Bybit, Savings</span></label>
+      <input id="mc-name" placeholder="e.g. KuCoin USDT"/>
+    </div>
+    <div class="field">
+      <label>Value (<span id="mc-curr-label">SEK</span>)</label>
+      <input id="mc-value" type="number" placeholder="0"/>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:6px">Account</label>
+      <div style="display:flex;gap:7px">
+        <button id="mc-acct-long" class="acct-sel-btn sel-long" onclick="setMcAcct('long')">📈 Long Term</button>
+        <button id="mc-acct-trade" class="acct-sel-btn" onclick="setMcAcct('trade')">⚡ Trading</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button onclick="closeManualCash()">Cancel</button>
+      <button onclick="saveManualCash()" style="background:linear-gradient(135deg,#3DD68C,#2aa870);color:#000;font-weight:700">Add</button>
+    </div>
+  </div>
+</div>
 <div id="konto-overlay" class="overlay" onclick="if(event.target===this)document.getElementById('konto-overlay').classList.remove('open')">
   <div class="sheet" style="max-height:85vh;overflow-y:auto">
     <h2>🏦 Import konton</h2>
@@ -1235,7 +1261,7 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
   });
   if(!list.length&&!cashAccounts.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
   if(!list.length&&cashAccounts.length){
-    const cashHTML2=`<div class="cash-section"><div class="cash-section-title">💵 Cash &amp; Accounts</div>${cashAccounts.map(a=>{const val=getVal(a);const pct=val/activeTotal*100;return`<div class="cash-row"><div><div class="cash-row-name">${a.name}</div><div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div></div><div style="text-align:right"><div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div><button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button></div></div>`;}).join('')}</div>`;
+    const cashHTML2=`<div class="cash-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="cash-section-title" style="margin-bottom:0">💵 Cash &amp; Accounts</div><button onclick="openManualCash()" style="font-size:11px;color:#3DD68C;background:none;border:1px solid #1a3a2a;border-radius:7px;padding:3px 9px;cursor:pointer">+ Add</button></div>${cashAccounts.map(a=>{const val=getVal(a);const pct=val/activeTotal*100;return`<div class="cash-row"><div><div class="cash-row-name">${a.name}</div><div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div></div><div style="text-align:right"><div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div><button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button></div></div>`;}).join('')}</div>`;
     document.getElementById('holdings-list').innerHTML=cashHTML2;return;
   }
 
@@ -1244,10 +1270,13 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
   const freshThreshold=20*60*1000;
 
   // Build cash section HTML
-  const cashHTML=cashAccounts.length?`
+  const cashHTML=`
     <div class="cash-section">
-      <div class="cash-section-title">💵 Cash &amp; Accounts</div>
-      ${cashAccounts.map(a=>{
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="cash-section-title" style="margin-bottom:0">💵 Cash &amp; Accounts</div>
+        <button onclick="openManualCash()" style="font-size:11px;color:#3DD68C;background:none;border:1px solid #1a3a2a;border-radius:7px;padding:3px 9px;cursor:pointer">+ Add</button>
+      </div>
+      ${cashAccounts.length?cashAccounts.map(a=>{
         const val=getVal(a);
         const pct=val/activeTotal*100;
         return `<div class="cash-row">
@@ -1260,8 +1289,8 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
             <button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button>
           </div>
         </div>`;
-      }).join('')}
-    </div>`:'';
+      }).join(''):`<div style="font-size:12px;color:#444;padding:6px 0">No cash accounts yet — tap + Add or use 🏦 Accounts to import.</div>`}
+    </div>`;
 
   document.getElementById('holdings-list').innerHTML=list.map(h=>{
     const val=getVal(h),pct=val/activeTotal*100;
@@ -1868,6 +1897,7 @@ document.getElementById('chart-panel').addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('modal-overlay').classList.contains('open'))closeModal();
+    else if(document.getElementById('manual-cash-overlay').classList.contains('open'))closeManualCash();
     else if(document.getElementById('cash-overlay').classList.contains('open'))closeCashEditor();
     else if(document.getElementById('goal-overlay').classList.contains('open'))closeGoalEditor();
   }
@@ -2226,6 +2256,41 @@ function confirmKontoImport(){
   document.getElementById('konto-overlay').classList.remove('open');
   save();render();
   showRefreshStatus('✅ '+toImport.length+' cash accounts imported','#3DD68C');
+}
+
+
+// ── Manual cash account ──────────────────────────────────────────
+let mcAcct='long';
+
+function openManualCash(){
+  document.getElementById('mc-name').value='';
+  document.getElementById('mc-value').value='';
+  document.getElementById('mc-curr-label').textContent=currLabel();
+  setMcAcct('long');
+  document.getElementById('manual-cash-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mc-name').focus(),100);
+}
+
+function closeManualCash(){
+  document.getElementById('manual-cash-overlay').classList.remove('open');
+}
+
+function setMcAcct(acct){
+  mcAcct=acct;
+  document.getElementById('mc-acct-long').className='acct-sel-btn'+(acct==='long'?' sel-long':'');
+  document.getElementById('mc-acct-trade').className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
+}
+
+function saveManualCash(){
+  const name=document.getElementById('mc-name').value.trim();
+  const rawVal=parseFloat(document.getElementById('mc-value').value)||0;
+  if(!name||rawVal<=0)return;
+  const value=displayCurrency==='USD'?rawVal*liveUsdSek:rawVal;
+  holdings=holdings.filter(h=>!(h._fromKonto&&h.name===name));
+  holdings.push({id:newId(),name,value,sector:'Cash & Liquidity',account:mcAcct,stopLoss:null,ticker:null,_fromKonto:true});
+  closeManualCash();
+  save();render();
+  showRefreshStatus('✅ Cash account added: '+name,'#3DD68C');
 }
 
 function showCsvErr(msg){document.getElementById('csv-error').textContent=msg;}
