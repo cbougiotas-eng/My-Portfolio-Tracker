@@ -89,7 +89,9 @@ select option{background:#0d0d1a;color:#fff}
 
   /* Misc */
   #offline-banner{margin-left:220px}
-  #undo-toast{bottom:36px}
+  #undo-toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#1e1e3a;border:1px solid #3a3a5a;border-radius:12px;padding:10px 16px;display:none;align-items:center;gap:10px;font-size:13px;color:#e8e8f0;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap}
+  #undo-toast.show{display:flex}
+  #undo-toast button{background:#7B68EE;border:none;border-radius:8px;color:#fff;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
   #search-input{font-size:13px;padding:9px 13px}
   #chart-swipe-wrap{touch-action:auto!important}
 #fab:hover{transform:scale(1.07);box-shadow:0 6px 28px rgba(123,104,238,.75)}
@@ -766,12 +768,13 @@ function render(){
     console.error('Render error:',err);
     // Show a non-destructive recovery banner rather than a blank screen
     const panel=document.getElementById(activeTab+'-panel');
-    if(panel&&!panel.querySelector('.render-error')){
+    const container=panel||document.getElementById('main-content')||document.body;
+    if(!container.querySelector('.render-error')){
       const div=document.createElement('div');
       div.className='render-error';
       div.style.cssText='background:#1f0a0a;border:1px solid #ff4444;border-radius:11px;padding:16px;margin:16px;color:#ff6666;font-size:12px';
       div.innerHTML=`<b>⚠️ Display error</b><br><span style="color:#888;font-size:11px">${err.message}</span><br><button onclick="this.parentElement.remove();render()" style="margin-top:8px;background:#2a0808;border:1px solid #ff4444;border-radius:7px;color:#ff6666;padding:4px 10px;font-size:11px">Retry</button>`;
-      panel.prepend(div);
+      container.prepend(div);
     }
   }
 }
@@ -1995,7 +1998,9 @@ const PROXIES=[
 async function fetchWithFallback(yahooUrl){
   for(const proxy of PROXIES){
     try{
-      const res=await fetch(proxy(yahooUrl),{signal:AbortSignal.timeout(8000)});
+      const controller=new AbortController();
+      const _t=setTimeout(()=>controller.abort(),8000);
+      const res=await fetch(proxy(yahooUrl),{signal:controller.signal}).finally(()=>clearTimeout(_t));
       if(res.ok)return await res.json();
     }catch(e){continue;}
   }
