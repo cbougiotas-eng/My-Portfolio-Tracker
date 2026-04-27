@@ -191,6 +191,24 @@ select option{background:#0d0d1a;color:#fff}
 .metals-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #2a2200;font-size:14px}
 .csv-box{background:#0e0e1e;border:1px dashed #252535;border-radius:12px;padding:11px 14px;margin-bottom:10px;text-align:center}
 .csv-box p{font-size:13px;color:#666;margin-bottom:6px}
+.cash-section{margin:12px 0 6px;padding:10px 12px;background:#0a0a18;border:1px solid #1a1a2e;border-radius:12px}
+.cash-section-title{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#3DD68C;text-transform:uppercase;margin-bottom:8px}
+.cash-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #111228}
+.cash-row:last-child{border-bottom:none}
+.cash-row-name{font-size:13px;color:#ccc;font-weight:500}
+.cash-row-val{font-size:13px;color:#3DD68C;font-weight:700}
+.cash-row-acct{font-size:10px;color:#555;margin-top:2px}
+.konto-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #111228}
+.konto-row:last-child{border-bottom:none}
+.konto-row-info{flex:1;min-width:0}
+.konto-row-name{font-size:13px;color:#e8e8f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.konto-row-val{font-size:12px;color:#3DD68C;margin-top:2px}
+.konto-acct-toggle{display:flex;border-radius:8px;overflow:hidden;border:1px solid #252545;flex-shrink:0}
+.konto-acct-toggle button{padding:5px 10px;font-size:11px;font-weight:600;border:none;background:#0e0e1e;color:#555;cursor:pointer;transition:all .15s}
+.konto-acct-toggle button.active-long{background:#1a2e1a;color:#3DD68C}
+.konto-acct-toggle button.active-trade{background:#2e1a0a;color:#F7931A}
+.konto-skip-btn{font-size:11px;color:#555;background:none;border:none;cursor:pointer;padding:5px;flex-shrink:0}
+.konto-skip-btn.skipped{color:#ff4444}
 .csv-btns{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
 .btn-sm{border:1px solid #252535;border-radius:8px;padding:7px 12px;font-size:13px;background:#141428;color:#aaa;transition:background .15s,border-color .15s}
 .filter-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;background:#1e1e3a;border-radius:10px;padding:6px 12px}
@@ -407,12 +425,14 @@ select option{background:#0d0d1a;color:#fff}
   <div class="csv-box">
     <p>Import Avanza CSV · manage holdings below</p>
     <div class="csv-btns">
-      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 CSV</button>
+      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 Positioner</button>
+      <button class="btn-sm" style="color:#3DD68C" onclick="document.getElementById('konto-input').click()">🏦 Konton</button>
       <button class="btn-sm" style="color:#3DD68C" onclick="exportData()">💾 Export</button>
       <button class="btn-sm" style="color:#F7931A" onclick="refreshPrices()" id="btn-refresh">🔄 Prices</button>
       <button class="btn-sm" style="color:#ff4444;border-color:#3a1020;margin-left:8px" onclick="resetHoldings()">🗑 Clear all</button>
     </div>
     <input id="csv-input" type="file" accept=".csv,.json" style="display:none" onchange="handleFile(event)"/>
+    <input id="konto-input" type="file" accept=".csv" style="display:none" onchange="handleKontoFile(event)"/>
     <div id="csv-error" style="color:#ff6b6b;font-size:10px;margin-top:5px"></div>
     <div id="refresh-status" style="font-size:10px;margin-top:5px;display:none"></div>
   </div>
@@ -562,6 +582,19 @@ select option{background:#0d0d1a;color:#fff}
 </div>
 
 <!-- Cash Editor -->
+
+<!-- Konto Import Modal -->
+<div id="konto-overlay" class="overlay" onclick="if(event.target===this)document.getElementById('konto-overlay').classList.remove('open')">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto">
+    <h2>🏦 Import konton</h2>
+    <p style="font-size:12px;color:#666;margin-bottom:14px">Assign each account to Long Term or Trading, or skip it. Zero-balance accounts are skipped automatically.</p>
+    <div id="konto-rows"></div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button onclick="document.getElementById('konto-overlay').classList.remove('open')">Cancel</button>
+      <button onclick="confirmKontoImport()" style="background:linear-gradient(135deg,#3DD68C,#2aa870);color:#000;font-weight:700">Import</button>
+    </div>
+  </div>
+</div>
 <div id="cash-overlay" class="overlay" onclick="if(event.target===this)closeCashEditor()">
   <div class="sheet">
     <h2>💵 Cash & Liquidity</h2>
@@ -1184,10 +1217,12 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
   });
   const fb=document.getElementById('filter-bar');
   if(activeSector){fb.style.display='flex';document.getElementById('filter-label').textContent=activeSector;}else fb.style.display='none';
-  let list=[...holdings];
+  // Separate cash-from-konto accounts from regular holdings
+  let cashAccounts=[...holdings].filter(h=>h._fromKonto);
+  let list=[...holdings].filter(h=>!h._fromKonto);
   if(activeSector)list=list.filter(h=>h.sector===activeSector);
-  if(acctFilter!=='all')list=list.filter(h=>h.account===acctFilter);
-  if(search)list=list.filter(h=>h.name.toLowerCase().includes(search)||h.sector.toLowerCase().includes(search));
+  if(acctFilter!=='all'){list=list.filter(h=>h.account===acctFilter);cashAccounts=cashAccounts.filter(h=>h.account===acctFilter);}
+  if(search){list=list.filter(h=>h.name.toLowerCase().includes(search)||h.sector.toLowerCase().includes(search));cashAccounts=cashAccounts.filter(h=>h.name.toLowerCase().includes(search));}
   list.sort((a,b)=>{
     if(sortBy==='value')return getVal(b)-getVal(a);
     if(sortBy==='pct')return getVal(b)/activeTotal-getVal(a)/activeTotal;
@@ -1197,11 +1232,35 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
     if(sortBy==='nostop'){return(a.stopLoss==null?0:1)-(b.stopLoss==null?0:1);}
     return 0;
   });
-  if(!list.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
+  if(!list.length&&!cashAccounts.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
+  if(!list.length&&cashAccounts.length){
+    const cashHTML2=`<div class="cash-section"><div class="cash-section-title">💵 Cash &amp; Accounts</div>${cashAccounts.map(a=>{const val=getVal(a);const pct=val/activeTotal*100;return`<div class="cash-row"><div><div class="cash-row-name">${a.name}</div><div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div></div><div style="text-align:right"><div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div><button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button></div></div>`;}).join('')}</div>`;
+    document.getElementById('holdings-list').innerHTML=cashHTML2;return;
+  }
 
   // Show green/grey dot based on whether prices were fetched recently
   const now=Date.now();
   const freshThreshold=20*60*1000;
+
+  // Build cash section HTML
+  const cashHTML=cashAccounts.length?`
+    <div class="cash-section">
+      <div class="cash-section-title">💵 Cash &amp; Accounts</div>
+      ${cashAccounts.map(a=>{
+        const val=getVal(a);
+        const pct=val/activeTotal*100;
+        return `<div class="cash-row">
+          <div>
+            <div class="cash-row-name">${a.name}</div>
+            <div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div>
+          </div>
+          <div style="text-align:right">
+            <div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div>
+            <button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:'';
 
   document.getElementById('holdings-list').innerHTML=list.map(h=>{
     const val=getVal(h),pct=val/activeTotal*100;
@@ -1251,7 +1310,7 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
       </div>
       ${detailRow}
     </div>`;
-  }).join('');
+  }).join('')+cashHTML;
 }
 
 function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
@@ -1921,7 +1980,7 @@ function newId(){
 function handleFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=async ev=>{
+  reader.onload=ev=>{
     const text=ev.target.result.trim();
     if(file.name.endsWith('.json')){
       try{
@@ -1946,43 +2005,40 @@ function handleFile(e){
     const volI=headers.findIndex(h=>h==='volym'||h==='volume'||h==='shares');
     const tickerI=headers.findIndex(h=>h==='kortnamn'||h==='ticker'||h==='symbol');
     const typI=headers.findIndex(h=>h==='typ'||h==='type');
-    const landI=headers.findIndex(h=>h==='land'||h==='country');
     if(ni===-1||vi===-1){showCsvErr('Could not find required columns');return;}
     const sectorMem=loadSectorMemory();
 
-    // Rule-based sector classifier — instant, no API needed
-    function guessSector(name,ticker,typ,land){
-      const n=name.toLowerCase(); const t=(ticker||'').toLowerCase();
-      // Sector memory takes priority
+    function guessSector(name,ticker,typ){
+      const n=name.toLowerCase();
+      const t=(ticker||'').toLowerCase();
+      // Sector memory always wins
       if(sectorMem[name.toLowerCase().trim()]) return sectorMem[name.toLowerCase().trim()];
-      // Leverage / warrants / turbos
-      if(/turbo|mini l|mini s|bull|bear|warrant/i.test(name)||typ==='WARRANT') return 'Index (Leverage)';
+      // Warrants / leveraged products
+      if(/turbo|mini l |mini s |bull |bear /i.test(name)||typ==='WARRANT') return 'Index (Leverage)';
       // Crypto / Bitcoin miners
-      if(/bitcoin|crypto|wulf|terawulf|riot|marathon|mara|hut 8|bitfarms|cleanspark|core scien/i.test(n)||/wulf|mara|riot|hut|bitf|clsk/i.test(t)) return 'Crypto/Bitcoin Mining';
-      // Silver — miners, ETFs, certificates
-      if(/silver|slvr|silv|ava.*silv|silv.*ava|track silver|gr silver|minaurum|first majestic|pan american|endeavour silver|coeur|hecla/i.test(n)||/slvr|silv|mgj|grsl|mgm/i.test(t)) return 'Silver';
+      if(/terawulf|wulf|riot|marathon|mara |hut 8|bitfarms|cleanspark|core scien|bitcoin|crypto/i.test(n)||/^wulf$|^mara$|^riot$|^hut$|^bitf$|^clsk$/i.test(t)) return 'Crypto/Bitcoin Mining';
+      // Silver — miners, ETFs, certificates, trackers
+      if(/silver|slvr|silv|gr silver|minaurum|first majestic|pan american|endeavour silver|coeur|hecla|silvercorp|mag silver/i.test(n)||/^slvr$|^silv$|^grsl$|^paas$|^ag$|^hl$/i.test(t)) return 'Silver';
       // Gold — miners, ETFs, certificates
-      if(/gold|guld|newmont|barrick|agnico|kinross|gold fields|harmony gold|equinox gold|hycroft|alamos|eldorado|b2gold|torex/i.test(n)||/nem|gold|guld|abx|agn|eqx|hymc/i.test(t)) return 'Gold';
-      // Gold & Silver combined
-      if(/gold.*silver|silver.*gold|wheaton|royal gold|franco.nevada|sandstorm/i.test(n)) return 'Gold & Silver';
-      // Base metals / mining
-      if(/boliden|lundin|copper|zinc|nickel|base metal|glencore|freeport|teck|ivanhoe|hudbay/i.test(n)||/bol|lumi|fcx|teck/i.test(t)) return 'Base Metals Mining';
-      // Mining equipment / services
-      if(/epiroc|atlas copco|sandvik|caterpillar|komatsu|mining equip|drilling/i.test(n)||/epi|atco/i.test(t)) return 'Mining Equipment';
-      // Bonds / fixed income
-      if(/bond|treasury|obligat|fixed income|iboxx|govt|government|is04|idtl/i.test(n)||typ==='EXCHANGE_TRADED_FUND'&&/bond|treas/i.test(n)) return 'Bonds';
+      if(/gold|guld|newmont|barrick|agnico|kinross|gold fields|harmony gold|equinox gold|hycroft|alamos|eldorado|b2gold|torex|iamgold|centamin|endeavour mining/i.test(n)||/^nem$|^abx$|^aem$|^kgc$|^gfi$|^eqx$|^hymc$|^ago$|^eld$|^btg$/i.test(t)) return 'Gold';
+      // Gold & Silver combined (streaming / royalty)
+      if(/wheaton|royal gold|franco.nevada|sandstorm|osisko/i.test(n)||/^wpm$|^rgld$|^fnv$|^ssl$$/i.test(t)) return 'Gold & Silver';
+      // Base metals mining
+      if(/boliden|lundin mining|copper|freeport|teck|ivanhoe|hudbay|antofagasta|glencore|first quantum|ero copper|sibanye|stillwater|palladium|platinum/i.test(n)||/^bol$|^lumi$|^fcx$|^teck$|^ivn$|^hbm$|^sbsw$/i.test(t)) return 'Base Metals Mining';
+      // Mining equipment & services
+      if(/epiroc|atlas copco|sandvik|caterpillar|komatsu|metso|weir group/i.test(n)||/^epi|^atco/i.test(t)) return 'Mining Equipment';
+      // Bonds / fixed income ETFs
+      if(/bond|treasury|obligat|fixed income|govt|government/i.test(n)&&typ==='EXCHANGE_TRADED_FUND') return 'Bonds';
+      if(/^is04$|^idtl$|^dtla$|^tlt$/i.test(t)) return 'Bonds';
       // Semiconductors
-      if(/semiconductor|chip|nvidia|amd|intel|tsmc|asml|qualcomm|broadcom|micron|vvsm|soxx|soxq/i.test(n)||/nvda|amd|intc|tsm|asml|qcom|avgo|mu|vvsm/i.test(t)) return 'Semiconductors ETF';
-      // Construction / real estate
-      if(/skanska|ncc|peab|construction|byggnad|fastighet|real estate|reit/i.test(n)||/ska|ncc/i.test(t)) return 'Construction';
+      if(/semiconductor|vaneck.*semi|global x.*semi|soxx|soxq/i.test(n)||/^vvsm$|^soxx$|^soxq$|^soxl$/i.test(t)) return 'Semiconductors ETF';
+      // Construction
+      if(/skanska|ncc |peab|construction|byggnad/i.test(n)||/^ska |^ncc$/i.test(t)) return 'Construction';
       // Biotech / Pharma
-      if(/pharma|biotech|therapeutics|bioscience|medical|oncology|genomic|atossa|cardiol|caribou|eledon|eldn|atos|crdl|crbu/i.test(n)||/atos|crdl|crbu|eldn/i.test(t)) return 'Biotech/Pharma';
-      // ETFs — try to classify by name keywords before falling through
-      if(typ==='EXCHANGE_TRADED_FUND'){
-        if(/vaneck|global x|ishares|xtrackers|invesco/i.test(n)) return 'Other';
-      }
-      // Certificate fallback
-      if(typ==='CERTIFICATE') return 'Other';
+      if(/therapeutics|bioscience|biotech|pharma|oncolog|genomic|medical|atossa|cardiol|caribou|eledon/i.test(n)||/^atos$|^crdl$|^crbu$|^eldn$/i.test(t)) return 'Biotech/Pharma';
+      // Silver ETFs / certificates that don't match name pattern
+      if(typ==='CERTIFICATE'&&/silv|silver|slvr/i.test(n)) return 'Silver';
+      if(typ==='CERTIFICATE'&&/guld|gold/i.test(n)) return 'Gold';
       return 'Other';
     }
 
@@ -1997,8 +2053,7 @@ function handleFile(e){
       const name=cols[ni]?.trim()||'Unknown';
       const ticker=tickerI>=0?(cols[tickerI]||'').trim()||null:null;
       const typ=typI>=0?(cols[typI]||'').trim().toUpperCase():'';
-      const land=landI>=0?(cols[landI]||'').trim().toUpperCase():'';
-      const sector=guessSector(name,ticker,typ,land);
+      const sector=guessSector(name,ticker,typ);
       return{id:newId(),name,value,ticker,sector,
         account:acctFilter==='trade'?'trade':'long',
         buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null};
@@ -2010,8 +2065,8 @@ function handleFile(e){
     const merged=parsed.map(incoming=>{
       const prev=existing.get(incoming.name.toLowerCase().trim());
       if(prev){
-        // Keep manually set sector if it exists, otherwise use classifier result
-        const sector=prev.sector&&prev.sector!=='Other'?prev.sector:incoming.sector;
+        // Keep manually assigned sector if it differs from 'Other', otherwise use classifier
+        const sector=(prev.sector&&prev.sector!=='Other')?prev.sector:incoming.sector;
         return{...prev,value:incoming.value,sector,ticker:prev.ticker||incoming.ticker,
           currentPrice:incoming.currentPrice??prev.currentPrice,
           buyPrice:incoming.buyPrice??prev.buyPrice,
@@ -2020,31 +2075,152 @@ function handleFile(e){
       return{...incoming,_isNew:true};
     });
     const csvNames=new Set(parsed.map(h=>h.name.toLowerCase().trim()));
-    const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim()));
+    const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim())&&!h._fromKonto);
     const newOnes=merged.filter(h=>h._isNew);
     const updated=merged.filter(h=>h._isUpdate);
-    const autoClassified=merged.filter(h=>h.sector&&h.sector!=='Other');
+    const classified=merged.filter(h=>h.sector&&h.sector!=='Other');
 
-    // Save classifications to sector memory so future imports skip the classifier
+    // Save all classified sectors to memory for future imports
     merged.forEach(h=>{if(h.sector&&h.sector!=='Other')sectorMem[h.name.toLowerCase().trim()]=h.sector;});
     localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(sectorMem));
 
     const previewLines=[
-      updated.length?'✏️ '+updated.length+' updated: '+updated.slice(0,3).map(h=>h.name).join(', ')+(updated.length>3?' +'+(updated.length-3)+' more':''):null,
-      newOnes.length?'➕ '+newOnes.length+' new: '+newOnes.slice(0,3).map(h=>h.name).join(', ')+(newOnes.length>3?' +'+(newOnes.length-3)+' more':''):null,
-      autoClassified.length?'🏷️ '+autoClassified.length+' auto-classified into sectors':null,
-      manualOnly.length?'📌 '+manualOnly.length+' manual holdings kept':null,
+      updated.length?`✏️ ${updated.length} updated: ${updated.slice(0,3).map(h=>h.name).join(', ')}${updated.length>3?` +${updated.length-3} more`:''}`:null,
+      newOnes.length?`➕ ${newOnes.length} new: ${newOnes.slice(0,3).map(h=>h.name).join(', ')}${newOnes.length>3?` +${newOnes.length-3} more`:''}`:null,
+      classified.length?`🏷️ ${classified.length} auto-classified into sectors`:null,
+      manualOnly.length?`📌 ${manualOnly.length} manual holdings kept`:null,
     ].filter(Boolean).join('\n');
 
-    if(!confirm('Import preview:\n\n'+previewLines+'\n\nProceed?'))return;
+    if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
 
     holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
     acctFilter='all';
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
-    showRefreshStatus('✅ CSV merged: '+updated.length+' updated · '+newOnes.length+' new · '+manualOnly.length+' manual kept','#5BA85B');
+    showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
   };
   reader.readAsText(file,'UTF-8');e.target.value='';
 }
+
+// ── Konto (cash accounts) import ─────────────────────────────────
+let kontoImportData = []; // holds parsed accounts during modal
+
+// Friendly display names for Avanza account types
+const KONTO_NAMES = {
+  'aktie- & fondkonto': 'Aktie- & Fondkonto',
+  'investeringssparkonto': 'ISK',
+  'sparkonto': 'Sparkonto',
+  'tjänstepension': 'Tjänstepension',
+  'kapitalförsäkring': 'Kapitalförsäkring',
+  'pensionsförsäkring': 'Pensionsförsäkring',
+};
+
+function handleKontoFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const text=ev.target.result.trim();
+    const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
+    const sep=lines[0].includes(';')?';':',';
+    const rawHeader=lines[0].replace(/^\uFEFF/,'');
+    const headers=rawHeader.split(sep).map(h=>h.trim().toLowerCase());
+    const typI=headers.findIndex(h=>h.includes('kontotyp')||h==='type');
+    const valI=headers.findIndex(h=>h.includes('totalvärde')||h.includes('value')||h.includes('total'));
+    const numI=headers.findIndex(h=>h.includes('kontonummer')||h==='account');
+    if(valI===-1){showCsvErr('Could not find value column in konto CSV');return;}
+
+    const accounts=lines.slice(1).map(line=>{
+      const cols=line.split(sep);
+      const rawVal=(cols[valI]||'0').replace(/\s/g,'').replace(',','.');
+      const value=parseFloat(rawVal)||0;
+      const typ=(typI>=0?(cols[typI]||''):'' ).trim().toLowerCase();
+      const num=(numI>=0?(cols[numI]||''):'').trim();
+      const displayName=KONTO_NAMES[typ]||(typ?typ.charAt(0).toUpperCase()+typ.slice(1):'Konto');
+      return{num,typ,displayName,value};
+    }).filter(a=>a.value>0); // skip zero-balance accounts
+
+    if(!accounts.length){showCsvErr('No accounts with balance found');return;}
+
+    // Deduplicate by type — if multiple of same type, label them 1, 2
+    const typeCounts={};
+    accounts.forEach(a=>{typeCounts[a.displayName]=(typeCounts[a.displayName]||0)+1;});
+    const typeIdx={};
+    accounts.forEach(a=>{
+      if(typeCounts[a.displayName]>1){
+        typeIdx[a.displayName]=(typeIdx[a.displayName]||0)+1;
+        a.label=a.displayName+' '+typeIdx[a.displayName];
+      } else {
+        a.label=a.displayName;
+      }
+      a.account='long'; // default
+      a.skip=false;
+    });
+
+    kontoImportData=accounts;
+    renderKontoModal();
+    document.getElementById('konto-overlay').classList.add('open');
+  };
+  reader.readAsText(file,'UTF-8');
+  e.target.value='';
+}
+
+function renderKontoModal(){
+  const rows=document.getElementById('konto-rows');
+  if(!rows)return;
+  rows.innerHTML=kontoImportData.map((a,i)=>`
+    <div class="konto-row" id="konto-row-${i}">
+      <div class="konto-row-info">
+        <div class="konto-row-name">${a.label}</div>
+        <div class="konto-row-val">${fmtC(toDisplay(a.value))} ${currLabel()}</div>
+      </div>
+      <div class="konto-acct-toggle">
+        <button onclick="setKontoAcct(${i},'long')" id="konto-long-${i}" class="active-long">Long</button>
+        <button onclick="setKontoAcct(${i},'trade')" id="konto-trade-${i}">Trade</button>
+      </div>
+      <button class="konto-skip-btn" onclick="toggleKontoSkip(${i})" id="konto-skip-${i}" title="Skip this account">✕</button>
+    </div>
+  `).join('');
+}
+
+function setKontoAcct(i,acct){
+  kontoImportData[i].account=acct;
+  document.getElementById('konto-long-'+i).className=acct==='long'?'active-long':'';
+  document.getElementById('konto-trade-'+i).className=acct==='trade'?'active-trade':'';
+}
+
+function toggleKontoSkip(i){
+  kontoImportData[i].skip=!kontoImportData[i].skip;
+  const row=document.getElementById('konto-row-'+i);
+  const btn=document.getElementById('konto-skip-'+i);
+  row.style.opacity=kontoImportData[i].skip?'0.35':'1';
+  btn.classList.toggle('skipped',kontoImportData[i].skip);
+  btn.title=kontoImportData[i].skip?'Include this account':'Skip this account';
+}
+
+function confirmKontoImport(){
+  const toImport=kontoImportData.filter(a=>!a.skip);
+  if(!toImport.length){document.getElementById('konto-overlay').classList.remove('open');return;}
+  // Remove existing cash-from-konto holdings (identified by _fromKonto flag)
+  // Also remove any that match by label to avoid duplicates
+  const labels=new Set(toImport.map(a=>a.label));
+  holdings=holdings.filter(h=>!(h._fromKonto&&labels.has(h.name)));
+  // Add new cash holdings
+  toImport.forEach(a=>{
+    holdings.push({
+      id:newId(),
+      name:a.label,
+      value:a.value,
+      sector:'Cash & Liquidity',
+      account:a.account,
+      stopLoss:null,
+      ticker:null,
+      _fromKonto:true,
+    });
+  });
+  document.getElementById('konto-overlay').classList.remove('open');
+  save();render();
+  showRefreshStatus('✅ '+toImport.length+' cash accounts imported','#3DD68C');
+}
+
 function showCsvErr(msg){document.getElementById('csv-error').textContent=msg;}
 
 function exportData(){
@@ -2415,7 +2591,6 @@ async function pushToFirebase(){
       settings:JSON.stringify(settings),
       targets:JSON.stringify(targets),
       goals:JSON.stringify(goals),
-      sectorMemory:JSON.stringify(loadSectorMemory()),
       updatedAt:Date.now()
     });
   }catch(e){console.warn('Push failed:',e);}
@@ -2441,8 +2616,6 @@ function startSync(){
           if(settings.tradeAccountMaxPct===null)settings.tradeAccountMaxPct=20;
           targets={...remoteT};
           goals={...DEFAULT_GOALS,...remoteG};
-          // Merge remote sector memory into local (remote wins on conflicts)
-          if(data.sectorMemory){try{const rSM=JSON.parse(data.sectorMemory||'{}');localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify({...loadSectorMemory(),...rSM}));}catch(e){}}
           // Persist locally without triggering a push back to Firebase
           try{
             localStorage.setItem('pt_last_updated_ts',String(remote));
