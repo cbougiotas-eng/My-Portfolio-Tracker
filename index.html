@@ -865,8 +865,8 @@ function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
 
   // Clear stale no-stop acks for holdings that now have a stop set
   tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(String(h.id))){noStopAck.delete(String(h.id));saveNoStopAck();}});
-  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
-  const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
+  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&!h._fromKonto&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
+  const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&!h._fromKonto&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
 
   // Individual metal sub-sectors excluded — only combined group is checked
   const overS=tradeTotals.sectorArr.filter(d=>d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name));
@@ -881,11 +881,10 @@ function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const stocksPct=groupPct(STOCK_SECTORS);
   const cryptoPct=groupPct(CRYPTO_SECTORS);
   const longMetalPct=groupPct(METAL_SECTORS);
-  const longCashPct=groupPct(CASH_SECTORS);
   if(stocksPct>LONG_GROUP_LIMITS.stocks)longGroupWarnings.push({name:'📈 Stocks (long term)',pct:stocksPct,limit:LONG_GROUP_LIMITS.stocks});
   if(cryptoPct>LONG_GROUP_LIMITS.crypto)longGroupWarnings.push({name:'₿ Crypto (long term)',pct:cryptoPct,limit:LONG_GROUP_LIMITS.crypto});
   if(longMetalPct>LONG_GROUP_LIMITS.metals)longGroupWarnings.push({name:'⚙️ Metals (long term)',pct:longMetalPct,limit:LONG_GROUP_LIMITS.metals});
-  if(longCashPct>LONG_GROUP_LIMITS.cash)longGroupWarnings.push({name:'💵 Cash (long term)',pct:longCashPct,limit:LONG_GROUP_LIMITS.cash});
+  // Cash holdings are intentional — no warning triggered
 
   const tradeAccountLimit=(longMarketTotal+cashVal)*(settings.tradeAccountMaxPct/100);
   const tradeTotalMarket=tradeTotals.marketTotal;
@@ -1103,7 +1102,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
     const dim=activeSector&&activeSector!==d.name?'0.15':'1';
     html+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${large} 0 ${x4},${y4} Z"
       fill="${color}" opacity="${dim}" style="cursor:pointer;transition:opacity .2s"
-      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmtC(toDisplay(d.value))} ${currLabel()}"/>`;
+      data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmtC(d.value)} ${currLabel()}"/>`;
   });
 
   // Labels on top 5 slices big enough to fit
@@ -1132,7 +1131,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
   const centerName=centerLabel?(centerLabel.name.length>12?centerLabel.name.slice(0,11)+'…':centerLabel.name):'Total';
   html+=`<circle cx="${cx}" cy="${cy}" r="${ri-4}" fill="#0d0d1a"/>`;
   html+=`<text x="${cx}" y="${cy-16}" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui,sans-serif" letter-spacing="1">${centerName.toUpperCase()}</text>`;
-  html+=`<text x="${cx}" y="${cy+7}" text-anchor="middle" fill="#fff" font-size="21" font-weight="700" font-family="system-ui,sans-serif">${fmt(toDisplay(centerVal))}</text>`;
+  html+=`<text x="${cx}" y="${cy+7}" text-anchor="middle" fill="#fff" font-size="21" font-weight="700" font-family="system-ui,sans-serif">${fmt(centerVal)}</text>`;
   html+=`<text x="${cx}" y="${cy+24}" text-anchor="middle" fill="#666" font-size="11" font-family="system-ui,sans-serif">${displayCurrency}${centerPct?' · '+centerPct:''}</text>`;
 
   svg.innerHTML=html;
