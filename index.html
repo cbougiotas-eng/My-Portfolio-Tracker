@@ -1921,7 +1921,7 @@ function newId(){
 function handleFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     const text=ev.target.result.trim();
     if(file.name.endsWith('.json')){
       try{
@@ -1938,14 +1938,18 @@ function handleFile(e){
     }
     const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
     const sep=lines[0].includes(';')?';':',';
-    const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase());
+    const rawHeader=lines[0].replace(/^\uFEFF/,'');
+    const headers=rawHeader.split(sep).map(h=>h.trim().toLowerCase());
     const ni=headers.findIndex(h=>h==='namn'||h==='name');
     const vi=headers.findIndex(h=>h==='marknadsvärde'||h==='value'||h==='market value');
     const gavI=headers.findIndex(h=>h.includes('gav'));
     const volI=headers.findIndex(h=>h==='volym'||h==='volume'||h==='shares');
+    const tickerI=headers.findIndex(h=>h==='kortnamn'||h==='ticker'||h==='symbol');
+    const typI=headers.findIndex(h=>h==='typ'||h==='type');
+    const landI=headers.findIndex(h=>h==='land'||h==='country');
     if(ni===-1||vi===-1){showCsvErr('Could not find required columns');return;}
     const sectorMem=loadSectorMemory();
-    const parsed=lines.slice(1).map((line,i)=>{
+    const parsed=lines.slice(1).map((line)=>{
       const cols=line.split(sep);
       const rawVal=(cols[vi]||'0').replace(/\s/g,'').replace(',','.');
       const rawGav=gavI>=0?(cols[gavI]||'').replace(/\s/g,'').replace(',','.'):null;
@@ -1954,15 +1958,27 @@ function handleFile(e){
       const buyPrice=rawGav?parseFloat(rawGav)||null:null;
       const shares=rawVol?parseFloat(rawVol)||null:null;
       const name=cols[ni]?.trim()||'Unknown';
-      return{id:newId(),name,value,sector:sectorMem[name.toLowerCase().trim()]||'Other',account:acctFilter==='trade'?'trade':'long',
-        buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null,ticker:null};
+      const ticker=tickerI>=0?(cols[tickerI]||'').trim()||null:null;
+      const typ=typI>=0?(cols[typI]||'').trim().toUpperCase():'';
+      const land=landI>=0?(cols[landI]||'').trim().toUpperCase():'';
+      const knownSector=sectorMem[name.toLowerCase().trim()]||null;
+      return{id:newId(),name,value,ticker,_typ:typ,_land:land,
+        sector:knownSector,account:acctFilter==='trade'?'trade':'long',
+        buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
-    // Smart merge — compute diff first, then show preview before committing
+
+    // Smart merge
     const existing=new Map(holdings.map(h=>[h.name.toLowerCase().trim(),h]));
     const merged=parsed.map(incoming=>{
       const prev=existing.get(incoming.name.toLowerCase().trim());
-      if(prev){return{...prev,value:incoming.value,currentPrice:incoming.currentPrice??prev.currentPrice,buyPrice:incoming.buyPrice??prev.buyPrice,shares:incoming.shares??prev.shares,_isUpdate:true};}
+      if(prev){
+        const sector=incoming.sector||prev.sector||null;
+        return{...prev,value:incoming.value,sector,ticker:prev.ticker||incoming.ticker,
+          currentPrice:incoming.currentPrice??prev.currentPrice,
+          buyPrice:incoming.buyPrice??prev.buyPrice,
+          shares:incoming.shares??prev.shares,_isUpdate:true};
+      }
       return{...incoming,_isNew:true};
     });
     const csvNames=new Set(parsed.map(h=>h.name.toLowerCase().trim()));
@@ -1970,19 +1986,52 @@ function handleFile(e){
     const newOnes=merged.filter(h=>h._isNew);
     const updated=merged.filter(h=>h._isUpdate);
 
-    // Build preview and ask user to confirm
+    // AI-classify holdings with no known sector
+    const needsClassification=merged.filter(h=>!h.sector);
+    if(needsClassification.length>0){
+      showRefreshStatus('🤖 AI classifying sectors…','#7B68EE');
+      try{
+        const prompt='You are a portfolio sector classifier. Classify each holding into exactly one of these sectors:\n'+SECTOR_OPTIONS.join(', ')+'\n\nHints:\n- Silver miners, silver ETFs/certificates → Silver\n- Gold miners, gold ETFs/certificates → Gold\n- Mixed gold+silver funds → Gold & Silver\n- Copper, zinc, base metal miners → Base Metals Mining\n- Mining equipment/services → Mining Equipment\n- Bond/treasury ETFs → Bonds\n- Semiconductor ETFs → Semiconductors ETF\n- Bitcoin miners, crypto companies → Crypto/Bitcoin Mining\n- Leveraged index warrants/turbos → Index (Leverage)\n- Construction, real estate → Construction\n- Biotech, pharma, therapeutics → Biotech/Pharma\n- Cash, money market → Cash & Liquidity\n- Anything else → Other\n\nHoldings (name | ticker | type | country):\n'+needsClassification.map(h=>h.name+' | '+(h.ticker||'?')+' | '+(h._typ||'?')+' | '+(h._land||'?')).join('\n')+'\n\nRespond ONLY with a JSON array: [{"name":"...","sector":"..."}]. No markdown.';
+        const resp=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+        });
+        const data=await resp.json();
+        const raw=(data.content||[]).map(c=>c.text||'').join('').trim();
+        const clean=raw.replace(/```json|```/g,'').trim();
+        const classifications=JSON.parse(clean);
+        const classMap=new Map(classifications.map(c=>[c.name.toLowerCase().trim(),c.sector]));
+        merged.forEach(h=>{
+          if(!h.sector){
+            const s=classMap.get(h.name.toLowerCase().trim());
+            h.sector=(s&&SECTOR_OPTIONS.includes(s))?s:'Other';
+          }
+        });
+        // Save to sector memory and push to Firebase on next save()
+        merged.forEach(h=>{if(h.sector&&h.sector!=='Other')sectorMem[h.name.toLowerCase().trim()]=h.sector;});
+        localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(sectorMem));
+      }catch(e){
+        merged.forEach(h=>{if(!h.sector)h.sector='Other';});
+        console.warn('AI sector classification failed:',e);
+      }
+    } else {
+      merged.forEach(h=>{if(!h.sector)h.sector='Other';});
+    }
+
     const previewLines=[
-      updated.length?`✏️ ${updated.length} updated: ${updated.slice(0,3).map(h=>h.name).join(', ')}${updated.length>3?` +${updated.length-3} more`:''}`:null,
-      newOnes.length?`➕ ${newOnes.length} new: ${newOnes.slice(0,3).map(h=>h.name).join(', ')}${newOnes.length>3?` +${newOnes.length-3} more`:''}`:null,
-      manualOnly.length?`📌 ${manualOnly.length} manual holdings kept`:null,
+      updated.length?'✏️ '+updated.length+' updated: '+updated.slice(0,3).map(h=>h.name).join(', ')+(updated.length>3?' +'+(updated.length-3)+' more':''):null,
+      newOnes.length?'➕ '+newOnes.length+' new: '+newOnes.slice(0,3).map(h=>h.name).join(', ')+(newOnes.length>3?' +'+(newOnes.length-3)+' more':''):null,
+      needsClassification.length?'🤖 '+needsClassification.length+' AI-classified':null,
+      manualOnly.length?'📌 '+manualOnly.length+' manual holdings kept':null,
     ].filter(Boolean).join('\n');
 
-    if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
+    if(!confirm('Import preview:\n\n'+previewLines+'\n\nProceed?'))return;
 
-    holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
-    acctFilter='all'; // reset filter so newly imported holdings are visible
+    holdings=[...merged.map(({_isNew,_isUpdate,_typ,_land,...h})=>h),...manualOnly];
+    acctFilter='all';
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
-    showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
+    showRefreshStatus('✅ CSV merged: '+updated.length+' updated · '+newOnes.length+' new · '+manualOnly.length+' manual kept','#5BA85B');
   };
   reader.readAsText(file,'UTF-8');e.target.value='';
 }
@@ -2356,6 +2405,7 @@ async function pushToFirebase(){
       settings:JSON.stringify(settings),
       targets:JSON.stringify(targets),
       goals:JSON.stringify(goals),
+      sectorMemory:JSON.stringify(loadSectorMemory()),
       updatedAt:Date.now()
     });
   }catch(e){console.warn('Push failed:',e);}
@@ -2381,6 +2431,15 @@ function startSync(){
           if(settings.tradeAccountMaxPct===null)settings.tradeAccountMaxPct=20;
           targets={...remoteT};
           goals={...DEFAULT_GOALS,...remoteG};
+          // Merge remote sector memory into local (remote wins on conflicts)
+          if(data.sectorMemory){
+            try{
+              const remoteSM=JSON.parse(data.sectorMemory||'{}');
+              const localSM=loadSectorMemory();
+              const merged={...localSM,...remoteSM};
+              localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(merged));
+            }catch(e){}
+          }
           // Persist locally without triggering a push back to Firebase
           try{
             localStorage.setItem('pt_last_updated_ts',String(remote));
