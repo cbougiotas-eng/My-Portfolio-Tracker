@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <title>Portfolio Tracker</title>
 <!-- iOS home screen app behaviour -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -266,22 +263,34 @@ select option{background:#0d0d1a;color:#fff}
 .deposit-schedule{display:flex;align-items:center;gap:10px;background:#0d0d1a;border:1px solid #2a2a3a;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .deposit-amount{font-size:24px;font-weight:700;color:#3DD68C}
 .deposit-day{font-size:13px;color:#666;margin-top:2px}
-#welcome-screen{background:#09091a;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
-
-.welcome-logo{font-size:52px;margin-bottom:4px}
-.welcome-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
-.welcome-sub{font-size:14px;color:#555;margin-bottom:36px;line-height:1.6;max-width:320px}
-.welcome-btn{width:100%;max-width:340px;padding:15px;border-radius:14px;font-size:15px;font-weight:700;border:none;margin-bottom:10px;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:10px}
-.welcome-btn:active{transform:scale(0.97);opacity:.85}
-.welcome-btn-google{background:#fff;color:#222}
-.welcome-btn-guest{background:#111228;color:#aaa;border:1px solid #1e1e35;font-size:13px;padding:13px}
-.welcome-features{display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px}
-.welcome-feature{background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888;display:flex;align-items:center;gap:5px}
-.welcome-guest-note{font-size:11px;color:#444;max-width:300px;line-height:1.5;margin-top:4px}
-
+#undo-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#13132a;border:1px solid #7B68EE55;border-radius:12px;padding:11px 18px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e8e8f0;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+#undo-toast.show{opacity:1;pointer-events:auto}
+#undo-toast button{background:#7B68EE;border:none;border-radius:8px;color:#fff;padding:5px 11px;font-size:12px;font-weight:700}
+</style>
 </head>
 <body>
-<div id="loading-msg" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:14px;font-family:sans-serif">Loading...</div>
+
+<!-- Welcome overlay - sits on top of the app, fades away when dismissed -->
+<div id="welcome-screen" style="position:fixed;inset:0;background:#09091a;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s ease">
+  <div style="font-size:52px;margin-bottom:8px">📊</div>
+  <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.3px">Portfolio Tracker</div>
+  <div style="font-size:14px;color:#666;margin-bottom:32px;line-height:1.6;max-width:300px">Track your investments, manage risk, and sync across all your devices.</div>
+  <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;justify-content:center;max-width:320px">
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">📈 Live prices</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">⚡ Risk mode</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">☁️ Cloud sync</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">🛑 Stop losses</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">🌍 SEK / USD</div>
+    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">📂 Avanza CSV</div>
+  </div>
+  <button onclick="welcomeSignIn()" style="width:100%;max-width:320px;padding:14px;border-radius:13px;font-size:14px;font-weight:700;border:none;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#222">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Sign in with Google
+  </button>
+  <button onclick="welcomeGuest()" style="width:100%;max-width:320px;padding:12px;border-radius:13px;font-size:13px;font-weight:600;background:#111228;color:#aaa;border:1px solid #1e1e35;cursor:pointer;margin-bottom:12px">Continue without signing in</button>
+  <div style="font-size:11px;color:#333;max-width:280px;line-height:1.5">⚠️ Without signing in, data is saved locally only and will be lost if you clear your browser.</div>
+</div>
+
 <div id="offline-banner">⚠️ You're offline — prices won't refresh until connection is restored</div>
 <div id="undo-toast"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
 
@@ -529,6 +538,8 @@ select option{background:#0d0d1a;color:#fff}
 </div><!-- end #main-content -->
 
 <button id="fab" onclick="openModal()">+</button>
+
+<!-- Goal Editor -->
 <div id="goal-overlay" class="overlay" onclick="if(event.target===this)closeGoalEditor()">
   <div class="sheet">
     <h2 id="goal-editor-title">Edit Goal</h2>
@@ -589,9 +600,7 @@ select option{background:#0d0d1a;color:#fff}
   </div>
 </div>
 
-
 <script>
-
 const LS_KEY='portfolio_tracker_v2',LS_SETTINGS='pt_settings',LS_HISTORY='pt_history',LS_TARGETS='pt_targets',LS_SYNC_UID='pt_sync_uid',LS_SECTOR_MEMORY='pt_sector_memory',LS_GOALS='pt_goals';
 
 // Remembers previously assigned sectors by holding name for smarter CSV imports
@@ -2149,6 +2158,7 @@ async function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
+    // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
       if(user){
         syncUid=user.uid;
@@ -2158,7 +2168,6 @@ async function initFirebase(){
       }else{
         syncUid=null;
         setSyncUI(false);
-        render();
       }
     });
   }catch(e){
@@ -2277,11 +2286,11 @@ async function signOut(){
   await firebase.auth().signOut();
   syncUid=null;
   setSyncUI(false);
-  sessionStorage.removeItem('pt_welcome_dismissed');
-  _welcomeDismissed=false;
-  // Always re-render the app so it's never blank
-  render();
   showRefreshStatus('Signed out — data saved locally','#888');
+  if(!(loadData()||[]).length){
+    const ws=document.getElementById('welcome-screen');
+    ws.style.display='flex';ws.style.opacity='1';ws.style.pointerEvents='auto';
+  }
 }
 
 async function pushToFirebase(){
@@ -2364,20 +2373,26 @@ function autoBackup(force=false){
 }
 
 // ── Welcome Screen ────────────────────────────────────────────────
-let _welcomeDismissed=false;
-function dismissWelcome(){_welcomeDismissed=true;render();}
-function welcomeSignIn(){signInWithGoogle();}
-function welcomeGuest(){render();}
-function maybeShowWelcome(){}
+function dismissWelcome(){
+  const ws=document.getElementById('welcome-screen');
+  if(!ws||ws.style.display==='none')return;
+  ws.style.opacity='0';
+  ws.style.pointerEvents='none';
+  setTimeout(()=>ws.style.display='none',400);
+}
+function welcomeSignIn(){dismissWelcome();setTimeout(()=>signInWithGoogle(),100);}
+function welcomeGuest(){
+  dismissWelcome();
+  showRefreshStatus('⚠️ Guest mode — data saved locally. Sign in via Settings for cloud sync.','#F7931A');
+}
 
 // ── Init ──────────────────────────────────────────────────────────
-document.getElementById('loading-msg').style.display='none';
 settings=loadSettings();
 targets=loadTargets();
 goals=loadGoals();
 holdings=loadData()||[];
+// Normalise loaded data — apply defaults for missing fields, strip legacy unused fields
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
-maybeShowWelcome();
 render();
 
 // Init Firebase sync (non-blocking)
@@ -2393,7 +2408,6 @@ setTimeout(async()=>{
     if(isMarketHours())refreshPrices(true);
   },15*60*1000);
 },2000);
-
 </script>
 </body>
 </html>
