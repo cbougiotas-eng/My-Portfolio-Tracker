@@ -2419,6 +2419,7 @@ function dismissWelcome(){
   sessionStorage.setItem('pt_welcome_dismissed','1');
   document.getElementById('welcome-screen').style.display='none';
   document.getElementById('app-root').style.display='block';
+  render();
 }
 
 function welcomeSignIn(){
