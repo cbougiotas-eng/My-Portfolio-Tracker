@@ -282,34 +282,6 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 <div id="loading-msg" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#555;font-size:14px;font-family:sans-serif">Loading...</div>
-
-<!-- Welcome / Onboarding Screen -->
-<div id="welcome-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#09091a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;z-index:9999;box-sizing:border-box">
-  <div style="font-size:52px;margin-bottom:4px">📊</div>
-  <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px">Portfolio Tracker</div>
-  <div style="font-size:14px;color:#aaa;margin-bottom:36px;line-height:1.6;max-width:320px">Track your investments, manage risk, and sync across all your devices.</div>
-
-  <div style="display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;max-width:340px">
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📈 Live prices</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">⚡ Risk mode</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">☁️ Cloud sync</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🛑 Stop losses</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">🌍 SEK / USD</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:9px 12px;font-size:11px;color:#888">📂 Avanza CSV</div>
-  </div>
-
-  <button class="welcome-btn welcome-btn-google" onclick="welcomeSignIn()">
-    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-    Sign in with Google
-  </button>
-
-  <button class="welcome-btn welcome-btn-guest" onclick="welcomeGuest()">
-    Continue without signing in
-  </button>
-  <div class="welcome-guest-note">⚠️ Without signing in, your data is only saved locally in this browser. It will be lost if you clear your browser data or switch devices.</div>
-</div>
-
-<div id="app-root">
 <div id="offline-banner">⚠️ You're offline — prices won't refresh until connection is restored</div>
 <div id="undo-toast"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
 
@@ -557,8 +529,6 @@ select option{background:#0d0d1a;color:#fff}
 </div><!-- end #main-content -->
 
 <button id="fab" onclick="openModal()">+</button>
-
-<!-- Goal Editor -->
 <div id="goal-overlay" class="overlay" onclick="if(event.target===this)closeGoalEditor()">
   <div class="sheet">
     <h2 id="goal-editor-title">Edit Goal</h2>
@@ -619,7 +589,6 @@ select option{background:#0d0d1a;color:#fff}
   </div>
 </div>
 
-</div><!-- end #app-root -->
 
 <script>
 
@@ -2180,24 +2149,12 @@ async function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
-    // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
       if(user){
         syncUid=user.uid;
         setSyncUI(true,user);
-        // Show "loading your portfolio" message on welcome screen before dismissing
-        const ws=document.getElementById('welcome-screen');
-        if(ws&&ws.style.display!=='none'){
-          ws.innerHTML=`<div style="text-align:center">
-            <div style="font-size:52px;margin-bottom:16px">📊</div>
-            <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Welcome back!</div>
-            <div style="font-size:13px;color:#555">Loading your portfolio…</div>
-          </div>`;
-          setTimeout(()=>{ dismissWelcome(); startSync(); },800);
-        } else {
-          dismissWelcome();
-          startSync();
-        }
+        dismissWelcome();
+        startSync();
       }else{
         syncUid=null;
         setSyncUI(false);
@@ -2324,11 +2281,6 @@ async function signOut(){
   _welcomeDismissed=false;
   // Always re-render the app so it's never blank
   render();
-  const localHoldings=loadData()||[];
-  if(localHoldings.length===0){
-    document.getElementById('welcome-screen').style.display='flex';
-    document.getElementById('app-root').style.display='none';
-  }
   showRefreshStatus('Signed out — data saved locally','#888');
 }
 
@@ -2413,30 +2365,10 @@ function autoBackup(force=false){
 
 // ── Welcome Screen ────────────────────────────────────────────────
 let _welcomeDismissed=false;
-
-function dismissWelcome(){
-  _welcomeDismissed=true;
-  sessionStorage.setItem('pt_welcome_dismissed','1');
-  document.getElementById('welcome-screen').style.display='none';
-  document.getElementById('app-root').style.display='block';
-  render();
-}
-
-function welcomeSignIn(){
-  // Dismiss welcome and trigger Google sign in
-  dismissWelcome();
-  // Wait a tick so the UI updates before the sign-in popup
-  setTimeout(()=>signInWithGoogle(),100);
-}
-
-function welcomeGuest(){
-  dismissWelcome();
-  showRefreshStatus('⚠️ Guest mode — data saved locally only. Sign in via Settings to enable cloud sync.','#F7931A');
-}
-
-function maybeShowWelcome(){
-  // Always shown via inline style — dismissed by Firebase auth or user tapping a button
-}
+function dismissWelcome(){_welcomeDismissed=true;render();}
+function welcomeSignIn(){signInWithGoogle();}
+function welcomeGuest(){render();}
+function maybeShowWelcome(){}
 
 // ── Init ──────────────────────────────────────────────────────────
 document.getElementById('loading-msg').style.display='none';
