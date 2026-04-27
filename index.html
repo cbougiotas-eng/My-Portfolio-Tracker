@@ -1841,7 +1841,7 @@ function resetHoldings(){
 document.getElementById('holdings-list').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const id=parseInt(btn.dataset.id);
+  const id=btn.dataset.id; // keep as string — IDs are now UUIDs
   if(btn.dataset.action==='edit')openEdit(id);
   else if(btn.dataset.action==='duplicate')duplicateHolding(id);
   else if(btn.dataset.action==='delete')deleteHolding(id);
@@ -1851,7 +1851,7 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
 document.getElementById('warnings-panel').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const id=parseInt(btn.dataset.id);
+  const id=btn.dataset.id; // keep as string — IDs are now UUIDs
   if(btn.dataset.action==='edit')openEdit(id);
 });
 
