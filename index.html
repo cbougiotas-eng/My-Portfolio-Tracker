@@ -524,6 +524,43 @@ select option{background:#0d0d1a;color:#fff}
     <button onclick="refreshFxRate(false)" style="width:100%;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">💱 Refresh FX rate</button>
   </div>
 
+
+  <!-- Avanza Integration -->
+  <div class="settings-card">
+    <div class="settings-card-title">🇸🇪 Avanza Integration</div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px">Connect your local Avanza proxy to sync positions and balances automatically.</div>
+    <div id="avanza-status-box" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:12px;color:#555">
+      Not connected — start the local proxy server first.
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="checkAvanzaStatus()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">🔍 Check</button>
+      <button onclick="refreshAvanza()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#F7931A;padding:9px;font-size:12px">🔄 Sync Now</button>
+    </div>
+    <div class="field" style="margin-top:6px">
+      <label style="font-size:11px;color:#666">Proxy Server URL</label>
+      <input id="avanza-server-url" type="url" placeholder="http://localhost:3001" style="font-size:12px;border-color:#252545" onchange="setAvanzaServer(this.value);checkAvanzaStatus()"/>
+    </div>
+    <div style="font-size:11px;color:#444;margin-top:6px">Requires the Avanza proxy running locally on your MacBook.</div>
+  </div>
+
+  <!-- cTrader Integration -->
+  <div class="settings-card">
+    <div class="settings-card-title">📈 cTrader Integration</div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px">Connect your live cTrader account to import positions and balance automatically.</div>
+    <div id="ctrader-status-box" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:12px;color:#555">
+      Not connected — check your Railway server.
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="connectCTrader()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">🔑 Connect</button>
+      <button onclick="refreshCTrader()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#3DD68C;padding:9px;font-size:12px">🔄 Sync Now</button>
+    </div>
+    <div class="field" style="margin-top:6px">
+      <label style="font-size:11px;color:#666">Proxy Server URL</label>
+      <input id="ctrader-server-url" type="url" placeholder="https://traderproxy-production.up.railway.app" style="font-size:12px;border-color:#252545" onchange="setCTraderServer(this.value);checkCTraderStatus()"/>
+    </div>
+    <div style="font-size:11px;color:#444;margin-top:6px">Use your Railway URL. See README for setup instructions.</div>
+  </div>
+
   <!-- Portfolio Goal -->
   <div class="settings-card">
     <div class="settings-card-title">🏆 Portfolio Goal</div>
@@ -865,8 +902,8 @@ function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
 
   // Clear stale no-stop acks for holdings that now have a stop set
   tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(String(h.id))){noStopAck.delete(String(h.id));saveNoStopAck();}});
-  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&!h._fromKonto&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
-  const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&!h._fromKonto&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
+  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
+  const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
 
   // Individual metal sub-sectors excluded — only combined group is checked
   const overS=tradeTotals.sectorArr.filter(d=>d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name));
@@ -881,10 +918,11 @@ function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const stocksPct=groupPct(STOCK_SECTORS);
   const cryptoPct=groupPct(CRYPTO_SECTORS);
   const longMetalPct=groupPct(METAL_SECTORS);
+  const longCashPct=groupPct(CASH_SECTORS);
   if(stocksPct>LONG_GROUP_LIMITS.stocks)longGroupWarnings.push({name:'📈 Stocks (long term)',pct:stocksPct,limit:LONG_GROUP_LIMITS.stocks});
   if(cryptoPct>LONG_GROUP_LIMITS.crypto)longGroupWarnings.push({name:'₿ Crypto (long term)',pct:cryptoPct,limit:LONG_GROUP_LIMITS.crypto});
   if(longMetalPct>LONG_GROUP_LIMITS.metals)longGroupWarnings.push({name:'⚙️ Metals (long term)',pct:longMetalPct,limit:LONG_GROUP_LIMITS.metals});
-  // Cash holdings are intentional — no warning triggered
+  if(longCashPct>LONG_GROUP_LIMITS.cash)longGroupWarnings.push({name:'💵 Cash (long term)',pct:longCashPct,limit:LONG_GROUP_LIMITS.cash});
 
   const tradeAccountLimit=(longMarketTotal+cashVal)*(settings.tradeAccountMaxPct/100);
   const tradeTotalMarket=tradeTotals.marketTotal;
@@ -1524,6 +1562,10 @@ function renderSettings(sectorArr, marketTotal){
   totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
   // Update live FX display in settings
   updateFxUI();
+  const ctInput=document.getElementById('ctrader-server-url');
+  if(ctInput)ctInput.value=getCTraderServer();
+  const avInput=document.getElementById('avanza-server-url');
+  if(avInput)avInput.value=getAvanzaServer();
 }
 
 function updateTarget(sector,val){
@@ -2762,6 +2804,156 @@ initFirebase();
 // Weekly auto-backup (runs 3 seconds after open so UI is ready)
 setTimeout(()=>autoBackup(),3000);
 
+
+// ── Avanza Integration ────────────────────────────────────────────
+const AVANZA_SERVER_DEFAULT='http://localhost:3001';
+function getAvanzaServer(){return localStorage.getItem('pt_avanza_server')||AVANZA_SERVER_DEFAULT;}
+function setAvanzaServer(url){localStorage.setItem('pt_avanza_server',url.replace(/\/$/,''));}
+
+async function checkAvanzaStatus(){
+  const box=document.getElementById('avanza-status-box');
+  try{
+    const res=await fetch(getAvanzaServer()+'/status',{signal:AbortSignal.timeout(2000)});
+    const data=await res.json();
+    if(box){
+      if(data.authenticated){
+        const sync=data.lastSync?new Date(data.lastSync).toLocaleTimeString():'never';
+        box.innerHTML=`<span style="color:#F7931A">🟢 Connected · ${data.accounts} accounts · ${data.positions} positions · last sync ${sync}</span>`;
+        syncAvanzaData();
+      } else {
+        box.innerHTML='<span style="color:#F7931A">🟡 Server running — not authenticated</span>';
+      }
+    }
+  }catch(e){
+    if(box)box.innerHTML='<span style="color:#555">⚪ Proxy not running — start with <code>node server.js</code></span>';
+  }
+}
+
+async function refreshAvanza(){
+  try{
+    showRefreshStatus('🔄 Syncing Avanza…','#F7931A');
+    const res=await fetch(getAvanzaServer()+'/refresh',{signal:AbortSignal.timeout(5000)});
+    if(res.ok)await syncAvanzaData();
+  }catch(e){showRefreshStatus('❌ Avanza sync failed — is the server running?','#ff4444');}
+}
+
+async function syncAvanzaData(){
+  try{
+    const res=await fetch(getAvanzaServer()+'/data',{signal:AbortSignal.timeout(5000)});
+    if(!res.ok)return;
+    const data=await res.json();
+    holdings=holdings.filter(h=>!h._fromAvanza);
+    (data.accounts||[]).forEach(acct=>{
+      if(acct.balance<=0)return;
+      holdings.push({id:'avanza-bal-'+acct.id,name:acct.name||acct.type,value:acct.balance,
+        sector:'Cash & Liquidity',account:'long',stopLoss:null,ticker:null,
+        _fromKonto:true,_fromAvanza:true,notes:`Buying power: ${fmtC(acct.buyingPower)} SEK`});
+    });
+    (data.positions||[]).forEach(pos=>{
+      if(pos.value<=0)return;
+      const valueSek=pos.currency==='SEK'?pos.value:pos.value*liveUsdSek;
+      const buyPriceSek=pos.buyPrice&&pos.currency!=='SEK'?pos.buyPrice*liveUsdSek:pos.buyPrice;
+      const currPriceSek=pos.currentPrice&&pos.currency!=='SEK'?pos.currentPrice*liveUsdSek:pos.currentPrice;
+      holdings.push({id:'avanza-pos-'+(pos.isin||pos.name),name:pos.name,ticker:pos.ticker||null,
+        value:valueSek,sector:guessSector(pos.name,pos.ticker,pos.type||'STOCK')||'Other',
+        account:'long',stopLoss:null,buyPrice:buyPriceSek||null,currentPrice:currPriceSek||null,
+        shares:pos.volume||null,_fromAvanza:true,notes:pos.profit?`P&L: ${pos.profit.toFixed(1)}%`:''});
+    });
+    save();render();
+    showRefreshStatus(`✅ Avanza synced · ${(data.positions||[]).length} positions`,'#F7931A');
+    checkAvanzaStatus();
+  }catch(e){console.warn('Avanza sync error:',e.message);}
+}
+
+// ── cTrader Integration ───────────────────────────────────────────
+const CTRADER_SERVER_DEFAULT='https://traderproxy-production.up.railway.app';
+function getCTraderServer(){return localStorage.getItem('pt_ctrader_server')||CTRADER_SERVER_DEFAULT;}
+function setCTraderServer(url){localStorage.setItem('pt_ctrader_server',url.replace(/\/$/,''));}
+let ctraderConnected=false;
+
+async function checkCTraderStatus(){
+  try{
+    const res=await fetch(getCTraderServer()+'/status',{signal:AbortSignal.timeout(2000)});
+    if(!res.ok)return;
+    const data=await res.json();
+    ctraderConnected=data.connected&&data.authenticated;
+    const box=document.getElementById('ctrader-status-box');
+    if(box){
+      if(ctraderConnected){
+        const sync=data.lastSync?new Date(data.lastSync).toLocaleTimeString():'never';
+        box.innerHTML=`<span style="color:#3DD68C">🟢 Connected · ${data.accounts} account(s) · last sync ${sync}</span>`;
+        syncCTraderData();
+      } else if(data.authenticated){
+        box.innerHTML='<span style="color:#F7931A">🟡 Authenticated — connecting to API…</span>';
+      } else {
+        box.innerHTML='<span style="color:#F7931A">🟡 Server running — tap Connect to authenticate</span>';
+      }
+    }
+  }catch(e){
+    const box=document.getElementById('ctrader-status-box');
+    if(box)box.innerHTML='<span style="color:#555">⚪ Server unreachable — check Railway</span>';
+  }
+}
+
+async function connectCTrader(){
+  try{
+    await fetch(getCTraderServer()+'/status',{signal:AbortSignal.timeout(2000)});
+    window.open(getCTraderServer()+'/auth','_blank');
+    showRefreshStatus('🔑 Opening cTrader login…','#7B68EE');
+    let attempts=0;
+    const poll=setInterval(async()=>{
+      attempts++;
+      await checkCTraderStatus();
+      if(ctraderConnected||attempts>30)clearInterval(poll);
+    },3000);
+  }catch(e){showRefreshStatus('❌ cTrader server unreachable','#ff4444');}
+}
+
+async function refreshCTrader(){
+  try{
+    showRefreshStatus('🔄 Syncing cTrader…','#7B68EE');
+    const res=await fetch(getCTraderServer()+'/refresh',{signal:AbortSignal.timeout(5000)});
+    if(res.ok)await syncCTraderData();
+  }catch(e){showRefreshStatus('❌ cTrader sync failed','#ff4444');}
+}
+
+async function syncCTraderData(){
+  try{
+    const res=await fetch(getCTraderServer()+'/data',{signal:AbortSignal.timeout(5000)});
+    if(!res.ok)return;
+    const data=await res.json();
+    holdings=holdings.filter(h=>!h._fromCTrader);
+    (data.accounts||[]).forEach(acct=>{
+      const valueSek=acct.currency==='SEK'?acct.equity:acct.equity*liveUsdSek;
+      holdings.push({id:'ctrader-bal-'+acct.id,name:acct.name,value:valueSek,
+        sector:'Cash & Liquidity',account:'trade',stopLoss:null,ticker:null,
+        _fromKonto:true,_fromCTrader:true,notes:`Equity: ${(acct.equity||0).toFixed(2)} ${acct.currency||'USD'}`});
+    });
+    (data.positions||[]).forEach(pos=>{
+      holdings.push({id:'ctrader-pos-'+pos.positionId,name:`${pos.symbol} ${pos.side}`,
+        value:Math.max(0,pos.volume||0),sector:guessCTraderSector(pos.symbol),
+        account:'trade',stopLoss:null,ticker:null,_fromCTrader:true,
+        notes:`Vol: ${pos.volume} · Open: ${pos.openPrice}`});
+    });
+    save();render();
+    showRefreshStatus(`✅ cTrader synced · ${(data.positions||[]).length} positions`,'#3DD68C');
+    checkCTraderStatus();
+  }catch(e){console.warn('cTrader sync error:',e.message);}
+}
+
+function guessCTraderSector(symbol){
+  const s=(symbol||'').toUpperCase();
+  if(/XAU|GOLD/.test(s))return 'Gold';
+  if(/XAG|SILVER/.test(s))return 'Silver';
+  if(/BTC|ETH|CRYPTO/.test(s))return 'Crypto/Bitcoin Mining';
+  if(/SPX|NDX|DAX|INDEX/.test(s))return 'Index (Leverage)';
+  return 'Other';
+}
+
+// Init — check both on load
+setTimeout(checkAvanzaStatus,5000);
+setTimeout(checkCTraderStatus,4000);
+setInterval(()=>{ refreshAvanza(); if(ctraderConnected) syncCTraderData(); },15*60*1000);
 // Auto-refresh prices 2s after load, then every 15 min during market hours
 setTimeout(async()=>{
   await refreshPrices(true);
