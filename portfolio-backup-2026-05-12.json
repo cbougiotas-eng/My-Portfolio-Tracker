@@ -1,0 +1,372 @@
+{
+  "holdings": [
+    {
+      "id": "7e6bdc96-3a50-4e36-88f5-9c9fce7760b2",
+      "name": "Atossa Therapeutics",
+      "value": 51.51,
+      "ticker": "ATOS",
+      "sector": "Biotech/Pharma",
+      "account": "long",
+      "buyPrice": 132.15,
+      "shares": 1,
+      "currentPrice": 51.51,
+      "stopLoss": null
+    },
+    {
+      "id": "b7c4ade0-9486-4ac2-8ec4-10865165b5ad",
+      "name": "Boliden",
+      "value": 2076.8,
+      "ticker": "BOL",
+      "sector": "Base Metals Mining",
+      "account": "long",
+      "buyPrice": 510.67,
+      "shares": 4,
+      "currentPrice": 519.2,
+      "stopLoss": null
+    },
+    {
+      "id": "9808e436-4502-48f4-a63d-c8b16b38ba6d",
+      "name": "Cardiol Therapeutics",
+      "value": 145.7,
+      "ticker": "CRDL",
+      "sector": "Biotech/Pharma",
+      "account": "long",
+      "buyPrice": 11.34,
+      "shares": 11,
+      "currentPrice": 13.25,
+      "stopLoss": null
+    },
+    {
+      "id": "6a94d3e3-d09d-479b-81da-6fb8d9314f61",
+      "name": "Caribou Biosciences",
+      "value": 119.21,
+      "ticker": "CRBU",
+      "sector": "Biotech/Pharma",
+      "account": "long",
+      "buyPrice": 9.36,
+      "shares": 6,
+      "currentPrice": 19.87,
+      "stopLoss": null
+    },
+    {
+      "id": "ef628a2e-a4e7-4969-98c9-37f6720d091c",
+      "name": "Eledon Pharmaceuticals",
+      "value": 263.44,
+      "ticker": "ELDN",
+      "sector": "Biotech/Pharma",
+      "account": "long",
+      "buyPrice": 31.3,
+      "shares": 8,
+      "currentPrice": 32.93,
+      "stopLoss": null
+    },
+    {
+      "id": "29ecd6dc-d7d0-4d5e-9195-40131546eb7e",
+      "name": "Epiroc B",
+      "value": 640.8,
+      "ticker": "EPI B",
+      "sector": "Mining Equipment",
+      "account": "long",
+      "buyPrice": 185.13,
+      "shares": 3,
+      "currentPrice": 213.6,
+      "stopLoss": null
+    },
+    {
+      "id": "0bb4a070-c826-4c24-9f7d-3bbfa47880ff",
+      "name": "Equinox Gold",
+      "value": 1820.9,
+      "ticker": "EQX",
+      "sector": "Gold",
+      "account": "long",
+      "buyPrice": 139.39,
+      "shares": 14,
+      "currentPrice": 130.06,
+      "stopLoss": null
+    },
+    {
+      "id": "e87b0e94-914d-4006-8020-4ed8955d58cf",
+      "name": "GULD AVA",
+      "value": 5408.75,
+      "ticker": "GULD AVA",
+      "sector": "Gold",
+      "account": "long",
+      "buyPrice": 847.14,
+      "shares": 5,
+      "currentPrice": 1081.75,
+      "stopLoss": null
+    },
+    {
+      "id": "1c59750f-e274-46ef-9ed2-bff34bcc2076",
+      "name": "Global X Silver Miners UCITS ETF USD Accumulating",
+      "value": 4127.76,
+      "ticker": "SLVR",
+      "sector": "Silver",
+      "account": "long",
+      "buyPrice": 399.3,
+      "shares": 10,
+      "currentPrice": 412.78,
+      "stopLoss": null
+    },
+    {
+      "id": "8bc158a8-47b3-4beb-8cd8-b2109f986846",
+      "name": "Gr Silver Mining Ltd",
+      "value": 454.93,
+      "ticker": "GRSL",
+      "sector": "Silver",
+      "account": "long",
+      "buyPrice": 2.33,
+      "shares": 217,
+      "currentPrice": 2.1,
+      "stopLoss": null
+    },
+    {
+      "id": "134cce07-2c00-40f2-9b48-de4ff87c9c1a",
+      "name": "Hycroft Mining A",
+      "value": 2070.72,
+      "ticker": "HYMC",
+      "sector": "Gold",
+      "account": "long",
+      "buyPrice": 298.84,
+      "shares": 6,
+      "currentPrice": 345.12,
+      "stopLoss": null
+    },
+    {
+      "id": "aaa22fd9-5fb4-4662-92b2-efcf3e07782f",
+      "name": "Lundin Mining Corporation",
+      "value": 995.2,
+      "ticker": "LUMI",
+      "sector": "Base Metals Mining",
+      "account": "long",
+      "buyPrice": 225.56,
+      "shares": 4,
+      "currentPrice": 248.8,
+      "stopLoss": null
+    },
+    {
+      "id": "1dca524e-0d8b-4944-a285-ae09bb9c5ee4",
+      "name": "MINI L DJIA LEV17",
+      "value": 2733,
+      "ticker": "MINI L DJIA LEV17",
+      "sector": "Index (Leverage)",
+      "account": "trade",
+      "buyPrice": 26.09,
+      "shares": 50,
+      "currentPrice": 54.66,
+      "stopLoss": null
+    },
+    {
+      "id": "8590caac-167c-47db-8659-ae79de5e3f67",
+      "name": "Minaurum Silver Inc.",
+      "value": 422.53,
+      "ticker": "MGG",
+      "sector": "Silver",
+      "account": "long",
+      "buyPrice": 2.88,
+      "shares": 176,
+      "currentPrice": 2.4,
+      "stopLoss": null
+    },
+    {
+      "id": "aa5fd2c6-de21-4372-bdbc-0d5688d11b77",
+      "name": "Newmont",
+      "value": 3249.3,
+      "ticker": "NEM",
+      "sector": "Gold",
+      "account": "long",
+      "buyPrice": 968.56,
+      "shares": 3,
+      "currentPrice": 1083.1,
+      "stopLoss": null
+    },
+    {
+      "id": "e97d12c7-ec88-4bf6-9e73-33cfc5ec88ee",
+      "name": "SAAB B",
+      "value": 2866.5,
+      "ticker": "SAAB B",
+      "sector": "Other",
+      "account": "long",
+      "buyPrice": 563.81,
+      "shares": 5,
+      "currentPrice": 573.3,
+      "stopLoss": null
+    },
+    {
+      "id": "ed532775-0da3-461e-845e-3f1816bd3c93",
+      "name": "SILVER AVA",
+      "value": 10404.1,
+      "ticker": "SILVER AVA",
+      "sector": "Silver",
+      "account": "long",
+      "buyPrice": 156.2,
+      "shares": 35,
+      "currentPrice": 297.26,
+      "stopLoss": null
+    },
+    {
+      "id": "a5a0de2b-914d-4f8f-ba32-35b7f749a7d7",
+      "name": "Sibanye-Stillwater ADR",
+      "value": 914.68,
+      "ticker": "SBSW",
+      "sector": "Base Metals Mining",
+      "account": "long",
+      "buyPrice": 115.04,
+      "shares": 8,
+      "currentPrice": 114.34,
+      "stopLoss": null
+    },
+    {
+      "id": "08e76748-423a-4b7c-99ef-6826cf93d691",
+      "name": "Skanska B",
+      "value": 3244.8,
+      "ticker": "SKA B",
+      "sector": "Construction",
+      "account": "long",
+      "buyPrice": 250.52,
+      "shares": 13,
+      "currentPrice": 249.6,
+      "stopLoss": null
+    },
+    {
+      "id": "23fde257-952d-43c9-a085-8d582bb6dca4",
+      "name": "TRACK SILVER SG",
+      "value": 4641.42,
+      "ticker": "TRACK SILVER SG",
+      "sector": "Silver",
+      "account": "long",
+      "buyPrice": 145.07,
+      "shares": 21,
+      "currentPrice": 221.02,
+      "stopLoss": null
+    },
+    {
+      "id": "29635541-dcfc-48f4-9162-554d419c00f5",
+      "name": "TURBO L SILVER AVA 351",
+      "value": 2345,
+      "ticker": "TURBO L SILVER AVA 351",
+      "sector": "Silver",
+      "account": "trade",
+      "buyPrice": null,
+      "shares": 140,
+      "currentPrice": null,
+      "stopLoss": null,
+      "notes": null
+    },
+    {
+      "id": "cb6b2b3a-0681-4aef-8299-68fbae7edea5",
+      "name": "TeraWulf",
+      "value": 6877.75,
+      "ticker": "WULF",
+      "sector": "Crypto/Bitcoin Mining",
+      "account": "long",
+      "buyPrice": 186.19,
+      "shares": 36,
+      "currentPrice": 191.05,
+      "stopLoss": null
+    },
+    {
+      "id": "15cab71b-cb90-41c3-9bbc-ccd36e4306c4",
+      "name": "VanEck Semiconductor UCITS ETF - USD Acc",
+      "value": 8173.44,
+      "ticker": "VVSM",
+      "sector": "Semiconductors ETF",
+      "account": "long",
+      "buyPrice": 599.87,
+      "shares": 10,
+      "currentPrice": 817.34,
+      "stopLoss": null
+    },
+    {
+      "id": "3d5f1771-a88e-4d44-b165-77f8480ce25e",
+      "name": "iShares $ Treasury Bond 20+yr UCITS ETF USD (Dist)",
+      "value": 12132.58,
+      "ticker": "IS04",
+      "sector": "Bonds",
+      "account": "long",
+      "buyPrice": 29.42,
+      "shares": 408,
+      "currentPrice": 29.74,
+      "stopLoss": null
+    },
+    {
+      "id": "40356abf-91e6-48db-92e2-7a8487e8d9fc",
+      "name": "bybit",
+      "value": 3767,
+      "sector": "Cash & Liquidity",
+      "account": "long",
+      "stopLoss": null,
+      "ticker": null,
+      "_fromKonto": true
+    },
+    {
+      "id": "1d5cd99a-f4ad-4495-bc1e-06c5001df9c3",
+      "name": "Bitcoin",
+      "ticker": "BITCOIN",
+      "sector": "Crypto/Bitcoin Mining",
+      "value": 15052.256450214001,
+      "account": "long",
+      "notes": null,
+      "shares": 0.01563747,
+      "buyPrice": 962576.2000000001,
+      "currentPrice": null,
+      "stopLoss": null
+    },
+    {
+      "id": "1a7475fd-5f28-4eb8-a13d-23a596da3f86",
+      "name": "Bitcoin",
+      "ticker": "BITCOIN",
+      "sector": "Crypto/Bitcoin Mining",
+      "value": 19383.583596,
+      "account": "long",
+      "notes": null,
+      "shares": 0.02412694,
+      "buyPrice": 803400,
+      "currentPrice": null,
+      "stopLoss": null
+    },
+    {
+      "id": "3b9cc02e-0243-43fe-b49d-ec09f3b17ace",
+      "name": "Kucoin",
+      "value": 5005.8,
+      "sector": "Cash & Liquidity",
+      "account": "long",
+      "stopLoss": null,
+      "ticker": null,
+      "_fromKonto": true
+    },
+    {
+      "id": "05784225-5a3a-4d23-9fb6-d7f200cf08b4",
+      "name": "Ctrader",
+      "value": 22083.2,
+      "sector": "Cash & Liquidity",
+      "account": "trade",
+      "stopLoss": null,
+      "ticker": null,
+      "_fromKonto": true
+    },
+    {
+      "id": "43c1d1e2-a7ed-46f0-9725-b8f25271d1af",
+      "name": "Sparkonto",
+      "value": 27507.46,
+      "sector": "Cash & Liquidity",
+      "account": "long",
+      "stopLoss": null,
+      "ticker": null,
+      "_fromKonto": true
+    }
+  ],
+  "goals": {
+    "portfolioGoal": {
+      "target": null,
+      "date": null
+    },
+    "longTermPct": {
+      "target": 80
+    },
+    "deposit": {
+      "amount": null,
+      "day": 25
+    }
+  }
+}
