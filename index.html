@@ -587,7 +587,6 @@ select option{background:#0d0d1a;color:#fff}
 <script>
 const LS_KEY='portfolio_tracker_v2',LS_SETTINGS='pt_settings',LS_HISTORY='pt_history',LS_TARGETS='pt_targets',LS_SYNC_UID='pt_sync_uid',LS_SECTOR_MEMORY='pt_sector_memory',LS_GOALS='pt_goals';
 
-// Remembers previously assigned sectors by holding name for smarter CSV imports
 function loadSectorMemory(){try{return JSON.parse(localStorage.getItem(LS_SECTOR_MEMORY)||'{}');}catch(e){return{};}}
 function saveSectorMemory(){
   const mem={};
@@ -595,15 +594,12 @@ function saveSectorMemory(){
   try{localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(mem));}catch(e){}
 }
 
-// ── Goals ─────────────────────────────────────────────────────────
-// goals = { portfolioGoal: {target, date}, longTermPct: {target}, deposit: {amount, day} }
 const DEFAULT_GOALS={portfolioGoal:{target:null,date:null},longTermPct:{target:80},deposit:{amount:null,day:25}};
 function loadGoals(){
   try{
     const s=localStorage.getItem(LS_GOALS);
     if(s){
       const saved=JSON.parse(s);
-      // Deep merge each nested goal object so new default keys survive upgrades
       return{
         portfolioGoal:{...DEFAULT_GOALS.portfolioGoal,...(saved.portfolioGoal||{})},
         longTermPct:{...DEFAULT_GOALS.longTermPct,...(saved.longTermPct||{})},
@@ -621,33 +617,23 @@ const METAL_SECTORS=["Silver","Gold","Gold & Silver","Base Metals Mining","Minin
 const CRYPTO_SECTORS=["Crypto/Bitcoin Mining"];
 const CASH_SECTORS=["Cash & Liquidity"];
 const SECTOR_OPTIONS=Object.keys(SECTOR_COLORS);
-// Derived after SECTOR_OPTIONS is defined
 const STOCK_SECTORS=SECTOR_OPTIONS.filter(s=>!METAL_SECTORS.includes(s)&&!CRYPTO_SECTORS.includes(s)&&!CASH_SECTORS.includes(s)&&s!=='Other'&&s!=='Metals');
 
-// ── Template helpers ──────────────────────────────────────────────
-
-// Coloured formatted number: green if positive, red if negative, grey if zero
-// Usage: colorVal(pnl, fmt(pnl)+' kr')  or  colorVal(diff, fmtDec(diff)+'%')
 function colorVal(n, formatted){
   const c=n>0?'#5BA85B':n<0?'#ff4444':'#888';
   const sign=n>0?'+':'';
   return `<span style="color:${c}">${sign}${formatted??n}</span>`;
 }
-
-// Stat tile: used in goal cards
 function statTile(value,label,color='#e8e8f0'){
   return `<div style="background:#0d0d1a;border-radius:9px;padding:10px;text-align:center">
     <div class="goal-stat-val" style="color:${color}">${value}</div>
     <div class="goal-stat-label">${label}</div>
   </div>`;
 }
-
-// Section label
 function sectionLabel(text,marginTop=13){
   return `<div class="section-label" style="margin-top:${marginTop}px">${text}</div>`;
 }
 
-// Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
 const INITIAL=[
@@ -670,18 +656,15 @@ const INITIAL=[
   {id:17,name:"Caribou Biosciences",value:9800,sector:"Biotech/Pharma",account:"trade",ticker:"CRBU",shares:2200,buyPrice:4.1,currentPrice:4.45,stopLoss:3.5,currency:"USD"},
 ];
 
-// State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
 let acctFilter='all',selectedAccount='long';
 let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20,ctraderProxyUrl:''};
 let targets={};
 let goals={};
 let lastRefreshTime=parseInt(localStorage.getItem('pt_last_refresh_ts')||'0')||null;
-// Display currency toggle — SEK or USD, display-only (data always stored in SEK)
 let displayCurrency=localStorage.getItem('pt_display_currency')||'SEK';
 let liveUsdSek=parseFloat(localStorage.getItem('pt_usd_sek_rate')||'0')||10.3;
 
-// ── Storage ───────────────────────────────────────────────────────
 function loadData(){try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){}return null;}
 function save(){
   try{
@@ -690,9 +673,8 @@ function save(){
     localStorage.setItem('pt_last_updated',now);
     localStorage.setItem('pt_last_updated_ts',String(Date.now()));
   }catch(e){}
-  pushToFirebase(); // sync to cloud if connected
+  pushToFirebase();
 }
-// ── No-stop acknowledgements ──────────────────────────────────────
 const LS_NOSTOP_ACK='pt_nostop_ack';
 function loadNoStopAck(){try{return new Set(JSON.parse(localStorage.getItem(LS_NOSTOP_ACK)||'[]'));}catch(e){return new Set();}}
 function saveNoStopAck(){try{localStorage.setItem(LS_NOSTOP_ACK,JSON.stringify([...noStopAck]));}catch(e){}}
@@ -716,7 +698,6 @@ function saveSettings(){
 }
 function toggleNoStop(){settings.warnNoStop=!settings.warnNoStop;saveSettings();}
 
-// ── Calculations ──────────────────────────────────────────────────
 function effVal(h){
   if(h.stopLoss!=null&&h.shares!=null&&h.currentPrice!=null)return Math.max(0,(h.currentPrice-h.stopLoss)*h.shares);
   if(h.stopLoss!=null&&h.shares!=null&&h.buyPrice!=null)return Math.max(0,(h.buyPrice-h.stopLoss)*h.shares);
@@ -725,7 +706,6 @@ function effVal(h){
 function getVal(h){return viewMode==='risk'?effVal(h):h.value;}
 function fmt(n){return Math.round(n).toLocaleString('sv-SE');}
 function fmtDec(n,d=1){return n.toLocaleString('sv-SE',{minimumFractionDigits:d,maximumFractionDigits:d});}
-// Currency-aware display helpers — all values stored in SEK, converted on display
 function toDisplay(sekVal){return displayCurrency==='USD'?sekVal/liveUsdSek:sekVal;}
 function fmtC(sekVal){return fmt(toDisplay(sekVal));}
 function currLabel(){return displayCurrency==='USD'?'USD':'kr'}
@@ -736,8 +716,6 @@ function toggleDisplayCurrency(){
   render();
 }
 
-// calcTotals is pure: pass the view mode explicitly so it does not silently
-// depend on the global viewMode and can be called safely in any context.
 function calcTotals(subset, mode){
   const m=mode||viewMode;
   const hs=subset||holdings;
@@ -751,7 +729,6 @@ function calcTotals(subset, mode){
   const metalTotal=sectorArr.filter(s=>METAL_SECTORS.includes(s.name)).reduce((s,d)=>s+d.value,0);
   const cashSector=sectorArr.find(s=>s.name==='Cash & Liquidity');
   const cashPct=cashSector?cashSector.pct:0;
-  // Accumulate total P&L and % change across all holdings with buy price data
   const totalBuyVal=hs.reduce((s,h)=>{
     if(h.buyPrice!=null&&h.shares!=null)return s+h.buyPrice*h.shares;
     return s+h.value;
@@ -761,8 +738,6 @@ function calcTotals(subset, mode){
   return{marketTotal,riskTotal,activeTotal,sectorArr,metalPct:metalTotal/activeTotal*100,cashPct,totalPnl,totalBuyVal,pctChg};
 }
 
-// ── Main render ───────────────────────────────────────────────────
-// Pre-compute all shared data once, then only rebuild the visible tab's DOM.
 function render(){
   try{
     const all=calcTotals(holdings);
@@ -771,13 +746,11 @@ function render(){
     const longTotals=calcTotals(longH);
     const tradeTotals=calcTotals(tradeH);
     const ctx=buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals);
-    // Clear any stale error banners from previous failed renders
     document.querySelectorAll('.render-error').forEach(el=>el.remove());
     renderHeader(ctx);
     renderTab(ctx);
   }catch(err){
     console.error('Render error:',err);
-    // Show a non-destructive recovery banner rather than a blank screen
     const panel=document.getElementById(activeTab+'-panel');
     if(panel&&!panel.querySelector('.render-error')){
       const div=document.createElement('div');
@@ -789,25 +762,20 @@ function render(){
   }
 }
 
-// Build the shared context object used by all render functions.
-// Called once per render() so downstream functions don't repeat work.
 function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const{marketTotal,riskTotal,activeTotal,sectorArr,metalPct,cashPct,totalPnl,totalBuyVal,pctChg}=all;
   const cashVal=holdings.find(h=>h.sector==='Cash & Liquidity')?.value||0;
   const TRADE_HOLD_WARN=settings.tradeWarn;
   const tradeActiveTotal=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
 
-  // Clear stale no-stop acks for holdings that now have a stop set
   tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(h.id)){noStopAck.delete(h.id);saveNoStopAck();}});
   const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(h.id)):[];
   const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
 
-  // Individual metal sub-sectors excluded — only combined group is checked
   const overS=tradeTotals.sectorArr.filter(d=>d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name));
   const tradeMetalPct=tradeTotals.sectorArr.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.pct,0);
   if(tradeMetalPct>settings.sectorWarn)overS.push({name:'Metals (combined)',pct:tradeMetalPct,value:tradeTotals.sectorArr.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.value,0)});
 
-  // Long term group warnings — calculated once from market values
   const longMarketTotal=longTotals.marketTotal||1;
   const longSectorArr=calcTotals(longH,'market').sectorArr;
   const groupPct=group=>longSectorArr.filter(d=>group.includes(d.name)).reduce((s,d)=>s+d.value,0)/longMarketTotal*100;
@@ -839,7 +807,6 @@ function renderHeader(ctx){
 
   document.getElementById('total-value').innerHTML=`${fmtC(activeTotal)} <span>${currLabel()}</span>`;
 
-  // Show total P&L in both kr and % when buy price data is available
   const pnlEl=document.getElementById('total-pnl');
   const pctEl=document.getElementById('total-pct-chg');
   if(totalBuyVal>0&&totalPnl!==0){
@@ -867,7 +834,6 @@ function renderHeader(ctx){
   document.getElementById('acct-long-pct').textContent=fmtDec(lv/tot*100)+'% of invested';
   document.getElementById('acct-trade-val').textContent=fmtC(tv)+' '+currLabel();
   document.getElementById('acct-trade-pct').textContent=fmtDec(tv/tot*100)+'% of invested';
-  // Update currency pill label
   const cp=document.getElementById('currency-pill-label');
   if(cp){cp.textContent=displayCurrency;cp.style.color=displayCurrency==='USD'?'#4A90D9':'#7B68EE';}
 
@@ -887,14 +853,12 @@ function renderHeader(ctx){
 
   const badge=document.getElementById('warn-badge');
   if(totalW>0){badge.style.display='inline';badge.textContent=totalW;}else badge.style.display='none';
-  // Highlight warnings tab in red whenever there are active warnings
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     if(['chart','sectors','holdings','goals','warnings','settings'][i]==='warnings')
       b.classList.toggle('warn-tab',totalW>0);
   });
 }
 
-// Only render the currently visible tab — avoids rebuilding all panels on every state change
 function renderTab(ctx){
   const{sectorArr,metalPct,activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_HOLD_WARN,
     overS,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,longGroupWarnings,tradeH,longH,longTotals,tradeTotals}=ctx;
@@ -910,11 +874,10 @@ function renderTab(ctx){
     }
   }catch(err){
     console.error(`renderTab error (${activeTab}):`,err);
-    throw err; // re-throw so outer render() error boundary catches it
+    throw err;
   }
 }
 
-// ── Charts ────────────────────────────────────────────────────────
 let currentChart=0;
 const CHART_TITLES=['🌍 Total Portfolio','📈 Long Term','⚡ Trading'];
 
@@ -936,7 +899,6 @@ function buildSectorArr(hs,total,mode){
 }
 
 function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotals){
-  // Show welcome screen instead of empty charts
   if(!holdings.length){
     ['donut-svg-0','donut-svg-1','donut-svg-2'].forEach(id=>{
       const svg=document.getElementById(id);
@@ -947,7 +909,6 @@ function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotal
     });
     ['chart-legend-0','chart-legend-1','chart-legend-2'].forEach(id=>document.getElementById(id).innerHTML='');
     document.getElementById('chart-title').textContent='';
-    // Show welcome message below charts
     const existingWelcome=document.getElementById('welcome-msg');
     if(!existingWelcome){
       const div=document.createElement('div');
@@ -962,14 +923,12 @@ function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotal
     }
     return;
   }
-  // Remove welcome message if holdings exist
   const w=document.getElementById('welcome-msg');
   if(w)w.remove();
   const longActive=viewMode==='risk'?longTotals.riskTotal:longTotals.marketTotal;
   const tradeActive=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
   const total0=longActive+tradeActive||1;
   const longSectors=buildSectorArr(longH,total0,viewMode);
-  // Group all metal sectors into one "Metals" slice for the total portfolio chart
   const metalValue=longSectors.filter(d=>METAL_SECTORS.includes(d.name)).reduce((s,d)=>s+d.value,0);
   const nonMetalLong=longSectors.filter(d=>!METAL_SECTORS.includes(d.name));
   const chart0Base=metalValue>0?[...nonMetalLong,{name:'Metals',value:metalValue,pct:metalValue/total0*100}]:nonMetalLong;
@@ -981,14 +940,13 @@ function renderChart(allSectorArr,activeTotal,longH,tradeH,longTotals,tradeTotal
   drawDonut('donut-svg-2','chart-legend-2',chart2Data,true);
   document.getElementById('chart-title').textContent=CHART_TITLES[currentChart];
 
-  // Attach swipe listeners once — guard flag prevents duplicate listeners on re-render
   if(!document.getElementById('chart-swipe-wrap')._swipeSet){
     const wrap=document.getElementById('chart-swipe-wrap');
     let startX=0,startY=0,dragging=false;
     wrap.addEventListener('pointerdown',e=>{startX=e.clientX;startY=e.clientY;dragging=true;});
     wrap.addEventListener('pointerup',e=>{
       if(!dragging)return;dragging=false;
-      if(isDesktop())return; // swipe navigation disabled on desktop — all charts visible
+      if(isDesktop())return;
       const dx=e.clientX-startX,dy=Math.abs(e.clientY-startY);
       if(Math.abs(dx)>40&&dy<60){if(dx<0&&currentChart<2)goToChart(currentChart+1);else if(dx>0&&currentChart>0)goToChart(currentChart-1);}
     });
@@ -1018,13 +976,9 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
     startAngle=endAngle+gap;
   });
 
-  // Build SVG — track layer, then slices, then labels, then center
   let html='';
-
-  // Subtle background ring
   html+=`<circle cx="${cx}" cy="${cy}" r="${(ro+ri)/2}" fill="none" stroke="#1a1a2e" stroke-width="${ro-ri+1}" opacity="0.5"/>`;
 
-  // Slices
   sliceData.forEach(({d,startAngle,endAngle,slice})=>{
     const x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
     const x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
@@ -1038,7 +992,6 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
       data-sector="${d.name}" data-pct="${d.pct.toFixed(1)}" data-val="${fmtC(d.value)} ${currLabel()}"/>`;
   });
 
-  // Labels on top 5 slices big enough to fit
   const top5=sliceData.slice().sort((a,b)=>b.d.value-a.d.value).slice(0,5);
   const top5Names=new Set(top5.map(s=>s.d.name));
   sliceData.forEach(({d,startAngle,endAngle,slice})=>{
@@ -1057,7 +1010,6 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
     </g>`;
   });
 
-  // Center — total value
   const centerLabel=activeSector?sectorArr.find(d=>d.name===activeSector):null;
   const centerVal=centerLabel?centerLabel.value:total;
   const centerPct=centerLabel?centerLabel.pct.toFixed(1)+'%':'';
@@ -1069,7 +1021,6 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
 
   svg.innerHTML=html;
 
-  // Events
   svg.querySelectorAll('path').forEach(p=>{
     p.addEventListener('click',()=>{activeSector=activeSector===p.dataset.sector?null:p.dataset.sector;render();});
     p.addEventListener('mousemove',e=>{
@@ -1081,7 +1032,6 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
     p.addEventListener('mouseleave',()=>{document.getElementById('donut-tooltip').style.display='none';});
   });
 
-  // Two-column compact legend
   legend.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;padding:10px 4px 4px">${
     sectorArr.map(d=>{
       const isOver=isTrade&&d.pct>settings.sectorWarn&&d.name!=='Cash & Liquidity'&&!METAL_SECTORS.includes(d.name);
@@ -1109,12 +1059,11 @@ function renderSectors(sectorArr,metalPct){
   else{
     mg.style.display='block';
     document.getElementById('metals-pct').textContent=metalPct.toFixed(1)+'%';
-    // Warn only if the combined metals group exceeds the threshold, not individual sub-sectors
     const anyOver=metalPct>settings.sectorWarn;
     mg.style.background=anyOver?'#1f0a0a':'#1a1608';mg.style.borderColor=anyOver?'#ff4444':'#3a3000';
     document.querySelector('.metals-title').style.color=anyOver?'#ff4444':'#FFD700';
     document.getElementById('metals-list').innerHTML=metalSectors.map(d=>{
-      const isOver=false; // individual metal sectors don't warn — only the group total does
+      const isOver=false;
       const target=targets[d.name];
       const drift=target?d.pct-target:null;
       const driftStr=drift!=null?`<span style="font-size:11px;color:${Math.abs(drift)<1?'#5BA85B':drift>0?'#ff6666':'#4A90D9'};margin-left:4px">${drift>=0?'+':''}${fmtDec(drift)}%</span>`:'';
@@ -1191,7 +1140,6 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
   });
   if(!list.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
 
-  // Show green/grey dot based on whether prices were fetched recently
   const now=Date.now();
   const freshThreshold=20*60*1000;
 
@@ -1202,12 +1150,10 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
     const riskVal=effVal(h);
     const buyVal=h.buyPrice&&h.shares?h.buyPrice*h.shares:null;
     const pnl=buyVal!=null?h.value-buyVal:null;
-    // Show P&L in kr and % relative to buy price
     const pnlPct=buyVal&&buyVal>0?pnl/buyVal*100:null;
     const pnlStr=pnl!=null?`<span style="color:${pnl>=0?'#5BA85B':'#ff4444'};margin-left:4px">${pnl>=0?'+':''}${fmtC(pnl)} ${currLabel()}${pnlPct!=null?' ('+fmtDec(pnlPct)+'%)':''}</span>`:'';
     const acctClass=h.account==='long'?'long-card':'trade-card';
 
-    // Only ticker holdings have live prices — show freshness indicator after first refresh
     let freshIndicator='';
     if(h.ticker && lastRefreshTime){
       const isFresh=(now-lastRefreshTime)<freshThreshold;
@@ -1247,7 +1193,6 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 }
 
 function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
-  // Acknowledged no-stop holdings are shown dimmed at bottom of that section
   const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(h.id));
   const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0);
   const el=document.getElementById('warnings-content');
@@ -1368,7 +1313,6 @@ function renderSettings(sectorArr, marketTotal){
   const urlEl=document.getElementById('set-ctrader-url');
   if(urlEl&&!urlEl.matches(':focus'))urlEl.value=settings.ctraderProxyUrl||'';
 
-  // Portfolio goal inline in settings
   const pg=goals.portfolioGoal;
   const pgEl=document.getElementById('settings-portfolio-goal');
   if(pgEl){
@@ -1404,7 +1348,6 @@ function renderSettings(sectorArr, marketTotal){
     }
   }
 
-  // Build target inputs — use pre-computed sectorArr from render context when available
   const arr=sectorArr||calcTotals(holdings).sectorArr;
   const allSectors=SECTOR_OPTIONS.filter(s=>s!=='Other');
   const el=document.getElementById('target-inputs');
@@ -1423,7 +1366,6 @@ function renderSettings(sectorArr, marketTotal){
     </div>`;
   }).join('');
 
-  // Total
   const total=Object.values(targets).reduce((s,v)=>s+(v||0),0);
   const totalEl=document.getElementById('target-total-val');
   totalEl.textContent=fmtDec(total)+'%';
@@ -1435,12 +1377,10 @@ function updateTarget(sector,val){
   if(isNaN(v)||v<=0)delete targets[sector];
   else targets[sector]=v;
   saveTargets();
-  // Update total display without a full render
   const total=Object.values(targets).reduce((s,v)=>s+(v||0),0);
   const totalEl=document.getElementById('target-total-val');
   totalEl.textContent=fmtDec(total)+'%';
   totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
-  // Re-render sectors tab to update drift bars (only if sectors tab is active)
   if(activeTab==='sectors')render();
 }
 
@@ -1462,16 +1402,14 @@ function saveSnapshot(){
     tradeTotal,
   };
   try{const h=JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');h.unshift(snap);localStorage.setItem(LS_HISTORY,JSON.stringify(h.slice(0,30)));}catch(e){}
-  renderHistory(); // always update — history list reads from localStorage directly
+  renderHistory();
 }
 
-// ── Goals rendering ───────────────────────────────────────────────
 function renderGoals(ctx){
   const{marketTotal,longTotals}=ctx;
   const el=document.getElementById('goals-content');
   const longMarket=longTotals.marketTotal;
 
-  // ── Portfolio Goal ────────────────────────────────────────────────
   const pg=goals.portfolioGoal;
   let portfolioGoalCard='';
   if(pg.target&&pg.date){
@@ -1528,7 +1466,6 @@ function renderGoals(ctx){
       </div>`;
   }
 
-  // ── Account Balance ───────────────────────────────────────────────
   const lt=goals.longTermPct;
   const actualLongPct=marketTotal>0?longMarket/marketTotal*100:0;
   const ltTarget=lt.target||80;
@@ -1562,7 +1499,6 @@ function renderGoals(ctx){
       </div>
     </div>`;
 
-  // ── Monthly Savings Plan ──────────────────────────────────────────
   const dep=goals.deposit;
   const depDay=dep.day||25;
   const today=new Date().getDate();
@@ -1605,14 +1541,12 @@ function renderGoals(ctx){
 }
 
 function ordinal(n){
-  // Special case: 11,12,13 always use 'th' regardless of last digit
   const v=n%100;
   if(v>=11&&v<=13)return n+'th';
   const s=['th','st','nd','rd'];
   return n+(s[n%10]||s[0]);
 }
 
-// ── Goal editor overlay ───────────────────────────────────────────
 function openGoalEditor(type){
   const o=document.getElementById('goal-overlay');
   const title=document.getElementById('goal-editor-title');
@@ -1670,7 +1604,7 @@ function saveGoalEditor(type){
   }
   saveGoals();
   document.getElementById('goal-overlay').classList.remove('open');
-  render(); // always re-render — goal block in settings and goals tab both need updating
+  render();
 }
 function closeGoalEditor(){document.getElementById('goal-overlay').classList.remove('open');}
 
@@ -1704,7 +1638,6 @@ function renderHistory(){
   }catch(e){}
 }
 
-// ── Actions ───────────────────────────────────────────────────────
 function setMode(m){viewMode=m;render();}
 function toggleSector(s){activeSector=activeSector===s?null:s;render();}
 function clearFilter(){activeSector=null;render();}
@@ -1729,7 +1662,6 @@ function deleteHolding(id){
   if(!h)return;
   _deletedHolding=h;
   holdings=holdings.filter(x=>x.id!==id);
-  // Save locally immediately but delay cloud push until undo window closes
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(holdings));
     localStorage.setItem('pt_last_updated',new Date().toISOString());
@@ -1742,7 +1674,7 @@ function deleteHolding(id){
   clearTimeout(_undoTimer);
   _undoTimer=setTimeout(()=>{
     toast.classList.remove('show');
-    if(_deletedHolding===null)pushToFirebase(); // only push if not undone
+    if(_deletedHolding===null)pushToFirebase();
     _deletedHolding=null;
   },5000);
 }
@@ -1752,7 +1684,6 @@ function duplicateHolding(id){
   const copy={...h,id:newId(),name:h.name+' (copy)'};
   holdings.push(copy);
   save();render();
-  // Open the copy immediately for editing so user can tweak it
   openEdit(copy.id);
 }
 function undoDelete(){
@@ -1761,7 +1692,7 @@ function undoDelete(){
   _deletedHolding=null;
   clearTimeout(_undoTimer);
   document.getElementById('undo-toast').classList.remove('show');
-  save();render(); // full save+push now that undo is confirmed
+  save();render();
 }
 function resetHoldings(){
   if(!confirm('Are you sure you want to delete all holdings?'))return;
@@ -1769,8 +1700,6 @@ function resetHoldings(){
   holdings=[];save();render();
 }
 
-// ── Event delegation for holdings list ───────────────────────────
-// One listener handles all edit/delete buttons rather than inline onclick per card
 document.getElementById('holdings-list').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
@@ -1780,7 +1709,6 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
   else if(btn.dataset.action==='delete')deleteHolding(id);
 });
 
-// Delegation for warnings panel — covers "Set stop" buttons in no-stop cards
 document.getElementById('warnings-panel').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
@@ -1788,13 +1716,11 @@ document.getElementById('warnings-panel').addEventListener('click',e=>{
   if(btn.dataset.action==='edit')openEdit(id);
 });
 
-// Delegation for chart legend — covers sector filter clicks
 document.getElementById('chart-panel').addEventListener('click',e=>{
   const row=e.target.closest('[data-action="toggle-sector"]');
   if(row)toggleSector(row.dataset.sector);
 });
 
-// ── Keyboard shortcuts ────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('modal-overlay').classList.contains('open'))closeModal();
@@ -1803,7 +1729,6 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// ── Modal ─────────────────────────────────────────────────────────
 const sel=document.getElementById('f-sector');
 SECTOR_OPTIONS.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=(SECTOR_EMOJIS[s]||'')+' '+s;sel.appendChild(o);});
 
@@ -1862,7 +1787,6 @@ function updateRiskPreview(){
   const prev=document.getElementById('risk-preview');
   if(isNaN(n)||(isNaN(buy)&&isNaN(cur))){prev.style.display='none';return;}
   prev.style.display='block';
-  // Inputs are already in display currency — compute in display currency directly
   const marketVal=!isNaN(cur)?cur*n:buy*n;
   const buyVal=!isNaN(buy)?buy*n:null;
   const pnl=buyVal!=null?marketVal-buyVal:null;
@@ -1884,7 +1808,6 @@ function saveHolding(){
   const shares=parseFloat(document.getElementById('f-shares').value);
   const curPrice=parseFloat(document.getElementById('f-price').value);
   const stopLoss=parseFloat(document.getElementById('f-stoploss').value);
-  // Convert from display currency back to SEK for storage
   const toSek=v=>displayCurrency==='USD'?v*liveUsdSek:v;
   const buyPriceSek=!isNaN(buyPrice)?toSek(buyPrice):NaN;
   const curPriceSek=!isNaN(curPrice)?toSek(curPrice):NaN;
@@ -1899,14 +1822,12 @@ function saveHolding(){
     shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
     currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
   if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
-  else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
+  else holdings.push({id:newId(),...entry});
   save();saveSectorMemory();render();closeModal();
 }
 
-// Generates a collision-resistant ID using timestamp + random suffix
 function newId(){return Date.now()+Math.floor(Math.random()*10000);}
 
-// ── File import/export ────────────────────────────────────────────
 function handleFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
@@ -1915,7 +1836,6 @@ function handleFile(e){
     if(file.name.endsWith('.json')){
       try{
         const data=JSON.parse(text);
-        // Support both old format (array) and new backup format ({holdings, goals})
         const importedHoldings=Array.isArray(data)?data:(Array.isArray(data.holdings)?data.holdings:null);
         if(!importedHoldings)throw new Error();
         if(!confirm(`Import ${importedHoldings.length} holdings? This replaces current data.`))return;
@@ -1947,7 +1867,6 @@ function handleFile(e){
         buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null,ticker:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
-    // Smart merge — compute diff first, then show preview before committing
     const existing=new Map(holdings.map(h=>[h.name.toLowerCase().trim(),h]));
     const merged=parsed.map(incoming=>{
       const prev=existing.get(incoming.name.toLowerCase().trim());
@@ -1959,7 +1878,6 @@ function handleFile(e){
     const newOnes=merged.filter(h=>h._isNew);
     const updated=merged.filter(h=>h._isUpdate);
 
-    // Build preview and ask user to confirm
     const previewLines=[
       updated.length?`✏️ ${updated.length} updated: ${updated.slice(0,3).map(h=>h.name).join(', ')}${updated.length>3?` +${updated.length-3} more`:''}`:null,
       newOnes.length?`➕ ${newOnes.length} new: ${newOnes.slice(0,3).map(h=>h.name).join(', ')}${newOnes.length>3?` +${newOnes.length-3} more`:''}`:null,
@@ -1986,41 +1904,66 @@ function exportData(){
 }
 
 // ── Price refresh ─────────────────────────────────────────────────
-// Show offline banner and suppress price refresh when network is unavailable
 window.addEventListener('online',()=>{document.getElementById('offline-banner').style.display='none';});
 window.addEventListener('offline',()=>{document.getElementById('offline-banner').style.display='block';});
 if(!navigator.onLine)document.getElementById('offline-banner').style.display='block';
 
-// Re-render when window crosses the mobile/desktop breakpoint so chart
-// layout (swipe vs grid) and goToChart behaviour update without a page reload
 let _lastDesktop=isDesktop();
 window.addEventListener('resize',()=>{
   const nowDesktop=isDesktop();
-  if(nowDesktop!==_lastDesktop){
-    _lastDesktop=nowDesktop;
-    render();
-  }
+  if(nowDesktop!==_lastDesktop){_lastDesktop=nowDesktop;render();}
 });
 
+// ── IMPROVED: 4 proxy fallbacks + better error detection ──────────
 const PROXIES=[
-  url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
   url=>`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url=>`https://thingproxy.freeboard.io/fetch/${url}`,
+  url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
 ];
 
-async function fetchWithFallback(yahooUrl){
-  for(const proxy of PROXIES){
-    try{
-      const res=await fetch(proxy(yahooUrl),{signal:AbortSignal.timeout(8000)});
-      if(res.ok)return await res.json();
-    }catch(e){continue;}
-  }
-  throw new Error('All proxies failed');
+// Yahoo Finance v8 single-symbol URL (used as per-ticker fallback)
+function yahooV8Url(symbol){
+  return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
 }
 
-// Only auto-refresh prices during trading hours to avoid unnecessary API calls
+async function fetchWithFallback(yahooUrl){
+  let lastErr='';
+  for(const proxy of PROXIES){
+    try{
+      const res=await fetch(proxy(yahooUrl),{signal:AbortSignal.timeout(9000)});
+      if(!res.ok){lastErr=`HTTP ${res.status}`;continue;}
+      const text=await res.text();
+      // Detect proxy-level blocks before trying to parse JSON
+      if(!text||text.trim().startsWith('Host not')||text.trim().startsWith('Error')){lastErr='Proxy blocked';continue;}
+      try{return JSON.parse(text);}catch(e){lastErr='Bad JSON';continue;}
+    }catch(e){lastErr=e.message;continue;}
+  }
+  throw new Error('All proxies failed: '+lastErr);
+}
+
+// Fetch a single symbol price via Yahoo v8 chart endpoint (individual proxied calls)
+async function fetchSinglePrice(symbol){
+  const url=yahooV8Url(symbol);
+  for(const proxy of PROXIES){
+    try{
+      const res=await fetch(proxy(url),{signal:AbortSignal.timeout(9000)});
+      if(!res.ok)continue;
+      const text=await res.text();
+      if(!text||text.trim().startsWith('Host not')||text.trim().startsWith('Error'))continue;
+      const data=JSON.parse(text);
+      const meta=data?.chart?.result?.[0]?.meta;
+      if(meta?.regularMarketPrice){
+        return{symbol,regularMarketPrice:meta.regularMarketPrice,currency:meta.currency||'USD'};
+      }
+    }catch(e){continue;}
+  }
+  return null;
+}
+
 function isMarketHours(){
   const now=new Date();
-  const day=now.getDay(); // 0=Sun,6=Sat
+  const day=now.getDay();
   if(day===0||day===6)return false;
   const cetHour=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Stockholm'})).getHours();
   return cetHour>=9&&cetHour<23;
@@ -2029,7 +1972,6 @@ function isMarketHours(){
 let refreshStatusTimer=null;
 
 async function refreshPrices(silent=false){
-  // Abort silently if offline — banner already informs the user
   if(!navigator.onLine){
     if(!silent)showRefreshStatus('⚠️ Offline — cannot fetch prices','#aa6600');
     return;
@@ -2047,20 +1989,20 @@ async function refreshPrices(silent=false){
   }
   const btn=document.getElementById('btn-refresh');
   btn.textContent='🔄...';btn.disabled=true;
-  if(!silent)showRefreshStatus(`Fetching ${tickerHoldings.length} prices...`,'#888');
-  // Fetch exchange rates for USD, EUR and CAD to convert prices to SEK
+  if(!silent)showRefreshStatus(`Fetching ${tickerHoldings.length} prices…`,'#888');
+
   const tickers=[...new Set(tickerHoldings.map(h=>h.ticker))].join(',');
   const allTickers=tickers+',USDSEK=X,EURSEK=X,CADSEK=X,GBPSEK=X';
   const yahooUrl=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${allTickers}&fields=regularMarketPrice,currency`;
+
   try{
     const data=await fetchWithFallback(yahooUrl);
     const quotes=data.quoteResponse?.result||[];
-    if(!quotes.length)throw new Error('No data');
+    if(!quotes.length)throw new Error('No data returned');
     const usdSek=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice||10.3;
     const eurSek=quotes.find(q=>q.symbol==='EURSEK=X')?.regularMarketPrice||11.2;
     const cadSek=quotes.find(q=>q.symbol==='CADSEK=X')?.regularMarketPrice||(usdSek*0.74);
     const gbpSek=quotes.find(q=>q.symbol==='GBPSEK=X')?.regularMarketPrice||(usdSek*1.27);
-    // Store rate globally for currency display toggle
     liveUsdSek=usdSek;
     localStorage.setItem('pt_usd_sek_rate',String(usdSek));
     let updated=0,failed=[];
@@ -2074,7 +2016,7 @@ async function refreshPrices(silent=false){
       else if(currency==='EUR')priceSek=priceRaw*eurSek;
       else if(currency==='CAD')priceSek=priceRaw*cadSek;
       else if(currency==='GBP')priceSek=priceRaw*gbpSek;
-      else if(currency==='GBp')priceSek=priceRaw/100*gbpSek; // LSE quotes pence
+      else if(currency==='GBp')priceSek=priceRaw/100*gbpSek;
       updated++;
       return{...h,currency,currentPrice:Math.round(priceSek*100)/100,value:Math.round(priceSek*h.shares*100)/100};
     });
@@ -2086,12 +2028,45 @@ async function refreshPrices(silent=false){
     if(tickerNoShares.length)msg+=` · ⚠️ no shares: ${tickerNoShares.map(h=>h.ticker).join(', ')}`;
     showRefreshStatus(msg,updated>0?'#5BA85B':'#ff6b6b');
   }catch(err){
-    showRefreshStatus('❌ Failed to fetch prices. Check connection.','#ff6b6b');
+    // ── Batch failed → fall back to per-ticker requests ──────────
+    if(!silent)showRefreshStatus(`⚠️ Batch failed (${err.message}) — trying one by one…`,'#aa6600');
+    let updated=0,failed=[];
+    let usdSek=liveUsdSek||10.3,eurSek=11.2,cadSek=usdSek*0.74,gbpSek=usdSek*1.27;
+    // Try to get FX rates individually first
+    const fxUsd=await fetchSinglePrice('USDSEK=X');
+    if(fxUsd)usdSek=fxUsd.regularMarketPrice;
+    const fxEur=await fetchSinglePrice('EURSEK=X');
+    if(fxEur)eurSek=fxEur.regularMarketPrice;
+    liveUsdSek=usdSek;
+    localStorage.setItem('pt_usd_sek_rate',String(usdSek));
+    // Fetch each ticker individually
+    for(const h of tickerHoldings){
+      const q=await fetchSinglePrice(h.ticker);
+      if(!q){failed.push(h.ticker);continue;}
+      const priceRaw=q.regularMarketPrice,currency=q.currency||'USD';
+      let priceSek=priceRaw;
+      if(currency==='USD')priceSek=priceRaw*usdSek;
+      else if(currency==='EUR')priceSek=priceRaw*eurSek;
+      else if(currency==='CAD')priceSek=priceRaw*cadSek;
+      else if(currency==='GBP')priceSek=priceRaw*gbpSek;
+      else if(currency==='GBp')priceSek=priceRaw/100*gbpSek;
+      holdings=holdings.map(x=>x.id===h.id?{...x,currency,currentPrice:Math.round(priceSek*100)/100,value:Math.round(priceSek*x.shares*100)/100}:x);
+      updated++;
+    }
+    if(updated>0){
+      lastRefreshTime=Date.now();
+      localStorage.setItem('pt_last_refresh_ts',String(lastRefreshTime));
+      save();render();
+      let msg=`✅ ${updated} updated (single-ticker mode)`;
+      if(failed.length)msg+=` · ❌ ${[...new Set(failed)].join(', ')}`;
+      showRefreshStatus(msg,'#5BA85B');
+    }else{
+      showRefreshStatus(`❌ All methods failed. Tickers unreachable: ${[...new Set(failed)].join(', ') || 'unknown'}. Try again later.`,'#ff6b6b');
+    }
   }
   btn.textContent='🔄 Prices';btn.disabled=false;
 }
 
-// Auto-dismiss the status bar after 8 seconds so it does not linger
 function showRefreshStatus(msg,color='#888'){
   const el=document.getElementById('refresh-status');
   el.style.display='block';el.style.color=color;el.textContent=msg;
@@ -2099,7 +2074,6 @@ function showRefreshStatus(msg,color='#888'){
   refreshStatusTimer=setTimeout(()=>{el.style.display='none';},8000);
 }
 
-// ── Cash editor ───────────────────────────────────────────────────
 function openCashEditor(){
   const c=holdings.find(h=>h.sector==='Cash & Liquidity');
   document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
@@ -2113,13 +2087,13 @@ function closeCashEditor(){document.getElementById('cash-overlay').classList.rem
 function saveCash(){
   const raw=parseFloat(document.getElementById('cash-input').value);
   if(isNaN(raw)||raw<0)return;
-  const val=displayCurrency==='USD'?raw*liveUsdSek:raw; // convert to SEK for storage
+  const val=displayCurrency==='USD'?raw*liveUsdSek:raw;
   holdings=holdings.filter(h=>h.sector!=='Cash & Liquidity');
   if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:'long',stopLoss:null});
   save();render();closeCashEditor();
 }
 
-// ── Firebase Cloud Sync (Google Login) ───────────────────────────
+// ── Firebase Cloud Sync ───────────────────────────────────────────
 let db=null,syncUid=null,syncUnsubscribe=null,syncPaused=false;
 
 async function initFirebase(){
@@ -2137,24 +2111,16 @@ async function initFirebase(){
       appId:"1:37202666172:web:24be6c294561ee9b8e26b9"
     };
 
-    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
 
-    // Listen for auth state changes
     firebase.auth().onAuthStateChanged(user=>{
-      if(user){
-        syncUid=user.uid;
-        setSyncUI(true,user);
-        startSync();
-      }else{
-        syncUid=null;
-        setSyncUI(false);
-      }
+      if(user){syncUid=user.uid;setSyncUI(true,user);startSync();}
+      else{syncUid=null;setSyncUI(false);}
     });
   }catch(e){
-    // Firebase scripts blocked (e.g. file://, CSP, offline) — sync unavailable but app works fine
     if(e.message&&e.message.includes('Failed to load script')){
-      console.info('Firebase sync unavailable (scripts could not load — sync requires a hosted environment)');
+      console.info('Firebase sync unavailable (scripts could not load)');
     }else{
       console.warn('Firebase init failed:',e);
     }
@@ -2192,15 +2158,11 @@ function setSyncUI(signedIn,user=null){
   }
 }
 
-// ── Google Sign-In via GSI token flow ────────────────────────────
 const GSI_CLIENT_ID='37202666172-t2hkd4gfv2d5pau9gmh33u5qllue1ic5.apps.googleusercontent.com';
 let _gsiClient=null;
 
 function signInWithGoogle(){
-  // Show loading state immediately so user knows something is happening
   showRefreshStatus('🔄 Opening Google sign-in…','#888');
-
-  // Ensure Firebase is fully loaded before we try to use it
   const trySignIn=()=>{
     loadScript('https://accounts.google.com/gsi/client').then(()=>{
       if(!_gsiClient){
@@ -2208,65 +2170,40 @@ function signInWithGoogle(){
           client_id:GSI_CLIENT_ID,
           scope:'email profile openid',
           callback:(tokenResponse)=>{
-            if(tokenResponse.error){
-              showRefreshStatus('❌ Google error: '+tokenResponse.error+' — '+( tokenResponse.error_description||''),'#ff4444');
-              console.error('GSI error:',tokenResponse);
-              return;
-            }
-            if(!tokenResponse.access_token){
-              showRefreshStatus('❌ No token received from Google','#ff4444');
-              return;
-            }
-            showRefreshStatus('🔄 Signing in to Firebase…','#888');
-            if(!firebase||!firebase.auth){
-              showRefreshStatus('❌ Firebase not ready — please try again','#ff4444');
-              return;
-            }
+            if(tokenResponse.error){showRefreshStatus('❌ Google error: '+tokenResponse.error,'#ff4444');return;}
+            if(!tokenResponse.access_token){showRefreshStatus('❌ No token received','#ff4444');return;}
+            showRefreshStatus('🔄 Signing in…','#888');
+            if(!firebase||!firebase.auth){showRefreshStatus('❌ Firebase not ready','#ff4444');return;}
             const credential=firebase.auth.GoogleAuthProvider.credential(null,tokenResponse.access_token);
             firebase.auth().signInWithCredential(credential)
-              .then(result=>{
-                showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');
-              })
-              .catch(e=>{
-                showRefreshStatus('❌ '+e.code+': '+e.message,'#ff4444');
-              });
+              .then(result=>{showRefreshStatus('✅ Signed in as '+(result.user.displayName||result.user.email),'#5BA85B');})
+              .catch(e=>{showRefreshStatus('❌ '+e.code+': '+e.message,'#ff4444');});
           },
           error_callback:(err)=>{
-            // User closed the popup or other non-OAuth error
-            if(err.type!=='popup_closed')
-              showRefreshStatus('❌ Sign in cancelled or blocked: '+err.type,'#ff4444');
-            else
-              showRefreshStatus('Sign in cancelled','#888');
+            if(err.type!=='popup_closed')showRefreshStatus('❌ Sign in error: '+err.type,'#ff4444');
+            else showRefreshStatus('Sign in cancelled','#888');
           }
         });
       }
       _gsiClient.requestAccessToken();
-    }).catch(e=>{
-      showRefreshStatus('❌ Could not load Google Sign-In. Check your connection.','#ff4444');
-      console.error('GSI load error:',e);
-    });
+    }).catch(e=>{showRefreshStatus('❌ Could not load Google Sign-In.','#ff4444');});
   };
-
-  // If Firebase isn't ready yet, wait for it
   if(!db){
-    showRefreshStatus('⏳ Loading Firebase, please wait…','#888');
+    showRefreshStatus('⏳ Loading Firebase…','#888');
     let attempts=0;
     const wait=setInterval(()=>{
       attempts++;
-      if(db){ clearInterval(wait); trySignIn(); }
-      else if(attempts>20){ clearInterval(wait); showRefreshStatus('❌ Firebase failed to load. Check your connection.','#ff4444'); }
+      if(db){clearInterval(wait);trySignIn();}
+      else if(attempts>20){clearInterval(wait);showRefreshStatus('❌ Firebase failed to load.','#ff4444');}
     },300);
-  } else {
-    trySignIn();
-  }
+  }else{trySignIn();}
 }
 
 async function signOut(){
   if(!confirm('Sign out? Your data stays saved locally.'))return;
   if(syncUnsubscribe)syncUnsubscribe();
   await firebase.auth().signOut();
-  syncUid=null;
-  setSyncUI(false);
+  syncUid=null;setSyncUI(false);
   showRefreshStatus('Signed out','#888');
 }
 
@@ -2291,7 +2228,7 @@ function startSync(){
     const remote=data.updatedAt||0;
     const localTs=parseInt(localStorage.getItem('pt_last_updated_ts')||'0');
     if(remote>localTs+2000){
-      syncPaused=true; // pause outgoing pushes while we apply remote data
+      syncPaused=true;
       try{
         const remoteH=JSON.parse(data.holdings||'[]');
         const remoteS=JSON.parse(data.settings||'{}');
@@ -2303,7 +2240,6 @@ function startSync(){
           if(settings.tradeAccountMaxPct===null)settings.tradeAccountMaxPct=20;
           targets={...remoteT};
           goals={...DEFAULT_GOALS,...remoteG};
-          // Persist locally without triggering a push back to Firebase
           try{
             localStorage.setItem('pt_last_updated_ts',String(remote));
             localStorage.setItem('pt_last_updated',new Date(remote).toISOString());
@@ -2315,7 +2251,6 @@ function startSync(){
           showRefreshStatus('☁️ Synced from cloud','#5BA85B');
         }
       }catch(e){console.warn('Sync apply failed:',e);}
-      // Delay un-pausing so any in-flight save() calls that queued up don't fire immediately
       setTimeout(()=>{syncPaused=false;},1000);
     }
   },err=>console.warn('Sync error:',err));
@@ -2326,48 +2261,39 @@ async function forceSyncNow(){
   showRefreshStatus('☁️ Pushed to cloud','#5BA85B');
 }
 
-// ── Auto-backup ───────────────────────────────────────────────────
 const LS_LAST_BACKUP='pt_last_backup';
-
 function autoBackup(force=false){
-  if(!holdings.length) return;
+  if(!holdings.length)return;
   const last=localStorage.getItem(LS_LAST_BACKUP);
   const now=Date.now();
   const weekMs=7*24*60*60*1000;
-  if(!force && last && (now-parseInt(last))<weekMs) return; // not due yet
+  if(!force&&last&&(now-parseInt(last))<weekMs)return;
   try{
     const json=JSON.stringify({holdings,goals},null,2);
     const blob=new Blob([json],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;
-    a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    a.href=url;a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     localStorage.setItem(LS_LAST_BACKUP,String(now));
-    showRefreshStatus('💾 Weekly backup saved to Downloads','#5BA85B');
+    showRefreshStatus('💾 Weekly backup saved','#5BA85B');
   }catch(e){}
 }
 
-// ── cTrader Live Balance ──────────────────────────────────────────
 let _ctraderTimer=null;
-
 async function fetchCtraderBalance(manual=false){
   const url=settings.ctraderProxyUrl;
   const statusEl=document.getElementById('ctrader-settings-status');
   const liveEl=document.getElementById('ctrader-live');
   const valEl=document.getElementById('ctrader-live-val');
   const dotEl=document.getElementById('ctrader-dot');
-  if(!url){
-    if(liveEl)liveEl.style.display='none';
-    return;
-  }
+  if(!url){if(liveEl)liveEl.style.display='none';return;}
   try{
     const res=await fetch(`${url}/data`,{signal:AbortSignal.timeout(8000)});
     if(res.status===401){
       const d=await res.json();
       if(statusEl)statusEl.innerHTML=`🔴 Not authenticated — <a href="${d.authUrl||url+'/auth'}" target="_blank" style="color:#7B68EE">connect cTrader →</a>`;
-      if(dotEl){dotEl.style.background='#ff4444';}
+      if(dotEl)dotEl.style.background='#ff4444';
       if(liveEl)liveEl.style.display='block';
       if(valEl)valEl.textContent='Not connected';
       return;
@@ -2414,21 +2340,13 @@ holdings=JSON.parse(JSON.stringify(INITIAL));
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
 render();
 
-// Init Firebase sync (non-blocking)
 initFirebase();
-
-// cTrader live balance polling (every 30s)
-setTimeout(startCtraderPolling, 2500);
-
-// Weekly auto-backup (runs 3 seconds after open so UI is ready)
+setTimeout(startCtraderPolling,2500);
 setTimeout(()=>autoBackup(),3000);
 
-// Auto-refresh prices 2s after load, then every 15 min during market hours
 setTimeout(async()=>{
   await refreshPrices(true);
-  setInterval(()=>{
-    if(isMarketHours())refreshPrices(true);
-  },15*60*1000);
+  setInterval(()=>{if(isMarketHours())refreshPrices(true);},15*60*1000);
 },2000);
 </script>
 </body>
