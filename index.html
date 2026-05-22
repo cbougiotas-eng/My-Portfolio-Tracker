@@ -143,8 +143,10 @@ select option{background:#0d0d1a;color:#fff}
 .acct-pill .ap-pct{font-size:12px;margin-top:1px}
 .acct-pill.long .ap-val{color:#4A90D9}
 .acct-pill.trade .ap-val{color:#F7931A}
+#ctrader-live{font-size:10px;margin-top:4px;color:#3DD68C}
+#ctrader-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#555;margin-right:3px;vertical-align:middle;transition:background .3s}
 #tabs{display:flex;background:#0a0a18;border-bottom:1px solid #1a1a2e;position:sticky;top:0;z-index:10}
-.tab-btn{flex:1;padding:12px 0;background:none;border:none;color:#555;font-size:12px;font-weight:500;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.3px;transition:color .15s}
+.tab-btn{flex:1;padding:12px 0;background:none;border:none;color:#555;font-size:9px;font-weight:500;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px;transition:color .15s}
 .tab-btn.active{color:#fff;font-weight:700;border-bottom-color:#7B68EE}
 .tab-label{display:none}
 @media(min-width:900px){.tab-label{display:inline}}
@@ -191,24 +193,6 @@ select option{background:#0d0d1a;color:#fff}
 .metals-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #2a2200;font-size:14px}
 .csv-box{background:#0e0e1e;border:1px dashed #252535;border-radius:12px;padding:11px 14px;margin-bottom:10px;text-align:center}
 .csv-box p{font-size:13px;color:#666;margin-bottom:6px}
-.cash-section{margin:12px 0 6px;padding:10px 12px;background:#0a0a18;border:1px solid #1a1a2e;border-radius:12px}
-.cash-section-title{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#3DD68C;text-transform:uppercase;margin-bottom:8px}
-.cash-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #111228}
-.cash-row:last-child{border-bottom:none}
-.cash-row-name{font-size:13px;color:#ccc;font-weight:500}
-.cash-row-val{font-size:13px;color:#3DD68C;font-weight:700}
-.cash-row-acct{font-size:10px;color:#555;margin-top:2px}
-.konto-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #111228}
-.konto-row:last-child{border-bottom:none}
-.konto-row-info{flex:1;min-width:0}
-.konto-row-name{font-size:13px;color:#e8e8f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.konto-row-val{font-size:12px;color:#3DD68C;margin-top:2px}
-.konto-acct-toggle{display:flex;border-radius:8px;overflow:hidden;border:1px solid #252545;flex-shrink:0}
-.konto-acct-toggle button{padding:5px 10px;font-size:11px;font-weight:600;border:none;background:#0e0e1e;color:#555;cursor:pointer;transition:all .15s}
-.konto-acct-toggle button.active-long{background:#1a2e1a;color:#3DD68C}
-.konto-acct-toggle button.active-trade{background:#2e1a0a;color:#F7931A}
-.konto-skip-btn{font-size:11px;color:#555;background:none;border:none;cursor:pointer;padding:5px;flex-shrink:0}
-.konto-skip-btn.skipped{color:#ff4444}
 .csv-btns{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
 .btn-sm{border:1px solid #252535;border-radius:8px;padding:7px 12px;font-size:13px;background:#141428;color:#aaa;transition:background .15s,border-color .15s}
 .filter-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;background:#1e1e3a;border-radius:10px;padding:6px 12px}
@@ -288,27 +272,6 @@ select option{background:#0d0d1a;color:#fff}
 </head>
 <body>
 
-<!-- Welcome overlay - sits on top of the app, fades away when dismissed -->
-<div id="welcome-screen" style="position:fixed;inset:0;background:#09091a;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .4s ease">
-  <div style="font-size:52px;margin-bottom:8px">📊</div>
-  <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.3px">Portfolio Tracker</div>
-  <div style="font-size:14px;color:#666;margin-bottom:32px;line-height:1.6;max-width:300px">Track your investments, manage risk, and sync across all your devices.</div>
-  <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;justify-content:center;max-width:320px">
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">📈 Live prices</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">⚡ Risk mode</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">☁️ Cloud sync</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">🛑 Stop losses</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">🌍 SEK / USD</div>
-    <div style="background:#111228;border:1px solid #1a1a30;border-radius:10px;padding:8px 11px;font-size:11px;color:#888">📂 Avanza CSV</div>
-  </div>
-  <button onclick="welcomeSignIn()" style="width:100%;max-width:320px;padding:14px;border-radius:13px;font-size:14px;font-weight:700;border:none;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#222">
-    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-    Sign in with Google
-  </button>
-  <button onclick="welcomeGuest()" style="width:100%;max-width:320px;padding:12px;border-radius:13px;font-size:13px;font-weight:600;background:#111228;color:#aaa;border:1px solid #1e1e35;cursor:pointer;margin-bottom:12px">Continue without signing in</button>
-  <div style="font-size:11px;color:#333;max-width:280px;line-height:1.5">⚠️ Without signing in, data is saved locally only and will be lost if you clear your browser.</div>
-</div>
-
 <div id="offline-banner">⚠️ You're offline — prices won't refresh until connection is restored</div>
 <div id="undo-toast"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
 
@@ -328,7 +291,7 @@ select option{background:#0d0d1a;color:#fff}
       <button id="btn-risk" onclick="setMode('risk')">⚡ Risk</button>
       <button id="btn-market" onclick="setMode('market')">📊 Market</button>
     </div>
-    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle SEK / USD display" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
+    <div id="currency-pill" onclick="toggleDisplayCurrency()" title="Toggle display currency" style="display:flex;background:#0f0f22;border:1px solid #1e1e35;border-radius:22px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;align-items:center;gap:5px;flex-shrink:0;margin-left:6px">
       <span id="currency-pill-label">SEK</span>
     </div>
   </div>
@@ -351,6 +314,7 @@ select option{background:#0d0d1a;color:#fff}
       <div class="ap-label">⚡ Trading</div>
       <div class="ap-val" id="acct-trade-val">0 kr</div>
       <div class="ap-pct" id="acct-trade-pct" style="color:#F7931A">0%</div>
+      <div id="ctrader-live" style="display:none"><span id="ctrader-dot"></span><span id="ctrader-live-val">—</span></div>
     </div>
   </div>
 </div>
@@ -425,14 +389,12 @@ select option{background:#0d0d1a;color:#fff}
   <div class="csv-box">
     <p>Import Avanza CSV · manage holdings below</p>
     <div class="csv-btns">
-      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 Positions</button>
-      <button class="btn-sm" style="color:#3DD68C" onclick="document.getElementById('konto-input').click()">🏦 Accounts</button>
+      <button class="btn-sm" style="color:#7B68EE" onclick="document.getElementById('csv-input').click()">📂 CSV</button>
       <button class="btn-sm" style="color:#3DD68C" onclick="exportData()">💾 Export</button>
       <button class="btn-sm" style="color:#F7931A" onclick="refreshPrices()" id="btn-refresh">🔄 Prices</button>
       <button class="btn-sm" style="color:#ff4444;border-color:#3a1020;margin-left:8px" onclick="resetHoldings()">🗑 Clear all</button>
     </div>
     <input id="csv-input" type="file" accept=".csv,.json" style="display:none" onchange="handleFile(event)"/>
-    <input id="konto-input" type="file" accept=".csv" style="display:none" onchange="handleKontoFile(event)"/>
     <div id="csv-error" style="color:#ff6b6b;font-size:10px;margin-top:5px"></div>
     <div id="refresh-status" style="font-size:10px;margin-top:5px;display:none"></div>
   </div>
@@ -514,53 +476,6 @@ select option{background:#0d0d1a;color:#fff}
     </div>
   </div>
 
-  <!-- FX / Currency -->
-  <div class="settings-card">
-    <div class="settings-card-title">💱 Currency & FX Rate</div>
-    <div style="font-size:12px;color:#666;margin-bottom:10px">All data is stored in SEK. The rate below is used for the USD display toggle.</div>
-    <div id="fx-rate-display" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;align-items:center;flex-wrap:wrap;gap:6px">
-      <span style="color:#555;font-size:13px">Loading rate…</span>
-    </div>
-    <button onclick="refreshFxRate(false)" style="width:100%;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">💱 Refresh FX rate</button>
-  </div>
-
-
-  <!-- Avanza Integration -->
-  <div class="settings-card">
-    <div class="settings-card-title">🇸🇪 Avanza Integration</div>
-    <div style="font-size:12px;color:#666;margin-bottom:10px">Connect your local Avanza proxy to sync positions and balances automatically.</div>
-    <div id="avanza-status-box" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:12px;color:#555">
-      Check local server…
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button onclick="checkAvanzaStatus()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">🔍 Check</button>
-      <button onclick="refreshAvanza()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#F7931A;padding:9px;font-size:12px">🔄 Sync Now</button>
-    </div>
-    <div class="field" style="margin-top:6px">
-      <label style="font-size:11px;color:#666">Proxy Server URL</label>
-      <input id="avanza-server-url" type="url" placeholder="http://localhost:3001" style="font-size:12px;border-color:#252545" onchange="setAvanzaServer(this.value);checkAvanzaStatus()"/>
-    </div>
-    <div style="font-size:11px;color:#444;margin-top:6px">Run <code style="color:#3DD68C">node server.js</code> in your avanza-proxy folder first.</div>
-  </div>
-
-  <!-- cTrader Integration -->
-  <div class="settings-card">
-    <div class="settings-card-title">📈 cTrader Integration</div>
-    <div style="font-size:12px;color:#666;margin-bottom:10px">Connect your local cTrader proxy to sync positions and balance automatically.</div>
-    <div id="ctrader-status-box" style="margin-bottom:12px;padding:10px 12px;background:#0d0d1a;border-radius:9px;font-size:12px;color:#555">
-      Check local server…
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button onclick="connectCTrader()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">🔑 Connect</button>
-      <button onclick="refreshCTrader()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#3DD68C;padding:9px;font-size:12px">🔄 Sync Now</button>
-    </div>
-    <div class="field" style="margin-top:6px">
-      <label style="font-size:11px;color:#666">Proxy Server URL</label>
-      <input id="ctrader-server-url" type="url" placeholder="http://localhost:3000" style="font-size:12px;border-color:#252545" onchange="setCTraderServer(this.value);checkCTraderStatus()"/>
-    </div>
-    <div style="font-size:11px;color:#444;margin-top:6px">Run <code style="color:#3DD68C">node server.js</code> in your ctrader-proxy folder first.</div>
-  </div>
-
   <!-- Portfolio Goal -->
   <div class="settings-card">
     <div class="settings-card-title">🏆 Portfolio Goal</div>
@@ -577,6 +492,24 @@ select option{background:#0d0d1a;color:#fff}
     </div>
   </div>
 
+  <!-- cTrader Live Balance -->
+  <div class="settings-card">
+    <div class="settings-card-title">📈 cTrader Live Balance</div>
+    <div class="setting-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;gap:8px">
+      <div>
+        <div class="setting-label">Railway proxy URL</div>
+        <div class="setting-sub">Paste your Railway service URL (e.g. https://xxx.up.railway.app)</div>
+      </div>
+      <div style="display:flex;gap:8px;width:100%">
+        <input id="set-ctrader-url" type="url" placeholder="https://your-service.up.railway.app"
+          style="flex:1;background:#0d0d1a;border:1px solid #333;border-radius:7px;padding:7px 10px;color:#fff;font-size:12px"
+          onchange="saveSettings()"/>
+        <button onclick="fetchCtraderBalance(true)" style="background:#161630;border:1px solid #252545;border-radius:8px;color:#7B68EE;padding:7px 12px;font-size:12px;white-space:nowrap">Test</button>
+      </div>
+      <div id="ctrader-settings-status" style="font-size:11px;color:#555"></div>
+    </div>
+  </div>
+
   <!-- History & Backup -->
   <div class="settings-card">
     <div class="settings-card-title">📅 Snapshot History</div>
@@ -585,18 +518,6 @@ select option{background:#0d0d1a;color:#fff}
       <button onclick="saveSnapshot()" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#7B68EE;padding:9px;font-size:12px">📸 Save snapshot</button>
       <button onclick="autoBackup(true)" style="flex:1;background:#161630;border:1px solid #252545;border-radius:9px;color:#3DD68C;padding:9px;font-size:12px">💾 Backup now</button>
     </div>
-  </div>
-
-  <!-- Buy Me a Coffee -->
-  <div class="settings-card">
-    <div class="settings-card-title">☕ Support Development</div>
-    <div style="font-size:12px;color:#666;margin-bottom:12px">
-      If Portfolio Tracker helps you manage your investments, consider buying me a coffee!
-    </div>
-    <a href="https://buymeacoffee.com/chcronlund" target="_blank"
-       style="display:block;width:100%;background:linear-gradient(135deg,#FFDD00,#FFB84D);border:none;border-radius:10px;color:#222;padding:12px;font-size:13px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 2px 12px rgba(255,221,0,.3);transition:transform .15s">
-      ☕ Buy Me a Coffee
-    </a>
   </div>
 
   <div style="text-align:center;font-size:11px;color:#333;padding:12px 8px">Portfolio Tracker · data saved locally</div>
@@ -619,53 +540,10 @@ select option{background:#0d0d1a;color:#fff}
 </div>
 
 <!-- Cash Editor -->
-
-<!-- Konto Import Modal -->
-
-<!-- Manual Cash Account Modal -->
-<div id="manual-cash-overlay" class="overlay" onclick="if(event.target===this)closeManualCash()">
-  <div class="sheet">
-    <h2>💵 Add Cash Account</h2>
-    <div class="field">
-      <label>Name <span style="color:#555">— e.g. KuCoin, Bybit, Savings</span></label>
-      <input id="mc-name" placeholder="e.g. KuCoin USDT"/>
-    </div>
-    <div class="field">
-      <label>Value (<span id="mc-curr-label">SEK</span>)</label>
-      <input id="mc-value" type="number" placeholder="0"/>
-    </div>
-    <div style="margin-bottom:12px">
-      <label style="font-size:12px;color:#888;display:block;margin-bottom:6px">Account</label>
-      <div style="display:flex;gap:7px">
-        <button id="mc-acct-long" class="acct-sel-btn sel-long" onclick="setMcAcct('long')">📈 Long Term</button>
-        <button id="mc-acct-trade" class="acct-sel-btn" onclick="setMcAcct('trade')">⚡ Trading</button>
-      </div>
-    </div>
-    <div class="modal-btns">
-      <button onclick="closeManualCash()">Cancel</button>
-      <button onclick="saveManualCash()" style="background:linear-gradient(135deg,#3DD68C,#2aa870);color:#000;font-weight:700">Add</button>
-    </div>
-  </div>
-</div>
-<div id="konto-overlay" class="overlay" onclick="if(event.target===this)document.getElementById('konto-overlay').classList.remove('open')">
-  <div class="sheet" style="max-height:85vh;overflow-y:auto">
-    <h2>🏦 Import konton</h2>
-    <p style="font-size:12px;color:#666;margin-bottom:14px">Assign each account to Long Term or Trading, or skip it. Zero-balance accounts are skipped automatically.</p>
-    <div id="konto-rows"></div>
-    <div class="modal-btns" style="margin-top:16px">
-      <button onclick="document.getElementById('konto-overlay').classList.remove('open')">Cancel</button>
-      <button onclick="confirmKontoImport()" style="background:linear-gradient(135deg,#3DD68C,#2aa870);color:#000;font-weight:700">Import</button>
-    </div>
-  </div>
-</div>
 <div id="cash-overlay" class="overlay" onclick="if(event.target===this)closeCashEditor()">
   <div class="sheet">
     <h2>💵 Cash & Liquidity</h2>
-    <div id="cash-current-label" style="font-size:12px;color:#888;margin-bottom:13px"></div>
-    <div style="display:flex;gap:7px;margin-bottom:12px">
-      <button id="cash-btn-long" onclick="setCashAccount('long')" class="acct-sel-btn sel-long">📈 Long Term</button>
-      <button id="cash-btn-trade" onclick="setCashAccount('trade')" class="acct-sel-btn">⚡ Trading</button>
-    </div>
+    <div id="cash-current-label" style="font-size:11px;color:#888;margin-bottom:13px"></div>
     <div class="field"><label id="cash-amount-label">Amount (SEK)</label><input id="cash-input" type="number" placeholder="e.g. 50000" style="border-color:#3DD68C"/></div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button onclick="closeCashEditor()" class="btn-cancel">Cancel</button>
@@ -680,10 +558,10 @@ select option{background:#0d0d1a;color:#fff}
     <h2 id="modal-title">Add Holding</h2>
     <div style="font-size:10px;color:#888;margin-bottom:5px">Account</div>
     <div id="f-account-wrap">
-      <button id="f-acct-long" class="acct-sel-btn sel-long" onclick="selectAccount('long')">📈 Long Term</button>
-      <button id="f-acct-trade" class="acct-sel-btn" onclick="selectAccount('trade')">⚡ Trading</button>
+      <button class="acct-sel-btn sel-long" onclick="selectAccount('long')">📈 Long Term</button>
+      <button class="acct-sel-btn" onclick="selectAccount('trade')">⚡ Trading</button>
     </div>
-    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Boliden" oninput="autoAccountFromName(this.value)"/></div>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Boliden"/></div>
     <div class="field"><label>Ticker Symbol <span style="color:#555">— for auto price (e.g. WULF, NEM, BTC-USD)</span></label><input id="f-ticker" placeholder="e.g. WULF" style="text-transform:uppercase"/></div>
     <div class="field"><label>Sector</label><select id="f-sector"></select></div>
     <div style="display:flex;gap:7px">
@@ -772,12 +650,30 @@ function sectionLabel(text,marginTop=13){
 // Long term group warning thresholds (% of long term account)
 const LONG_GROUP_LIMITS={stocks:40,crypto:20,metals:10,cash:10};
 
-const INITIAL=[];
+const INITIAL=[
+  {id:1,name:"Apple Inc.",value:142500,sector:"Semiconductors ETF",account:"long",ticker:"AAPL",shares:75,buyPrice:1650,currentPrice:1900,stopLoss:1720,currency:"USD"},
+  {id:2,name:"Newmont Corporation",value:87400,sector:"Gold",account:"long",ticker:"NEM",shares:200,buyPrice:410,currentPrice:437,stopLoss:395,currency:"USD"},
+  {id:3,name:"SILVER AVA",value:113200,sector:"Silver",account:"long",ticker:"SLV",shares:450,buyPrice:238,currentPrice:252,stopLoss:225},
+  {id:4,name:"Boliden AB",value:64800,sector:"Base Metals Mining",account:"long",shares:180,buyPrice:340,currentPrice:360},
+  {id:5,name:"Skanska B",value:52300,sector:"Construction",account:"long",shares:220,buyPrice:225,currentPrice:238},
+  {id:6,name:"VanEck Semiconductor ETF",value:96750,sector:"Semiconductors ETF",account:"long",ticker:"VVSM",shares:85,buyPrice:1050,currentPrice:1138,stopLoss:980,currency:"USD"},
+  {id:7,name:"iShares Treasury Bond 20+yr",value:78200,sector:"Bonds",account:"long",ticker:"IS04",shares:310,buyPrice:245,currentPrice:252},
+  {id:8,name:"GULD AVA",value:134500,sector:"Gold",account:"long",ticker:"GLD",shares:120,buyPrice:1040,currentPrice:1121,stopLoss:990},
+  {id:9,name:"Lundin Mining",value:43600,sector:"Base Metals Mining",account:"long",shares:240,buyPrice:175,currentPrice:182},
+  {id:10,name:"Cash",value:85000,sector:"Cash & Liquidity",account:"long"},
+  {id:11,name:"TeraWulf Inc.",value:38400,sector:"Crypto/Bitcoin Mining",account:"trade",ticker:"WULF",shares:3200,buyPrice:11.5,currentPrice:12.0,stopLoss:9.8,currency:"USD"},
+  {id:12,name:"Hycroft Mining",value:22100,sector:"Gold & Silver",account:"trade",ticker:"HYMC",shares:8500,buyPrice:2.4,currentPrice:2.6,stopLoss:2.0,currency:"USD"},
+  {id:13,name:"TURBO L SILVER AVA",value:31500,sector:"Silver",account:"trade",shares:180,buyPrice:165,currentPrice:175,stopLoss:148},
+  {id:14,name:"Sibanye-Stillwater ADR",value:18700,sector:"Gold & Silver",account:"trade",ticker:"SBSW",shares:1800,buyPrice:9.8,currentPrice:10.4,stopLoss:8.5,currency:"USD"},
+  {id:15,name:"MINI L DJIA LEV17",value:44200,sector:"Index (Leverage)",account:"trade",shares:62,buyPrice:680,currentPrice:713,stopLoss:620},
+  {id:16,name:"Gr Silver Mining Ltd",value:15300,sector:"Silver",account:"trade",ticker:"GRSL",shares:9000,buyPrice:1.55,currentPrice:1.70,stopLoss:1.35,currency:"USD"},
+  {id:17,name:"Caribou Biosciences",value:9800,sector:"Biotech/Pharma",account:"trade",ticker:"CRBU",shares:2200,buyPrice:4.1,currentPrice:4.45,stopLoss:3.5,currency:"USD"},
+];
 
 // State
 let holdings=[],viewMode='risk',activeTab='chart',activeSector=null,editId=null;
 let acctFilter='all',selectedAccount='long';
-let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};
+let settings={tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20,ctraderProxyUrl:''};
 let targets={};
 let goals={};
 let lastRefreshTime=parseInt(localStorage.getItem('pt_last_refresh_ts')||'0')||null;
@@ -801,19 +697,20 @@ const LS_NOSTOP_ACK='pt_nostop_ack';
 function loadNoStopAck(){try{return new Set(JSON.parse(localStorage.getItem(LS_NOSTOP_ACK)||'[]'));}catch(e){return new Set();}}
 function saveNoStopAck(){try{localStorage.setItem(LS_NOSTOP_ACK,JSON.stringify([...noStopAck]));}catch(e){}}
 function toggleNoStopAck(id){
-  const sid=String(id);
-  if(noStopAck.has(sid))noStopAck.delete(sid);else noStopAck.add(sid);
+  if(noStopAck.has(id))noStopAck.delete(id);else noStopAck.add(id);
   saveNoStopAck();render();
 }
 let noStopAck=loadNoStopAck();
 
-function loadSettings(){try{const s=localStorage.getItem(LS_SETTINGS);if(s){const p=JSON.parse(s);if(p.tradeAccountMaxPct===null)p.tradeAccountMaxPct=20;return p;}}catch(e){}return{tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20};}
+function loadSettings(){try{const s=localStorage.getItem(LS_SETTINGS);if(s){const p=JSON.parse(s);if(p.tradeAccountMaxPct===null)p.tradeAccountMaxPct=20;if(!p.ctraderProxyUrl)p.ctraderProxyUrl='';return p;}}catch(e){}return{tradeWarn:2,sectorWarn:6,warnNoStop:true,tradeAccountMaxPct:20,ctraderProxyUrl:''};}
 function loadTargets(){try{const s=localStorage.getItem(LS_TARGETS);if(s)return JSON.parse(s);}catch(e){}return{};}
 function saveTargets(){try{localStorage.setItem(LS_TARGETS,JSON.stringify(targets));}catch(e){}}
 function saveSettings(){
   settings.tradeWarn=parseFloat(document.getElementById('set-trade-warn').value)||2;
   settings.sectorWarn=parseFloat(document.getElementById('set-sector-warn').value)||6;
   settings.tradeAccountMaxPct=parseFloat(document.getElementById('set-trade-account-max').value)||20;
+  const urlEl=document.getElementById('set-ctrader-url');
+  if(urlEl)settings.ctraderProxyUrl=(urlEl.value||'').trim().replace(/\/$/,'');
   try{localStorage.setItem(LS_SETTINGS,JSON.stringify(settings));}catch(e){}
   render();
 }
@@ -896,13 +793,13 @@ function render(){
 // Called once per render() so downstream functions don't repeat work.
 function buildRenderCtx(all,longH,tradeH,longTotals,tradeTotals){
   const{marketTotal,riskTotal,activeTotal,sectorArr,metalPct,cashPct,totalPnl,totalBuyVal,pctChg}=all;
-  const cashVal=holdings.filter(h=>h.sector==='Cash & Liquidity').reduce((s,h)=>s+h.value,0);
+  const cashVal=holdings.find(h=>h.sector==='Cash & Liquidity')?.value||0;
   const TRADE_HOLD_WARN=settings.tradeWarn;
   const tradeActiveTotal=viewMode==='risk'?tradeTotals.riskTotal:tradeTotals.marketTotal;
 
   // Clear stale no-stop acks for holdings that now have a stop set
-  tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(String(h.id))){noStopAck.delete(String(h.id));saveNoStopAck();}});
-  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(String(h.id))):[];
+  tradeH.forEach(h=>{if(h.stopLoss!=null&&noStopAck.has(h.id)){noStopAck.delete(h.id);saveNoStopAck();}});
+  const noStopHoldings=settings.warnNoStop?tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&!noStopAck.has(h.id)):[];
   const overH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&tradeActiveTotal>0&&getVal(h)/tradeActiveTotal*100>TRADE_HOLD_WARN);
 
   // Individual metal sub-sectors excluded — only combined group is checked
@@ -970,11 +867,9 @@ function renderHeader(ctx){
   document.getElementById('acct-long-pct').textContent=fmtDec(lv/tot*100)+'% of invested';
   document.getElementById('acct-trade-val').textContent=fmtC(tv)+' '+currLabel();
   document.getElementById('acct-trade-pct').textContent=fmtDec(tv/tot*100)+'% of invested';
-  // Update currency pill label and live-rate tooltip
+  // Update currency pill label
   const cp=document.getElementById('currency-pill-label');
   if(cp){cp.textContent=displayCurrency;cp.style.color=displayCurrency==='USD'?'#4A90D9':'#7B68EE';}
-  const pill=document.getElementById('currency-pill');
-  if(pill)pill.title=`Toggle SEK / USD · 1 USD = ${liveUsdSek.toFixed(4)} SEK`;
 
   try{
     const lu=localStorage.getItem('pt_last_updated');
@@ -1181,7 +1076,7 @@ function drawDonut(svgId,legendId,sectorArr,isTrade){
       const tt=document.getElementById('donut-tooltip');
       const col=p.dataset.sector==='⚡ Trading Account'?'#F7931A':(SECTOR_COLORS[p.dataset.sector]||'#999');
       tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY-14)+'px';
-      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val}</span>`;
+      tt.innerHTML=`<span style="color:${col};font-weight:700">${SECTOR_EMOJIS[p.dataset.sector]||'📦'} ${p.dataset.sector}</span><br><span style="color:#aaa">${p.dataset.pct}% &nbsp;·&nbsp; ${p.dataset.val} kr</span>`;
     });
     p.addEventListener('mouseleave',()=>{document.getElementById('donut-tooltip').style.display='none';});
   });
@@ -1281,12 +1176,10 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
   });
   const fb=document.getElementById('filter-bar');
   if(activeSector){fb.style.display='flex';document.getElementById('filter-label').textContent=activeSector;}else fb.style.display='none';
-  // Separate cash-from-konto accounts from regular holdings
-  let cashAccounts=[...holdings].filter(h=>h._fromKonto);
-  let list=[...holdings].filter(h=>!h._fromKonto);
+  let list=[...holdings];
   if(activeSector)list=list.filter(h=>h.sector===activeSector);
-  if(acctFilter!=='all'){list=list.filter(h=>h.account===acctFilter);cashAccounts=cashAccounts.filter(h=>h.account===acctFilter);}
-  if(search){list=list.filter(h=>h.name.toLowerCase().includes(search)||h.sector.toLowerCase().includes(search));cashAccounts=cashAccounts.filter(h=>h.name.toLowerCase().includes(search));}
+  if(acctFilter!=='all')list=list.filter(h=>h.account===acctFilter);
+  if(search)list=list.filter(h=>h.name.toLowerCase().includes(search)||h.sector.toLowerCase().includes(search));
   list.sort((a,b)=>{
     if(sortBy==='value')return getVal(b)-getVal(a);
     if(sortBy==='pct')return getVal(b)/activeTotal-getVal(a)/activeTotal;
@@ -1296,38 +1189,11 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
     if(sortBy==='nostop'){return(a.stopLoss==null?0:1)-(b.stopLoss==null?0:1);}
     return 0;
   });
-  if(!list.length&&!cashAccounts.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
-  if(!list.length&&cashAccounts.length){
-    const cashHTML2=`<div class="cash-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="cash-section-title" style="margin-bottom:0">💵 Cash &amp; Accounts</div><button onclick="openManualCash()" style="font-size:11px;color:#3DD68C;background:none;border:1px solid #1a3a2a;border-radius:7px;padding:3px 9px;cursor:pointer">+ Add</button></div>${cashAccounts.map(a=>{const val=getVal(a);const pct=val/activeTotal*100;return`<div class="cash-row"><div><div class="cash-row-name">${a.name}</div><div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div></div><div style="text-align:right"><div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div><button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button></div></div>`;}).join('')}</div>`;
-    document.getElementById('holdings-list').innerHTML=cashHTML2;return;
-  }
+  if(!list.length){document.getElementById('holdings-list').innerHTML=`<div style="text-align:center;padding:28px 0;color:#555;font-size:12px">${search?'No results':'No holdings — tap + to add one'}</div>`;return;}
 
   // Show green/grey dot based on whether prices were fetched recently
   const now=Date.now();
   const freshThreshold=20*60*1000;
-
-  // Build cash section HTML
-  const cashHTML=`
-    <div class="cash-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="cash-section-title" style="margin-bottom:0">💵 Cash &amp; Accounts</div>
-        <button onclick="openManualCash()" style="font-size:11px;color:#3DD68C;background:none;border:1px solid #1a3a2a;border-radius:7px;padding:3px 9px;cursor:pointer">+ Add</button>
-      </div>
-      ${cashAccounts.length?cashAccounts.map(a=>{
-        const val=getVal(a);
-        const pct=val/activeTotal*100;
-        return `<div class="cash-row">
-          <div>
-            <div class="cash-row-name">${a.name}</div>
-            <div class="cash-row-acct">${a.account==='long'?'📈 Long Term':'⚡ Trading'} · ${pct.toFixed(1)}% of portfolio</div>
-          </div>
-          <div style="text-align:right">
-            <div class="cash-row-val">${fmtC(toDisplay(val))} ${currLabel()}</div>
-            <button onclick="deleteHolding('${a.id}')" style="font-size:10px;color:#444;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">✕ remove</button>
-          </div>
-        </div>`;
-      }).join(''):`<div style="font-size:12px;color:#444;padding:6px 0">No cash accounts yet — tap + Add or use 🏦 Accounts to import.</div>`}
-    </div>`;
 
   document.getElementById('holdings-list').innerHTML=list.map(h=>{
     const val=getVal(h),pct=val/activeTotal*100;
@@ -1350,8 +1216,8 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
 
     const detailRow=(h.shares||h.buyPrice||h.currentPrice||h.stopLoss||h.notes)?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #1e1e2e;display:flex;gap:9px;flex-wrap:wrap;font-size:12px;color:#888">
       ${h.shares!=null?`<span>×${h.shares}</span>`:''}
-      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} ${currLabel()}</span>`:''}
-      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} ${currLabel()}${pnlStr}</span>`:''}
+      ${h.buyPrice!=null?`<span>Buy: ${fmtDec(toDisplay(h.buyPrice),2)} kr</span>`:''}
+      ${h.currentPrice!=null?`<span>Now: ${fmtDec(toDisplay(h.currentPrice),2)} kr${pnlStr}</span>`:''}
       ${h.currency&&h.currency!=='SEK'?`<span style="color:#7B68EE;font-family:monospace">${h.currency}</span>`:''}
       ${h.stopLoss!=null?`<span style="color:#ff6666">🛑 ${fmtDec(toDisplay(h.stopLoss),2)} ${currLabel()} · risk: ${fmtC(riskVal)} ${currLabel()}</span>`:noStop?`<span style="color:#aa6600">⚠️ no stop set</span>`:''}
       ${h.notes?`<div style="width:100%;margin-top:3px;color:#7B68EE;font-style:italic">📝 ${h.notes}</div>`:''}
@@ -1377,13 +1243,13 @@ function renderHoldings(activeTotal,overH,noStopHoldings,tradeActiveTotal,TRADE_
       </div>
       ${detailRow}
     </div>`;
-  }).join('')+cashHTML;
+  }).join('');
 }
 
 function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tradeAccountOversize,tradeTotalMarket,tradeAccountLimit,tradeH,longGroupWarnings){
   // Acknowledged no-stop holdings are shown dimmed at bottom of that section
-  const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(String(h.id)));
-  const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0)+longGroupWarnings.length;
+  const ackNoStopH=tradeH.filter(h=>h.sector!=='Cash & Liquidity'&&h.stopLoss==null&&noStopAck.has(h.id));
+  const activeWarningCount=overH.length+overS.length+noStopH.length+(tradeAccountOversize?1:0);
   const el=document.getElementById('warnings-content');
   if(activeWarningCount===0&&!ackNoStopH.length){el.innerHTML=`<div class="all-ok"><div class="ok-icon">✅</div><h3>Trading account looks good</h3><p>No trade &gt;${TRADE_HOLD_WARN}% or sector &gt;${settings.sectorWarn}% in trading account</p></div>`;return;}
   let html=`<div class="warn-card" style="margin-bottom:14px">
@@ -1398,7 +1264,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:14px">${h.name}</div>
             <div style="font-size:12px;color:#888;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
-            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck('${h.id}')">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #aa6600;background:#0d0d1a;flex-shrink:0;font-size:11px"></span>
               <span style="font-size:12px;color:#cc9900">Stop loss managed by size</span>
             </label>
@@ -1413,7 +1279,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:12px;color:#888;text-decoration:line-through">${h.name}</div>
             <div style="font-size:10px;color:#666;margin-top:2px">${h.sector} · ${fmtC(h.value)} ${currLabel()}</div>
-            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck('${h.id}')">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:9px;cursor:pointer;user-select:none" onclick="toggleNoStopAck(${h.id})">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;border:1.5px solid #5BA85B;background:#0d1a0d;flex-shrink:0;font-size:11px;color:#5BA85B">✓</span>
               <span style="font-size:12px;color:#5BA85B">Stop loss managed by size</span>
             </label>
@@ -1429,7 +1295,7 @@ function renderWarnings(overH,overS,noStopH,tradeActiveTotal,TRADE_HOLD_WARN,tra
       const pct=tradeActiveTotal>0?getVal(h)/tradeActiveTotal*100:0,excess=pct-TRADE_HOLD_WARN;
       html+=`<div class="warn-card">
         <div class="warn-row">
-          <div><div style="font-weight:700;font-size:14px">${h.name}</div><div style="font-size:10px;color:#888;margin-top:2px">${h.sector}${h.stopLoss!=null?' · 🛑 '+h.stopLoss+' '+currLabel():' · no stop'}</div></div>
+          <div><div style="font-weight:700;font-size:14px">${h.name}</div><div style="font-size:10px;color:#888;margin-top:2px">${h.sector}${h.stopLoss!=null?' · 🛑 '+h.stopLoss+' kr':' · no stop'}</div></div>
           <div style="text-align:right"><div class="warn-pct">${pct.toFixed(1)}%</div><div class="warn-excess">+${excess.toFixed(1)}% over</div></div>
         </div>
         <div class="warn-bar-bg"><div class="warn-bar-fill" style="width:${Math.min(pct/40*100,100)}%;background:linear-gradient(90deg,#ff4444,#ff0000)"></div></div>
@@ -1499,6 +1365,8 @@ function renderSettings(sectorArr, marketTotal){
   document.getElementById('set-trade-account-max').value=settings.tradeAccountMaxPct;
   document.getElementById('set-nostop-btn').textContent=settings.warnNoStop?'ON':'OFF';
   document.getElementById('set-nostop-btn').style.color=settings.warnNoStop?'#7B68EE':'#666';
+  const urlEl=document.getElementById('set-ctrader-url');
+  if(urlEl&&!urlEl.matches(':focus'))urlEl.value=settings.ctraderProxyUrl||'';
 
   // Portfolio goal inline in settings
   const pg=goals.portfolioGoal;
@@ -1560,12 +1428,6 @@ function renderSettings(sectorArr, marketTotal){
   const totalEl=document.getElementById('target-total-val');
   totalEl.textContent=fmtDec(total)+'%';
   totalEl.style.color=Math.abs(total-100)<0.5?'#5BA85B':(total>100?'#ff4444':'#888');
-  // Update live FX display in settings
-  updateFxUI();
-  const ctInput=document.getElementById('ctrader-server-url');
-  if(ctInput)ctInput.value=getCTraderServer();
-  const avInput=document.getElementById('avanza-server-url');
-  if(avInput)avInput.value=getAvanzaServer();
 }
 
 function updateTarget(sector,val){
@@ -1649,7 +1511,7 @@ function renderGoals(ctx){
         ${pct<100&&monthlyNeeded>0?`
           <div style="margin-top:10px;padding:10px 12px;background:#0d0d1a;border-radius:9px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:11px;color:#666">Monthly deposit needed</span>
-            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} ${currLabel()}${onTrack?' ✓':''}</span>
+            <span style="font-size:13px;font-weight:700;color:${onTrack?'#5BA85B':'#F7931A'}">${fmtC(Math.round(monthlyNeeded))} kr${onTrack?' ✓':''}</span>
           </div>`:''}
       </div>`;
   } else {
@@ -1863,10 +1725,10 @@ function switchTab(tab){
 
 let _deletedHolding=null,_undoTimer=null;
 function deleteHolding(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
   _deletedHolding=h;
-  holdings=holdings.filter(x=>String(x.id)!==String(id));
+  holdings=holdings.filter(x=>x.id!==id);
   // Save locally immediately but delay cloud push until undo window closes
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(holdings));
@@ -1885,7 +1747,7 @@ function deleteHolding(id){
   },5000);
 }
 function duplicateHolding(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
   const copy={...h,id:newId(),name:h.name+' (copy)'};
   holdings.push(copy);
@@ -1912,8 +1774,7 @@ function resetHoldings(){
 document.getElementById('holdings-list').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const raw=btn.dataset.id;
-  const id=holdings.find(h=>String(h.id)===String(raw))?.id??raw;
+  const id=parseInt(btn.dataset.id);
   if(btn.dataset.action==='edit')openEdit(id);
   else if(btn.dataset.action==='duplicate')duplicateHolding(id);
   else if(btn.dataset.action==='delete')deleteHolding(id);
@@ -1923,8 +1784,7 @@ document.getElementById('holdings-list').addEventListener('click',e=>{
 document.getElementById('warnings-panel').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
-  const raw=btn.dataset.id;
-  const id=holdings.find(h=>String(h.id)===String(raw))?.id??raw;
+  const id=parseInt(btn.dataset.id);
   if(btn.dataset.action==='edit')openEdit(id);
 });
 
@@ -1938,7 +1798,6 @@ document.getElementById('chart-panel').addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('modal-overlay').classList.contains('open'))closeModal();
-    else if(document.getElementById('manual-cash-overlay').classList.contains('open'))closeManualCash();
     else if(document.getElementById('cash-overlay').classList.contains('open'))closeCashEditor();
     else if(document.getElementById('goal-overlay').classList.contains('open'))closeGoalEditor();
   }
@@ -1952,16 +1811,13 @@ function updateModalCurrLabels(){
   document.querySelectorAll('.modal-curr-label').forEach(el=>el.textContent=displayCurrency);
 }
 
-function autoAccountFromName(name){
-  if(/^(turbo|mini)/i.test(name.trim()))selectAccount('trade');
-}
-
 function selectAccount(acct){
   selectedAccount=acct;
-  const btnLong=document.getElementById('f-acct-long');
-  const btnTrade=document.getElementById('f-acct-trade');
-  if(btnLong)btnLong.className='acct-sel-btn'+(acct==='long'?' sel-long':'');
-  if(btnTrade)btnTrade.className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
+  document.querySelectorAll('.acct-sel-btn').forEach((b,i)=>{
+    b.className='acct-sel-btn';
+    if(i===0&&acct==='long')b.classList.add('sel-long');
+    if(i===1&&acct==='trade')b.classList.add('sel-trade');
+  });
 }
 
 function openModal(){
@@ -1977,9 +1833,9 @@ function openModal(){
 }
 
 function openEdit(id){
-  const h=holdings.find(x=>String(x.id)===String(id));
+  const h=holdings.find(x=>x.id===id);
   if(!h)return;
-  editId=h.id;
+  editId=id;
   document.getElementById('modal-title').textContent='Edit Holding';
   document.getElementById('btn-save-lbl').textContent='Save Changes';
   document.getElementById('f-name').value=h.name;
@@ -2042,22 +1898,19 @@ function saveHolding(){
   const entry={name,ticker:ticker||null,sector,value,account:selectedAccount,notes,
     shares:!isNaN(shares)?shares:null,buyPrice:!isNaN(buyPriceSek)?buyPriceSek:null,
     currentPrice:!isNaN(curPriceSek)?curPriceSek:null,stopLoss:!isNaN(stopLossSek)?stopLossSek:null};
-  if(editId!=null)holdings=holdings.map(h=>String(h.id)===String(editId)?{...h,...entry}:h);
+  if(editId!=null)holdings=holdings.map(h=>h.id===editId?{...h,...entry}:h);
   else holdings.push({id:newId(),...entry}); // Use timestamp+random ID to avoid collisions
   save();saveSectorMemory();render();closeModal();
 }
 
-// Generates a collision-resistant ID using crypto.randomUUID when available
-function newId(){
-  if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();
-  return Date.now().toString(36)+Math.random().toString(36).slice(2,9);
-}
+// Generates a collision-resistant ID using timestamp + random suffix
+function newId(){return Date.now()+Math.floor(Math.random()*10000);}
 
 // ── File import/export ────────────────────────────────────────────
 function handleFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=async ev=>{
+  reader.onload=ev=>{
     const text=ev.target.result.trim();
     if(file.name.endsWith('.json')){
       try{
@@ -2074,52 +1927,14 @@ function handleFile(e){
     }
     const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
     const sep=lines[0].includes(';')?';':',';
-    const rawHeader=lines[0].replace(/^\uFEFF/,'');
-    const headers=rawHeader.split(sep).map(h=>h.trim().toLowerCase());
+    const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase());
     const ni=headers.findIndex(h=>h==='namn'||h==='name');
     const vi=headers.findIndex(h=>h==='marknadsvärde'||h==='value'||h==='market value');
     const gavI=headers.findIndex(h=>h.includes('gav'));
     const volI=headers.findIndex(h=>h==='volym'||h==='volume'||h==='shares');
-    const tickerI=headers.findIndex(h=>h==='kortnamn'||h==='ticker'||h==='symbol');
-    const typI=headers.findIndex(h=>h==='typ'||h==='type');
     if(ni===-1||vi===-1){showCsvErr('Could not find required columns');return;}
     const sectorMem=loadSectorMemory();
-
-    function guessSector(name,ticker,typ){
-      const n=name.toLowerCase();
-      const t=(ticker||'').toLowerCase();
-      // Sector memory always wins
-      if(sectorMem[name.toLowerCase().trim()]) return sectorMem[name.toLowerCase().trim()];
-      // Warrants / leveraged products
-      if(/turbo|mini l |mini s |bull |bear /i.test(name)||typ==='WARRANT') return 'Index (Leverage)';
-      // Crypto / Bitcoin miners
-      if(/terawulf|wulf|riot|marathon|mara |hut 8|bitfarms|cleanspark|core scien|bitcoin|crypto/i.test(n)||/^wulf$|^mara$|^riot$|^hut$|^bitf$|^clsk$/i.test(t)) return 'Crypto/Bitcoin Mining';
-      // Silver — miners, ETFs, certificates, trackers
-      if(/silver|slvr|silv|gr silver|minaurum|first majestic|pan american|endeavour silver|coeur|hecla|silvercorp|mag silver/i.test(n)||/^slvr$|^silv$|^grsl$|^paas$|^ag$|^hl$/i.test(t)) return 'Silver';
-      // Gold — miners, ETFs, certificates
-      if(/gold|guld|newmont|barrick|agnico|kinross|gold fields|harmony gold|equinox gold|hycroft|alamos|eldorado|b2gold|torex|iamgold|centamin|endeavour mining/i.test(n)||/^nem$|^abx$|^aem$|^kgc$|^gfi$|^eqx$|^hymc$|^ago$|^eld$|^btg$/i.test(t)) return 'Gold';
-      // Gold & Silver combined (streaming / royalty)
-      if(/wheaton|royal gold|franco.nevada|sandstorm|osisko/i.test(n)||/^wpm$|^rgld$|^fnv$|^ssl$$/i.test(t)) return 'Gold & Silver';
-      // Base metals mining
-      if(/boliden|lundin mining|copper|freeport|teck|ivanhoe|hudbay|antofagasta|glencore|first quantum|ero copper|sibanye|stillwater|palladium|platinum/i.test(n)||/^bol$|^lumi$|^fcx$|^teck$|^ivn$|^hbm$|^sbsw$/i.test(t)) return 'Base Metals Mining';
-      // Mining equipment & services
-      if(/epiroc|atlas copco|sandvik|caterpillar|komatsu|metso|weir group/i.test(n)||/^epi|^atco/i.test(t)) return 'Mining Equipment';
-      // Bonds / fixed income ETFs
-      if(/bond|treasury|obligat|fixed income|govt|government/i.test(n)&&typ==='EXCHANGE_TRADED_FUND') return 'Bonds';
-      if(/^is04$|^idtl$|^dtla$|^tlt$/i.test(t)) return 'Bonds';
-      // Semiconductors
-      if(/semiconductor|vaneck.*semi|global x.*semi|soxx|soxq/i.test(n)||/^vvsm$|^soxx$|^soxq$|^soxl$/i.test(t)) return 'Semiconductors ETF';
-      // Construction
-      if(/skanska|ncc |peab|construction|byggnad/i.test(n)||/^ska |^ncc$/i.test(t)) return 'Construction';
-      // Biotech / Pharma
-      if(/therapeutics|bioscience|biotech|pharma|oncolog|genomic|medical|atossa|cardiol|caribou|eledon/i.test(n)||/^atos$|^crdl$|^crbu$|^eldn$/i.test(t)) return 'Biotech/Pharma';
-      // Silver ETFs / certificates that don't match name pattern
-      if(typ==='CERTIFICATE'&&/silv|silver|slvr/i.test(n)) return 'Silver';
-      if(typ==='CERTIFICATE'&&/guld|gold/i.test(n)) return 'Gold';
-      return 'Other';
-    }
-
-    const parsed=lines.slice(1).map((line)=>{
+    const parsed=lines.slice(1).map((line,i)=>{
       const cols=line.split(sep);
       const rawVal=(cols[vi]||'0').replace(/\s/g,'').replace(',','.');
       const rawGav=gavI>=0?(cols[gavI]||'').replace(/\s/g,'').replace(',','.'):null;
@@ -2128,212 +1943,37 @@ function handleFile(e){
       const buyPrice=rawGav?parseFloat(rawGav)||null:null;
       const shares=rawVol?parseFloat(rawVol)||null:null;
       const name=cols[ni]?.trim()||'Unknown';
-      const ticker=tickerI>=0?(cols[tickerI]||'').trim()||null:null;
-      const typ=typI>=0?(cols[typI]||'').trim().toUpperCase():'';
-      const sector=guessSector(name,ticker,typ);
-      const isTurboMini=/^(turbo|mini)/i.test(name.trim());
-      return{id:newId(),name,value,ticker,sector,
-        account:(isTurboMini||acctFilter==='trade')?'trade':'long',
-        buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null};
+      return{id:newId()+i*17,name,value,sector:sectorMem[name.toLowerCase().trim()]||'Other',account:acctFilter==='trade'?'trade':'long',
+        buyPrice,shares,currentPrice:shares&&value?Math.round(value/shares*100)/100:null,stopLoss:null,ticker:null};
     }).filter(h=>h.value>0);
     if(!parsed.length){showCsvErr('No valid holdings found');return;}
-
-    // Smart merge
+    // Smart merge — compute diff first, then show preview before committing
     const existing=new Map(holdings.map(h=>[h.name.toLowerCase().trim(),h]));
     const merged=parsed.map(incoming=>{
       const prev=existing.get(incoming.name.toLowerCase().trim());
-      if(prev){
-        // Keep manually assigned sector if it differs from 'Other', otherwise use classifier
-        const sector=(prev.sector&&prev.sector!=='Other')?prev.sector:incoming.sector;
-        return{...prev,value:incoming.value,sector,ticker:prev.ticker||incoming.ticker,
-          currentPrice:incoming.currentPrice??prev.currentPrice,
-          buyPrice:incoming.buyPrice??prev.buyPrice,
-          shares:incoming.shares??prev.shares,_isUpdate:true};
-      }
+      if(prev){return{...prev,value:incoming.value,currentPrice:incoming.currentPrice??prev.currentPrice,buyPrice:incoming.buyPrice??prev.buyPrice,shares:incoming.shares??prev.shares,_isUpdate:true};}
       return{...incoming,_isNew:true};
     });
     const csvNames=new Set(parsed.map(h=>h.name.toLowerCase().trim()));
-    const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim())&&!h._fromKonto);
+    const manualOnly=holdings.filter(h=>!csvNames.has(h.name.toLowerCase().trim()));
     const newOnes=merged.filter(h=>h._isNew);
     const updated=merged.filter(h=>h._isUpdate);
-    const classified=merged.filter(h=>h.sector&&h.sector!=='Other');
 
-    // Save all classified sectors to memory for future imports
-    merged.forEach(h=>{if(h.sector&&h.sector!=='Other')sectorMem[h.name.toLowerCase().trim()]=h.sector;});
-    localStorage.setItem(LS_SECTOR_MEMORY,JSON.stringify(sectorMem));
-
+    // Build preview and ask user to confirm
     const previewLines=[
       updated.length?`✏️ ${updated.length} updated: ${updated.slice(0,3).map(h=>h.name).join(', ')}${updated.length>3?` +${updated.length-3} more`:''}`:null,
       newOnes.length?`➕ ${newOnes.length} new: ${newOnes.slice(0,3).map(h=>h.name).join(', ')}${newOnes.length>3?` +${newOnes.length-3} more`:''}`:null,
-      classified.length?`🏷️ ${classified.length} auto-classified into sectors`:null,
       manualOnly.length?`📌 ${manualOnly.length} manual holdings kept`:null,
     ].filter(Boolean).join('\n');
 
     if(!confirm(`Import preview:\n\n${previewLines}\n\nProceed?`))return;
 
-    holdings=[...merged.map(({_isNew,_isUpdate,_typ,_land,...h})=>h),...manualOnly];
-    acctFilter='all';
+    holdings=[...merged.map(({_isNew,_isUpdate,...h})=>h),...manualOnly];
     save();saveSectorMemory();render();document.getElementById('csv-error').textContent='';
     showRefreshStatus(`✅ CSV merged: ${updated.length} updated · ${newOnes.length} new · ${manualOnly.length} manual kept`,'#5BA85B');
   };
   reader.readAsText(file,'UTF-8');e.target.value='';
 }
-
-// ── Konto (cash accounts) import ─────────────────────────────────
-let kontoImportData = []; // holds parsed accounts during modal
-
-// Friendly display names for Avanza account types
-const KONTO_NAMES = {
-  'aktie- & fondkonto': 'Aktie- & Fondkonto',
-  'investeringssparkonto': 'ISK',
-  'sparkonto': 'Sparkonto',
-  'tjänstepension': 'Tjänstepension',
-  'kapitalförsäkring': 'Kapitalförsäkring',
-  'pensionsförsäkring': 'Pensionsförsäkring',
-};
-
-function handleKontoFile(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    const text=ev.target.result.trim();
-    const lines=text.split('\n');if(lines.length<2){showCsvErr('File too short');return;}
-    const sep=lines[0].includes(';')?';':',';
-    const rawHeader=lines[0].replace(/^\uFEFF/,'');
-    const headers=rawHeader.split(sep).map(h=>h.trim().toLowerCase());
-    const typI=headers.findIndex(h=>h.includes('kontotyp')||h==='type');
-    const valI=headers.findIndex(h=>h.includes('totalvärde')||h.includes('value')||h.includes('total'));
-    const numI=headers.findIndex(h=>h.includes('kontonummer')||h==='account');
-    if(valI===-1){showCsvErr('Could not find value column in konto CSV');return;}
-
-    const accounts=lines.slice(1).map(line=>{
-      const cols=line.split(sep);
-      const rawVal=(cols[valI]||'0').replace(/\s/g,'').replace(',','.');
-      const value=parseFloat(rawVal)||0;
-      const typ=(typI>=0?(cols[typI]||''):'' ).trim().toLowerCase();
-      const num=(numI>=0?(cols[numI]||''):'').trim();
-      const displayName=KONTO_NAMES[typ]||(typ?typ.charAt(0).toUpperCase()+typ.slice(1):'Konto');
-      return{num,typ,displayName,value};
-    }).filter(a=>a.value>0); // skip zero-balance accounts
-
-    if(!accounts.length){showCsvErr('No accounts with balance found');return;}
-
-    // Deduplicate by type — if multiple of same type, label them 1, 2
-    const typeCounts={};
-    accounts.forEach(a=>{typeCounts[a.displayName]=(typeCounts[a.displayName]||0)+1;});
-    const typeIdx={};
-    accounts.forEach(a=>{
-      if(typeCounts[a.displayName]>1){
-        typeIdx[a.displayName]=(typeIdx[a.displayName]||0)+1;
-        a.label=a.displayName+' '+typeIdx[a.displayName];
-      } else {
-        a.label=a.displayName;
-      }
-      a.account='long'; // default
-      a.skip=false;
-    });
-
-    kontoImportData=accounts;
-    renderKontoModal();
-    document.getElementById('konto-overlay').classList.add('open');
-  };
-  reader.readAsText(file,'UTF-8');
-  e.target.value='';
-}
-
-function renderKontoModal(){
-  const rows=document.getElementById('konto-rows');
-  if(!rows)return;
-  rows.innerHTML=kontoImportData.map((a,i)=>`
-    <div class="konto-row" id="konto-row-${i}">
-      <div class="konto-row-info">
-        <div class="konto-row-name">${a.label}</div>
-        <div class="konto-row-val">${fmtC(toDisplay(a.value))} ${currLabel()}</div>
-      </div>
-      <div class="konto-acct-toggle">
-        <button onclick="setKontoAcct(${i},'long')" id="konto-long-${i}" class="active-long">Long</button>
-        <button onclick="setKontoAcct(${i},'trade')" id="konto-trade-${i}">Trade</button>
-      </div>
-      <button class="konto-skip-btn" onclick="toggleKontoSkip(${i})" id="konto-skip-${i}" title="Skip this account">✕</button>
-    </div>
-  `).join('');
-}
-
-function setKontoAcct(i,acct){
-  kontoImportData[i].account=acct;
-  document.getElementById('konto-long-'+i).className=acct==='long'?'active-long':'';
-  document.getElementById('konto-trade-'+i).className=acct==='trade'?'active-trade':'';
-}
-
-function toggleKontoSkip(i){
-  kontoImportData[i].skip=!kontoImportData[i].skip;
-  const row=document.getElementById('konto-row-'+i);
-  const btn=document.getElementById('konto-skip-'+i);
-  row.style.opacity=kontoImportData[i].skip?'0.35':'1';
-  btn.classList.toggle('skipped',kontoImportData[i].skip);
-  btn.title=kontoImportData[i].skip?'Include this account':'Skip this account';
-}
-
-function confirmKontoImport(){
-  const toImport=kontoImportData.filter(a=>!a.skip);
-  if(!toImport.length){document.getElementById('konto-overlay').classList.remove('open');return;}
-  // Remove existing cash-from-konto holdings (identified by _fromKonto flag)
-  // Also remove any that match by label to avoid duplicates
-  const labels=new Set(toImport.map(a=>a.label));
-  holdings=holdings.filter(h=>!(h._fromKonto&&labels.has(h.name)));
-  // Add new cash holdings
-  toImport.forEach(a=>{
-    holdings.push({
-      id:newId(),
-      name:a.label,
-      value:a.value,
-      sector:'Cash & Liquidity',
-      account:a.account,
-      stopLoss:null,
-      ticker:null,
-      _fromKonto:true,
-    });
-  });
-  document.getElementById('konto-overlay').classList.remove('open');
-  save();render();
-  showRefreshStatus('✅ '+toImport.length+' cash accounts imported','#3DD68C');
-}
-
-
-// ── Manual cash account ──────────────────────────────────────────
-let mcAcct='long';
-
-function openManualCash(){
-  document.getElementById('mc-name').value='';
-  document.getElementById('mc-value').value='';
-  document.getElementById('mc-curr-label').textContent=currLabel();
-  setMcAcct('long');
-  document.getElementById('manual-cash-overlay').classList.add('open');
-  setTimeout(()=>document.getElementById('mc-name').focus(),100);
-}
-
-function closeManualCash(){
-  document.getElementById('manual-cash-overlay').classList.remove('open');
-}
-
-function setMcAcct(acct){
-  mcAcct=acct;
-  document.getElementById('mc-acct-long').className='acct-sel-btn'+(acct==='long'?' sel-long':'');
-  document.getElementById('mc-acct-trade').className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
-}
-
-function saveManualCash(){
-  const name=document.getElementById('mc-name').value.trim();
-  const rawVal=parseFloat(document.getElementById('mc-value').value)||0;
-  if(!name||rawVal<=0)return;
-  const value=displayCurrency==='USD'?rawVal*liveUsdSek:rawVal;
-  holdings=holdings.filter(h=>!(h._fromKonto&&h.name===name));
-  holdings.push({id:newId(),name,value,sector:'Cash & Liquidity',account:mcAcct,stopLoss:null,ticker:null,_fromKonto:true});
-  closeManualCash();
-  save();render();
-  showRefreshStatus('✅ Cash account added: '+name,'#3DD68C');
-}
-
 function showCsvErr(msg){document.getElementById('csv-error').textContent=msg;}
 
 function exportData(){
@@ -2343,43 +1983,6 @@ function exportData(){
   const a=document.createElement('a');a.href=url;
   a.download=`portfolio-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-// ── FX Rate ────────────────────────────────────────────────────────
-// Fetch live USD/SEK (and other rates) independently of price refresh.
-// This runs on startup and periodically so the currency toggle is always
-// accurate even for portfolios that have no tickers.
-let fxRefreshTimer=null;
-
-async function refreshFxRate(silent=true){
-  if(!navigator.onLine)return;
-  try{
-    const url=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDSEK=X,EURSEK=X,CADSEK=X,GBPSEK=X&fields=regularMarketPrice`;
-    const data=await fetchWithFallback(url);
-    const quotes=data.quoteResponse?.result||[];
-    if(!quotes.length)return;
-    const usd=quotes.find(q=>q.symbol==='USDSEK=X')?.regularMarketPrice;
-    if(usd&&usd>0){
-      liveUsdSek=usd;
-      localStorage.setItem('pt_usd_sek_rate',String(usd));
-      localStorage.setItem('pt_fx_updated_ts',String(Date.now()));
-      updateFxUI();
-      if(!silent)showRefreshStatus(`💱 1 USD = ${usd.toFixed(4)} SEK`,'#7B68EE');
-    }
-  }catch(e){
-    // Silently fail — stale rate from localStorage will be used
-  }
-}
-
-function updateFxUI(){
-  // Update the FX display in the settings card if it's visible
-  const el=document.getElementById('fx-rate-display');
-  if(!el)return;
-  const ts=parseInt(localStorage.getItem('pt_fx_updated_ts')||'0');
-  const age=ts?Math.round((Date.now()-ts)/60000):null;
-  const ageStr=age===null?'never':age<1?'just now':age<60?`${age}m ago`:`${Math.round(age/60)}h ago`;
-  el.innerHTML=`<span style="color:#7B68EE;font-weight:700;font-size:16px">1 USD = ${liveUsdSek.toFixed(4)} SEK</span>
-    <span style="color:#555;font-size:11px;margin-left:8px">updated ${ageStr}</span>`;
 }
 
 // ── Price refresh ─────────────────────────────────────────────────
@@ -2497,46 +2100,22 @@ function showRefreshStatus(msg,color='#888'){
 }
 
 // ── Cash editor ───────────────────────────────────────────────────
-let cashEditorAccount='long';
-
-function setCashAccount(acct){
-  cashEditorAccount=acct;
-  document.getElementById('cash-btn-long').className='acct-sel-btn'+(acct==='long'?' sel-long':'');
-  document.getElementById('cash-btn-trade').className='acct-sel-btn'+(acct==='trade'?' sel-trade':'');
-  // Update input with the value for this account
-  const c=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account===acct);
-  document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
-  updateCashLabel();
-}
-
-function updateCashLabel(){
-  const longC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='long');
-  const tradeC=holdings.find(h=>h.sector==='Cash & Liquidity'&&h.account==='trade');
-  const parts=[];
-  if(longC)parts.push(`📈 ${fmtC(longC.value)} ${currLabel()}`);
-  if(tradeC)parts.push(`⚡ ${fmtC(tradeC.value)} ${currLabel()}`);
-  document.getElementById('cash-current-label').textContent=parts.length?parts.join('  ·  '):'No cash set yet';
-}
-
 function openCashEditor(){
-  cashEditorAccount=acctFilter==='trade'?'trade':'long';
-  setCashAccount(cashEditorAccount);
+  const c=holdings.find(h=>h.sector==='Cash & Liquidity');
+  document.getElementById('cash-input').value=c?fmtDec(toDisplay(c.value),2):'';
+  document.getElementById('cash-current-label').textContent=c?`Current: ${fmtC(c.value)} ${currLabel()}`:'No cash set yet';
   const cashLabel=document.getElementById('cash-amount-label');
   if(cashLabel)cashLabel.textContent=`Amount (${displayCurrency})`;
-  updateCashLabel();
   document.getElementById('cash-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('cash-input').focus(),100);
 }
-
 function closeCashEditor(){document.getElementById('cash-overlay').classList.remove('open');}
-
 function saveCash(){
   const raw=parseFloat(document.getElementById('cash-input').value);
   if(isNaN(raw)||raw<0)return;
-  const val=displayCurrency==='USD'?raw*liveUsdSek:raw;
-  // Remove existing cash for this account only, keep the other account's cash
-  holdings=holdings.filter(h=>!(h.sector==='Cash & Liquidity'&&h.account===cashEditorAccount));
-  if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:cashEditorAccount,stopLoss:null});
+  const val=displayCurrency==='USD'?raw*liveUsdSek:raw; // convert to SEK for storage
+  holdings=holdings.filter(h=>h.sector!=='Cash & Liquidity');
+  if(val>0)holdings.push({id:newId(),name:'Cash',value:val,sector:'Cash & Liquidity',account:'long',stopLoss:null});
   save();render();closeCashEditor();
 }
 
@@ -2566,7 +2145,6 @@ async function initFirebase(){
       if(user){
         syncUid=user.uid;
         setSyncUI(true,user);
-        dismissWelcome();
         startSync();
       }else{
         syncUid=null;
@@ -2689,11 +2267,7 @@ async function signOut(){
   await firebase.auth().signOut();
   syncUid=null;
   setSyncUI(false);
-  showRefreshStatus('Signed out — data saved locally','#888');
-  if(!(loadData()||[]).length){
-    const ws=document.getElementById('welcome-screen');
-    ws.style.display='flex';ws.style.opacity='1';ws.style.pointerEvents='auto';
-  }
+  showRefreshStatus('Signed out','#888');
 }
 
 async function pushToFirebase(){
@@ -2775,189 +2349,79 @@ function autoBackup(force=false){
   }catch(e){}
 }
 
-// ── Welcome Screen ────────────────────────────────────────────────
-function dismissWelcome(){
-  const ws=document.getElementById('welcome-screen');
-  if(!ws||ws.style.display==='none')return;
-  ws.style.opacity='0';
-  ws.style.pointerEvents='none';
-  setTimeout(()=>ws.style.display='none',400);
+// ── cTrader Live Balance ──────────────────────────────────────────
+let _ctraderTimer=null;
+
+async function fetchCtraderBalance(manual=false){
+  const url=settings.ctraderProxyUrl;
+  const statusEl=document.getElementById('ctrader-settings-status');
+  const liveEl=document.getElementById('ctrader-live');
+  const valEl=document.getElementById('ctrader-live-val');
+  const dotEl=document.getElementById('ctrader-dot');
+  if(!url){
+    if(liveEl)liveEl.style.display='none';
+    return;
+  }
+  try{
+    const res=await fetch(`${url}/data`,{signal:AbortSignal.timeout(8000)});
+    if(res.status===401){
+      const d=await res.json();
+      if(statusEl)statusEl.innerHTML=`🔴 Not authenticated — <a href="${d.authUrl||url+'/auth'}" target="_blank" style="color:#7B68EE">connect cTrader →</a>`;
+      if(dotEl){dotEl.style.background='#ff4444';}
+      if(liveEl)liveEl.style.display='block';
+      if(valEl)valEl.textContent='Not connected';
+      return;
+    }
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    const accts=data.accounts||[];
+    if(!accts.length){
+      if(statusEl&&manual)statusEl.textContent='⚠️ No live accounts found';
+      if(dotEl)dotEl.style.background='#F7931A';
+      if(valEl)valEl.textContent='No accounts';
+      if(liveEl)liveEl.style.display='block';
+      return;
+    }
+    const total=accts.reduce((s,a)=>s+(a.balance||0),0);
+    const currency=accts[0].currency||'USD';
+    if(dotEl)dotEl.style.background='#3DD68C';
+    if(valEl)valEl.textContent=`${total.toLocaleString('en-US',{maximumFractionDigits:0})} ${currency}`;
+    if(liveEl)liveEl.style.display='block';
+    if(statusEl&&manual){
+      const ago=data.lastSync?new Date(data.lastSync).toLocaleTimeString():'—';
+      statusEl.textContent=`✅ Connected · ${accts.length} account${accts.length>1?'s':''} · synced ${ago}`;
+      statusEl.style.color='#3DD68C';
+    }
+  }catch(e){
+    if(dotEl)dotEl.style.background='#ff4444';
+    if(valEl)valEl.textContent='Offline';
+    if(liveEl)liveEl.style.display='block';
+    if(statusEl&&manual){statusEl.textContent=`❌ ${e.message}`;statusEl.style.color='#ff6666';}
+  }
 }
-function welcomeSignIn(){dismissWelcome();setTimeout(()=>signInWithGoogle(),100);}
-function welcomeGuest(){
-  dismissWelcome();
-  showRefreshStatus('⚠️ Guest mode — data saved locally. Sign in via Settings for cloud sync.','#F7931A');
+
+function startCtraderPolling(){
+  if(_ctraderTimer)clearInterval(_ctraderTimer);
+  fetchCtraderBalance();
+  if(settings.ctraderProxyUrl)_ctraderTimer=setInterval(fetchCtraderBalance,30000);
 }
 
 // ── Init ──────────────────────────────────────────────────────────
 settings=loadSettings();
-targets=loadTargets();
-goals=loadGoals();
-holdings=loadData()||[];
-// Normalise loaded data — apply defaults for missing fields, strip legacy unused fields
+targets={'Gold':15,'Silver':20,'Base Metals Mining':10,'Bonds':8,'Semiconductors ETF':12,'Crypto/Bitcoin Mining':5,'Construction':5};
+goals={portfolioGoal:{target:1500000,date:'2026-12-31'},longTermPct:{target:80},deposit:{amount:15000,day:25}};
+holdings=JSON.parse(JSON.stringify(INITIAL));
 holdings=holdings.map(({stopPct,...h})=>({...h,account:h.account||'long',ticker:h.ticker||null}));
 render();
 
 // Init Firebase sync (non-blocking)
 initFirebase();
 
+// cTrader live balance polling (every 30s)
+setTimeout(startCtraderPolling, 2500);
+
 // Weekly auto-backup (runs 3 seconds after open so UI is ready)
 setTimeout(()=>autoBackup(),3000);
-
-
-// ── Avanza Integration (local proxy on localhost:3001) ────────────
-const AVANZA_SERVER_DEFAULT='http://localhost:3001';
-function getAvanzaServer(){return localStorage.getItem('pt_avanza_server')||AVANZA_SERVER_DEFAULT;}
-function setAvanzaServer(url){localStorage.setItem('pt_avanza_server',url.replace(/\/$/,''));}
-
-async function checkAvanzaStatus(){
-  const box=document.getElementById('avanza-status-box');
-  try{
-    const res=await fetch(getAvanzaServer()+'/status',{signal:AbortSignal.timeout(2000)});
-    const data=await res.json();
-    if(box){
-      if(data.authenticated){
-        const sync=data.lastSync?new Date(data.lastSync).toLocaleTimeString():'never';
-        box.innerHTML=`<span style="color:#F7931A">🟢 Connected · ${data.accounts} accounts · ${data.positions} positions · last sync ${sync}</span>`;
-        syncAvanzaData();
-      }else{
-        box.innerHTML='<span style="color:#F7931A">🟡 Server running — not authenticated yet</span>';
-      }
-    }
-  }catch(e){
-    if(box)box.innerHTML='<span style="color:#555">⚪ Check local server — run <code>node server.js</code> in avanza-proxy folder</span>';
-  }
-}
-
-async function refreshAvanza(){
-  try{
-    showRefreshStatus('🔄 Syncing Avanza…','#F7931A');
-    const res=await fetch(getAvanzaServer()+'/refresh',{signal:AbortSignal.timeout(5000)});
-    if(res.ok)await syncAvanzaData();
-    else showRefreshStatus('❌ Avanza sync failed','#ff4444');
-  }catch(e){showRefreshStatus('❌ Check local server — is avanza-proxy running?','#ff4444');}
-}
-
-async function syncAvanzaData(){
-  try{
-    const res=await fetch(getAvanzaServer()+'/data',{signal:AbortSignal.timeout(5000)});
-    if(!res.ok)return;
-    const data=await res.json();
-    holdings=holdings.filter(h=>!h._fromAvanza);
-    (data.accounts||[]).forEach(acct=>{
-      if((acct.balance||0)<=0)return;
-      holdings.push({id:'avanza-bal-'+acct.id,name:acct.name||acct.type,value:acct.balance,
-        sector:'Cash & Liquidity',account:'long',stopLoss:null,ticker:null,
-        _fromKonto:true,_fromAvanza:true,notes:`Buying power: ${fmtC(acct.buyingPower||0)} SEK`});
-    });
-    (data.positions||[]).forEach(pos=>{
-      if((pos.value||0)<=0)return;
-      const valueSek=pos.currency==='SEK'?pos.value:pos.value*liveUsdSek;
-      const buyPriceSek=pos.buyPrice?(pos.currency==='SEK'?pos.buyPrice:pos.buyPrice*liveUsdSek):null;
-      const currPriceSek=pos.currentPrice?(pos.currency==='SEK'?pos.currentPrice:pos.currentPrice*liveUsdSek):null;
-      holdings.push({id:'avanza-pos-'+(pos.isin||pos.name),name:pos.name,ticker:pos.ticker||null,
-        value:valueSek,sector:guessSector(pos.name,pos.ticker,pos.type||'STOCK')||'Other',
-        account:'long',stopLoss:null,buyPrice:buyPriceSek,currentPrice:currPriceSek,
-        shares:pos.volume||null,_fromAvanza:true,notes:pos.profit?`P&L: ${pos.profit.toFixed(1)}%`:''});
-    });
-    save();render();
-    showRefreshStatus(`✅ Avanza synced · ${(data.positions||[]).length} positions`,'#F7931A');
-    checkAvanzaStatus();
-  }catch(e){console.warn('Avanza sync error:',e.message);}
-}
-
-// ── cTrader Integration (local proxy on localhost:3000) ───────────
-const CTRADER_SERVER_DEFAULT='http://localhost:3000';
-function getCTraderServer(){return localStorage.getItem('pt_ctrader_server')||CTRADER_SERVER_DEFAULT;}
-function setCTraderServer(url){localStorage.setItem('pt_ctrader_server',url.replace(/\/$/,''));}
-let ctraderConnected=false;
-
-async function checkCTraderStatus(){
-  const box=document.getElementById('ctrader-status-box');
-  try{
-    const res=await fetch(getCTraderServer()+'/status',{signal:AbortSignal.timeout(2000)});
-    const data=await res.json();
-    ctraderConnected=data.connected&&data.authenticated;
-    if(box){
-      if(ctraderConnected){
-        const sync=data.lastSync?new Date(data.lastSync).toLocaleTimeString():'never';
-        box.innerHTML=`<span style="color:#3DD68C">🟢 Connected · ${data.accounts} account(s) · last sync ${sync}</span>`;
-        syncCTraderData();
-      }else if(data.authenticated){
-        box.innerHTML='<span style="color:#F7931A">🟡 Authenticated — connecting to API…</span>';
-      }else{
-        box.innerHTML='<span style="color:#F7931A">🟡 Server running — tap Connect to authenticate</span>';
-      }
-    }
-  }catch(e){
-    ctraderConnected=false;
-    if(box)box.innerHTML='<span style="color:#555">⚪ Check local server — run <code>node server.js</code> in ctrader-proxy folder</span>';
-  }
-}
-
-async function connectCTrader(){
-  try{
-    await fetch(getCTraderServer()+'/status',{signal:AbortSignal.timeout(2000)});
-    window.open(getCTraderServer()+'/auth','_blank');
-    showRefreshStatus('🔑 Opening cTrader login…','#7B68EE');
-    let attempts=0;
-    const poll=setInterval(async()=>{
-      attempts++;
-      await checkCTraderStatus();
-      if(ctraderConnected||attempts>30)clearInterval(poll);
-    },3000);
-  }catch(e){showRefreshStatus('❌ Check local server — is ctrader-proxy running?','#ff4444');}
-}
-
-async function refreshCTrader(){
-  try{
-    showRefreshStatus('🔄 Syncing cTrader…','#7B68EE');
-    const res=await fetch(getCTraderServer()+'/refresh',{signal:AbortSignal.timeout(5000)});
-    if(res.ok)await syncCTraderData();
-    else showRefreshStatus('❌ cTrader sync failed','#ff4444');
-  }catch(e){showRefreshStatus('❌ Check local server — is ctrader-proxy running?','#ff4444');}
-}
-
-async function syncCTraderData(){
-  try{
-    const res=await fetch(getCTraderServer()+'/data',{signal:AbortSignal.timeout(5000)});
-    if(!res.ok)return;
-    const data=await res.json();
-    holdings=holdings.filter(h=>!h._fromCTrader);
-    (data.accounts||[]).forEach(acct=>{
-      const eq=acct.equity||acct.balance||0;
-      const valueSek=(acct.currency||'USD')==='SEK'?eq:eq*liveUsdSek;
-      if(valueSek<=0)return;
-      holdings.push({id:'ctrader-bal-'+acct.id,name:acct.name||'cTrader Live',value:valueSek,
-        sector:'Cash & Liquidity',account:'trade',stopLoss:null,ticker:null,
-        _fromKonto:true,_fromCTrader:true,notes:`Equity: ${eq.toFixed(2)} ${acct.currency||'USD'}`});
-    });
-    (data.positions||[]).forEach(pos=>{
-      if(!pos.symbol)return;
-      holdings.push({id:'ctrader-pos-'+pos.positionId,name:`${pos.symbol} ${pos.side||''}`.trim(),
-        value:Math.max(0,pos.volume||0),sector:guessCTraderSector(pos.symbol),
-        account:'trade',stopLoss:null,ticker:null,_fromCTrader:true,
-        notes:`Vol: ${pos.volume} · Open: ${pos.openPrice}`});
-    });
-    save();render();
-    showRefreshStatus(`✅ cTrader synced · ${(data.positions||[]).length} positions`,'#3DD68C');
-    checkCTraderStatus();
-  }catch(e){console.warn('cTrader sync error:',e.message);}
-}
-
-function guessCTraderSector(symbol){
-  const s=(symbol||'').toUpperCase();
-  if(/XAU|GOLD/.test(s))return 'Gold';
-  if(/XAG|SILVER/.test(s))return 'Silver';
-  if(/BTC|ETH|CRYPTO/.test(s))return 'Crypto/Bitcoin Mining';
-  if(/SPX|NDX|DAX|INDEX/.test(s))return 'Index (Leverage)';
-  return 'Other';
-}
-
-// Check both on load
-setTimeout(checkAvanzaStatus,5000);
-setTimeout(checkCTraderStatus,4000);
-setInterval(()=>{refreshAvanza();if(ctraderConnected)syncCTraderData();},15*60*1000);
 
 // Auto-refresh prices 2s after load, then every 15 min during market hours
 setTimeout(async()=>{
@@ -2966,11 +2430,6 @@ setTimeout(async()=>{
     if(isMarketHours())refreshPrices(true);
   },15*60*1000);
 },2000);
-
-// Fetch FX rate independently — runs even if user has no tickers
-// Gives an accurate USD/SEK rate for the currency toggle
-setTimeout(()=>refreshFxRate(true),3500);
-setInterval(()=>refreshFxRate(true),30*60*1000);
 </script>
 </body>
 </html>
