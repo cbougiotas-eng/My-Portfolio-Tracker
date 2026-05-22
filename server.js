@@ -7,6 +7,7 @@ require('dotenv').config();
 const http  = require('http');
 const https = require('https');
 const url   = require('url');
+const fs    = require('fs');
 
 const PORT          = process.env.PORT            || 3000;
 const CLIENT_ID     = process.env.CTRADER_CLIENT_ID;
@@ -20,9 +21,28 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1);
 }
 
+// ── Token persistence ─────────────────────────────────────────────
+const TOKEN_FILE = process.env.DATA_DIR ? `${process.env.DATA_DIR}/tokens.json` : '/data/tokens.json';
+
+function saveTokens() {
+  try {
+    fs.mkdirSync(require('path').dirname(TOKEN_FILE), { recursive: true });
+    fs.writeFileSync(TOKEN_FILE, JSON.stringify({ accessToken, refreshToken }));
+  } catch {}
+}
+
+function loadTokens() {
+  try {
+    const t = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf8'));
+    accessToken  = t.accessToken  || null;
+    refreshToken = t.refreshToken || null;
+    if (accessToken) console.log('🔑 Tokens restored from disk');
+  } catch {}
+}
+
 // ── State ─────────────────────────────────────────────────────────
 let accessToken  = null;
-let refreshToken  = null;
+let refreshToken = null;
 let accounts     = [];
 let positions    = [];
 let balances     = {};
@@ -103,6 +123,7 @@ async function refreshAccessToken() {
   if (res.data.access_token) {
     accessToken  = res.data.access_token;
     refreshToken = res.data.refresh_token || refreshToken;
+    saveTokens();
     console.log('🔑 Token refreshed');
     return true;
   }
@@ -211,6 +232,7 @@ const server = http.createServer(async (req, res) => {
       if (t.error) throw new Error(t.error_description || t.error);
       accessToken  = t.access_token;
       refreshToken = t.refresh_token;
+      saveTokens();
       console.log('🔑 Token received — syncing...');
       await syncData();
       page(res, 'Connected!', `
@@ -242,6 +264,9 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(404); res.end('Not found');
 });
+
+loadTokens();
+if (accessToken) syncData();
 
 server.listen(PORT, () => {
   console.log(`\n🚀 cTrader Proxy running at http://localhost:${PORT}`);
